@@ -2,13 +2,14 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:validatorless/validatorless.dart';
 import 'package:vocatus/app/core/constants/constants.dart';
-import 'package:vocatus/app/core/widgets/custom_drop.dart';
-import 'package:vocatus/app/core/widgets/custom_popbutton.dart';
-import 'package:vocatus/app/core/widgets/custom_text_field.dart';
-import 'package:vocatus/app/core/widgets/custom_dialog.dart';
-import 'package:vocatus/app/models/classe.dart';
-import 'package:vocatus/app/models/student.dart';
-import './students_controller.dart';
+import 'package:vocatus/app/core/widgets/custom_drop.dart'; // Certifique-se de que este widget está disponível
+import 'package:vocatus/app/core/widgets/custom_error_dialog.dart'; // Diálogo de erro customizado
+import 'package:vocatus/app/core/widgets/custom_popbutton.dart'; // Widget de menu de contexto customizado
+import 'package:vocatus/app/core/widgets/custom_text_field.dart'; // Campo de texto customizado
+import 'package:vocatus/app/core/widgets/custom_dialog.dart'; // Diálogo customizado para mensagens
+import 'package:vocatus/app/models/classe.dart'; // Modelo de Classe
+import 'package:vocatus/app/models/student.dart'; // Modelo de Student
+import './students_controller.dart'; // Importa o controller completo e atualizado
 
 class StudentsPage extends GetView<StudentsController> {
   const StudentsPage({super.key});
@@ -38,217 +39,7 @@ class StudentsPage extends GetView<StudentsController> {
             color: Colors.white,
             onPressed: () async {
               controller.resetImportFilters();
-              if (context.mounted) {
-                showDialog(
-                  context: context,
-                  builder: (_) => Dialog(
-                    insetPadding: const EdgeInsets.all(20),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxHeight: MediaQuery.of(context).size.height * 0.8,
-                        maxWidth: 600,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Importar Alunos',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Icon(Icons.file_download, size: 24),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                            Obx(() {
-                              return DropdownButtonFormField<
-                                ClasseFilterStatus
-                              >(
-                                decoration: const InputDecoration(
-                                  labelText: 'Status da Turma',
-                                  border: OutlineInputBorder(),
-                                ),
-                                value: controller.selectedFilterStatus.value,
-                                items: ClasseFilterStatus.values.map((status) {
-                                  String label;
-                                  switch (status) {
-                                    case ClasseFilterStatus.active:
-                                      label = 'Ativas';
-                                      break;
-                                    case ClasseFilterStatus.archived:
-                                      label = 'Arquivadas';
-                                      break;
-                                    case ClasseFilterStatus.all:
-                                      label = 'Todas';
-                                      break;
-                                  }
-                                  return DropdownMenuItem(
-                                    value: status,
-                                    child: Text(label),
-                                  );
-                                }).toList(),
-                                onChanged: (status) {
-                                  controller.selectedFilterStatus.value =
-                                      status;
-                                  controller.loadAvailableYears();
-                                },
-                                hint: const Text('Selecione o status'),
-                              );
-                            }),
-                            const SizedBox(height: 16),
-                            Obx(() {
-                              int? dropdownValue =
-                                  controller.selectedYear.value == 0
-                                  ? null
-                                  : controller.selectedYear.value;
-                              return DropdownButtonFormField<int>(
-                                decoration: const InputDecoration(
-                                  labelText: 'Ano Letivo',
-                                  border: OutlineInputBorder(),
-                                ),
-                                value: dropdownValue,
-                                items: controller.availableYears.map((year) {
-                                  return DropdownMenuItem(
-                                    value: year,
-                                    child: Text(year.toString()),
-                                  );
-                                }).toList(),
-                                onChanged: (year) {
-                                  controller.selectedYear.value = year ?? 0;
-                                  controller.loadAvailableClasses();
-                                },
-                                hint: controller.availableYears.isEmpty
-                                    ? const Text('Nenhum ano disponível')
-                                    : const Text('Selecione o ano'),
-                              );
-                            }),
-                            const SizedBox(height: 16),
-                            Obx(() {
-                              return DropdownButtonFormField<Classe>(
-                                decoration: const InputDecoration(
-                                  labelText: 'Turma de Origem',
-                                  border: OutlineInputBorder(),
-                                ),
-                                value: controller.selectedClasseToImport.value,
-                                items: controller.availableClasses.map((
-                                  classe,
-                                ) {
-                                  return DropdownMenuItem(
-                                    value: classe,
-                                    child: Text(
-                                      '${classe.name} ',
-                                    ) /* (${classe.schoolYear}) - ${classe.active! ? "Ativa" : "Arquivada"} */,
-                                  );
-                                }).toList(),
-                                onChanged: (classe) {
-                                  controller.selectedClasseToImport.value =
-                                      classe;
-                                  controller.loadStudentsFromSelectedClasse();
-                                },
-                                hint: controller.availableClasses.isEmpty
-                                    ? const Text('Nenhuma turma disponível')
-                                    : const Text('Selecione a turma de origem'),
-                              );
-                            }),
-                            const SizedBox(height: 20),
-                            Obx(() {
-                              if (controller
-                                  .studentsFromSelectedClasse
-                                  .isEmpty) {
-                                if (controller.selectedClasseToImport.value !=
-                                    null) {
-                                  return const Expanded(
-                                    child: Center(
-                                      child: Text('Nenhum aluno nesta turma.'),
-                                    ),
-                                  );
-                                }
-                                return const SizedBox.shrink();
-                              }
-                              return Expanded(
-                                child: ListView.separated(
-                                  physics:
-                                      const AlwaysScrollableScrollPhysics(),
-                                  itemCount: controller
-                                      .studentsFromSelectedClasse
-                                      .length,
-                                  itemBuilder: (context, index) {
-                                    final student = controller
-                                        .studentsFromSelectedClasse[index];
-                                    return Obx(
-                                      () => CheckboxListTile(
-                                        contentPadding: EdgeInsets.zero,
-                                        controlAffinity:
-                                            ListTileControlAffinity.leading,
-                                        value: controller
-                                            .selectedStudentsToImport
-                                            .contains(student),
-                                        title: Text(
-                                          student.name,
-                                          style: const TextStyle(fontSize: 16),
-                                        ),
-                                        onChanged: (selected) {
-                                          controller.toggleStudentToImport(
-                                            student,
-                                            selected ?? false,
-                                          );
-                                        },
-                                      ),
-                                    );
-                                  },
-                                  separatorBuilder: (_, __) =>
-                                      const Divider(height: 1),
-                                ),
-                              );
-                            }),
-                            const SizedBox(height: 20),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                TextButton(
-                                  style: TextButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                    ),
-                                  ),
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  child: const Text('CANCELAR'),
-                                ),
-                                const SizedBox(width: 8),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                    ),
-                                  ),
-                                  onPressed: () async {
-                                    if (controller
-                                        .selectedStudentsToImport
-                                        .isEmpty) {
-                                      return;
-                                    }
-                                    await controller
-                                        .importSelectedStudentsToCurrentClasse();
-                                  },
-                                  child: const Text('IMPORTAR'),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }
+              _showImportStudentsDialog(context);
             },
           ),
         ],
@@ -277,14 +68,12 @@ class StudentsPage extends GetView<StudentsController> {
                   ),
                 );
               }
-              controller.students.sort(
-                (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
-              );
               return ListView.builder(
                 itemCount: controller.students.length,
                 itemBuilder: (context, index) {
                   final student = controller.students[index];
                   return Card(
+                    key: ValueKey(student.id),
                     elevation: 2,
                     margin: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -294,6 +83,13 @@ class StudentsPage extends GetView<StudentsController> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.purple.shade100,
+                        child: Icon(
+                          Icons.person,
+                          color: Colors.purple.shade800,
+                        ),
+                      ),
                       title: Text(
                         student.name,
                         style: const TextStyle(
@@ -304,36 +100,56 @@ class StudentsPage extends GetView<StudentsController> {
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
+                      subtitle: Text(
+                        (student.active ?? true) ? 'Status: Ativo' : 'Status: Inativo',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: (student.active ?? true) ? Colors.green.shade700 : Colors.deepOrange.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                       trailing: CustomPopupMenu(
                         items: [
                           CustomPopupMenuItem(
                             label: 'Editar',
                             icon: Icons.edit,
-                            onTap: () => _showEditStudentDialog(student),
+                            onTap: () => _showConfirmationDialog(
+                              context: context,
+                              title: 'Confirmar Edição',
+                              message: 'Você irá editar os dados do aluno "${student.name}". Deseja continuar?',
+                              onConfirm: () => _showEditStudentDialog(student),
+                            ),
                           ),
                           CustomPopupMenuItem(
                             label: 'Transferir',
                             icon: Icons.swap_horiz,
-                            onTap: () async {
-                              await controller.loadClassesForTransfer();
-                              _showTransferStudentDialog(student);
-                            },
+                            onTap: () => _showConfirmationDialog(
+                              context: context,
+                              title: 'Confirmar Transferência',
+                              message: 'Você irá transferir o aluno "${student.name}" para outra turma. Ele será removido desta turma e adicionado à nova. Deseja continuar?',
+                              onConfirm: () async {
+                                await controller.loadClassesForTransfer();
+                                _showTransferStudentDialog(student);
+                              },
+                            ),
                           ),
                           CustomPopupMenuItem(
-                            label: 'Colar',
-                            icon: Icons.paste,
-                            onTap: () async {
-                              controller.studentEditNameEC.text = student.name;
-                              Get.snackbar(
-                                'Colado',
-                                'Nome do aluno colado no campo de edição!',
-                              );
-                            },
+                            label: 'Duplicar',
+                            icon: Icons.copy,
+                            onTap: () => _showConfirmationDialog(
+                              context: context,
+                              title: 'Confirmar Duplicação',
+                              message: 'Você irá duplicar o aluno "${student.name}" para outra turma. Ele permanecerá nesta turma e será adicionado à nova. Deseja continuar?',
+                              onConfirm: () async {
+                                await controller.loadClassesForTransfer();
+                                _showCopyStudentDialog(student);
+                              },
+                            ),
                           ),
                           CustomPopupMenuItem(
-                            label: 'Apagar',
-                            icon: Icons.delete,
-                            onTap: () => _showDeleteStudentDialog(student),
+                            label: (student.active ?? true) ? 'Desativar' : 'Ativar',
+                            icon: (student.active ?? true) ? Icons.visibility_off : Icons.visibility,
+                            onTap: () => _showToggleStudentStatusDialog(student),
                           ),
                         ],
                       ),
@@ -369,95 +185,317 @@ class StudentsPage extends GetView<StudentsController> {
     );
   }
 
-  void _showEditStudentDialog(Student student) {
-    controller.studentEditNameEC.text = student.name;
-    showDialog(
-      context: Get.context!,
-      builder: (_) => CustomDialog(
-        title: 'Editar Aluno',
-        icon: Icons.edit,
-        content: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Form(
-            key: controller.formEditKey,
-            child: CustomTextField(
-              validator: Validatorless.required('campo obrigatório!'),
-              controller: controller.studentEditNameEC,
-              maxLines: 1,
-            ),
-          ),
-        ),
+  Future<void> _showConfirmationDialog({
+    required BuildContext context,
+    required String title,
+    required String message,
+    required VoidCallback onConfirm,
+  }) async {
+    Get.dialog(
+      CustomDialog(
+        title: title,
+        content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
-            onPressed: () async {
-              if (controller.formEditKey.currentState!.validate()) {
-                Student updatedStudent = student.copyWith(
-                  name: controller.studentEditNameEC.text.trim(),
-                );
-                await controller.updateStudent(updatedStudent);
-                controller.studentEditNameEC.clear();
-              }
+            onPressed: () {
               Get.back();
+              onConfirm();
             },
-            child: const Text('Atualizar'),
+            child: const Text('Continuar'),
           ),
         ],
       ),
+      barrierDismissible: false,
+    );
+  }
+
+  void _showEditStudentDialog(Student student) {
+    controller.studentEditNameEC.text = student.name;
+    Get.dialog(
+      Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return CustomDialog(
+          title: 'Editar Aluno',
+          icon: Icons.edit,
+          content: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Form(
+              key: controller.formEditKey,
+              child: CustomTextField(
+                validator: Validatorless.required('Campo obrigatório!'),
+                controller: controller.studentEditNameEC,
+                maxLines: 1,
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (controller.formEditKey.currentState!.validate()) {
+                  await controller.updateStudent(
+                    student.copyWith(
+                      name: controller.studentEditNameEC.text.trim(),
+                    ),
+                  );
+                  controller.studentEditNameEC.clear();
+                  Get.back();
+                }
+              },
+              child: const Text('Atualizar'),
+            ),
+          ],
+        );
+      }),
+      barrierDismissible: false,
+    );
+  }
+
+  // Diálogo de Importação de Alunos (sem filtros)
+  void _showImportStudentsDialog(BuildContext context) {
+    Get.dialog(
+      Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return Dialog(
+          insetPadding: const EdgeInsets.all(20),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.8,
+              maxWidth: 600,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Importar Alunos',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Icon(Icons.file_download, size: 24),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  DropdownButtonFormField<int>(
+                    decoration: const InputDecoration(
+                      labelText: 'Ano Letivo',
+                      border: OutlineInputBorder(),
+                    ),
+                    value: controller.selectedYear.value,
+                    items: controller.availableYears.map((year) {
+                      return DropdownMenuItem(
+                        value: year,
+                        child: Text(year.toString()),
+                      );
+                    }).toList(),
+                    onChanged: (year) {
+                      controller.selectedYear.value = year;
+                      controller.loadAvailableClasses();
+                    },
+                    hint: controller.availableYears.isEmpty
+                        ? const Text('Nenhum ano disponível')
+                        : const Text('Selecione o ano'),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<Classe>(
+                    decoration: const InputDecoration(
+                      labelText: 'Turma de Origem',
+                      border: OutlineInputBorder(),
+                    ),
+                    value: controller.selectedClasseToImport.value,
+                    items: controller.availableClasses.map((classe) {
+                      return DropdownMenuItem(
+                        value: classe,
+                        child: Text(
+                            '${classe.name} (${classe.schoolYear}) - ${classe.active! ? "Ativa" : "Arquivada"}'),
+                      );
+                    }).toList(),
+                    onChanged: (classe) {
+                      controller.selectedClasseToImport.value = classe;
+                      controller.loadStudentsFromSelectedClasse();
+                    },
+                    hint: controller.availableClasses.isEmpty
+                        ? const Text('Nenhuma turma disponível')
+                        : const Text('Selecione a turma de origem'),
+                  ),
+                  const SizedBox(height: 20),
+                  if (controller.isLoading.value)
+                    const Center(child: CircularProgressIndicator())
+                  else if (controller.selectedClasseToImport.value != null &&
+                      controller.studentsFromSelectedClasse.isEmpty)
+                    const Expanded(
+                      child: Center(
+                        child: Text('Nenhum aluno nesta turma.'),
+                      ),
+                    )
+                  else if (controller.selectedClasseToImport.value == null)
+                    const SizedBox.shrink()
+                  else
+                    Expanded(
+                      child: ListView.separated(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: controller.studentsFromSelectedClasse.length,
+                        itemBuilder: (context, index) {
+                          final student = controller.studentsFromSelectedClasse[index];
+                          return CheckboxListTile(
+                            contentPadding: EdgeInsets.zero,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            value: controller.selectedStudentsToImport.contains(student),
+                            title: Text(student.name, style: const TextStyle(fontSize: 16)),
+                            onChanged: (selected) {
+                              controller.toggleStudentToImport(
+                                student,
+                                selected ?? false,
+                              );
+                            },
+                          );
+                        },
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                      ),
+                    ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16)),
+                        onPressed: () => Get.back(),
+                        child: const Text('CANCELAR'),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16)),
+                        onPressed: () async {
+                          await controller.importSelectedStudentsToCurrentClasse();
+                        },
+                        child: const Text('IMPORTAR'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }),
       barrierDismissible: false,
     );
   }
 
   void _showTransferStudentDialog(Student student) {
-    showDialog(
-      context: Get.context!,
-      builder: (_) => CustomDialog(
-        title: 'Transferir Aluno',
-        icon: Icons.swap_horiz,
-        content: Obx(() {
-          return CustomDrop<Classe>(
-            items: controller.classesForTransfer,
-            value: controller.selectedClasseForTransfer.value,
-            labelBuilder: (c) => '${c.name} (${c.schoolYear})',
-            onChanged: (c) => controller.selectedClasseForTransfer.value = c,
-            hint: 'Selecione uma turma de destino',
-          );
-        }),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await controller.moveStudentAcrossClasses(student);
-            },
-            child: const Text('Transferir'),
-          ),
-        ],
-      ),
+    Get.dialog(
+      Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return CustomDialog(
+          title: 'Transferir Aluno',
+          icon: Icons.swap_horiz,
+          content: controller.classesForTransfer.isEmpty
+              ? const Text('Nenhuma outra turma disponível para transferência.')
+              : CustomDrop<Classe>(
+                  items: controller.classesForTransfer,
+                  value: controller.selectedClasseForTransfer.value,
+                  labelBuilder: (c) => '${c.name} (${c.schoolYear})',
+                  onChanged: (c) => controller.selectedClasseForTransfer.value = c,
+                  hint: 'Selecione uma turma de destino',
+                ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await controller.moveStudentAcrossClasses(student);
+              },
+              child: const Text('Transferir'),
+            ),
+          ],
+        );
+      }),
       barrierDismissible: false,
     );
   }
 
-  void _showDeleteStudentDialog(Student student) {
-    showDialog(
-      context: Get.context!,
-      builder: (_) => CustomDialog(
-        title: 'Apagar Aluno',
-        content: Text(
-          'Tem certeza que deseja apagar o aluno "${student.name}"?',
-        ),
+  void _showCopyStudentDialog(Student student) {
+    Get.dialog(
+      Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return CustomDialog(
+          title: 'Duplicar Aluno',
+          icon: Icons.copy,
+          content: controller.classesForTransfer.isEmpty
+              ? const Text('Nenhuma outra turma disponível para duplicar.')
+              : CustomDrop<Classe>(
+                  items: controller.classesForTransfer,
+                  value: controller.selectedClasseForTransfer.value,
+                  labelBuilder: (c) => '${c.name} (${c.schoolYear})',
+                  onChanged: (c) => controller.selectedClasseForTransfer.value = c,
+                  hint: 'Selecione uma turma de destino',
+                ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final targetClasse = controller.selectedClasseForTransfer.value;
+                if (targetClasse == null || targetClasse.id == null) {
+                  Get.dialog(CustomErrorDialog(title: 'Atenção', message: 'Selecione uma turma de destino válida.'));
+                  return;
+                }
+                await controller.duplicateStudentToOtherClasse(student, targetClasse.id!);
+                Get.back();
+              },
+              child: const Text('Duplicar'),
+            ),
+          ],
+        );
+      }),
+      barrierDismissible: false,
+    );
+  }
+
+  void _showToggleStudentStatusDialog(Student student) {
+    final isCurrentlyActive = student.active ?? true;
+    final actionText = isCurrentlyActive ? 'Desativar' : 'Ativar';
+    final message = isCurrentlyActive
+        ? 'Tem certeza que deseja DESATIVAR o aluno "${student.name}"?\n\nEle não aparecerá mais nas listas ativas de turmas e chamadas. Você poderá reativá-lo posteriormente.'
+        : 'Tem certeza que deseja ATIVAR o aluno "${student.name}"?\n\nEle voltará a aparecer nas listas ativas de turmas e chamadas.';
+
+    Get.dialog(
+      CustomDialog(
+        title: '$actionText Aluno',
+        content: Text(message),
         actions: [
           ElevatedButton(
             onPressed: () async {
-              await controller.deleteStudent(student);
-              Get.back();
+              await controller.toggleStudentStatus(student);
+              // O Get.back() é chamado no controller após a operação
             },
-            child: const Text('Apagar'),
+            child: Text(actionText),
           ),
           TextButton(
             onPressed: () => Get.back(),

@@ -125,6 +125,13 @@ class ClassesPage extends GetView<ClassesController> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Colors.purple.shade100,
+                          child: Icon(
+                            Icons.class_,
+                            color: Colors.purple.shade800,
+                          ),
+                        ),
                         title: Text(
                           Constants.capitalize(classe.name),
                           style: const TextStyle(
@@ -135,7 +142,12 @@ class ClassesPage extends GetView<ClassesController> {
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ),
-
+                        subtitle: classe.description != null && classe.description!.isNotEmpty
+                            ? Text(
+                                classe.description!,
+                                style: const TextStyle(fontSize: 14, color: Colors.grey),
+                              )
+                            : null,
                         trailing: CustomPopupMenu(
                           items: [
                             CustomPopupMenuItem(

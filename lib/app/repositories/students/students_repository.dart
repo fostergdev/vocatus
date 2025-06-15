@@ -2,8 +2,12 @@ import 'package:sqflite/sqflite.dart';
 import 'package:vocatus/app/core/utils/database_helper.dart';
 import 'package:vocatus/app/models/classe.dart';
 import 'package:vocatus/app/models/student.dart';
+// Corrigido: Implementa IStudentsRepository em vez de IClasseRepository
 import 'package:vocatus/app/repositories/students/i_students_repository.dart';
 
+
+// Certifique-se de que IStudentsRepository possui todos os métodos implementados abaixo.
+// Se IStudentsRepository não tiver todos eles, você precisará adicioná-los à interface.
 class StudentsRepository implements IStudentsRepository {
   final DatabaseHelper _dbHelper;
 
@@ -15,16 +19,19 @@ class StudentsRepository implements IStudentsRepository {
       final db = await _dbHelper.database;
       final result = await db.rawQuery(
         '''
-        SELECT s.* FROM student s
+        SELECT s.*, cs.active as link_active
+        FROM student s
         INNER JOIN classe_student cs ON cs.student_id = s.id
         WHERE cs.classe_id = ?
         ORDER BY s.name COLLATE NOCASE
-      ''',
+        ''',
         [classeId],
       );
       return result.map((e) => Student.fromMap(e)).toList();
+    } on DatabaseException catch (e) {
+      throw Exception('Erro de banco de dados ao buscar alunos da turma: ${e.toString()}');
     } catch (e) {
-      throw Exception('Erro ao buscar alunos da turma: $e');
+      throw Exception('Erro desconhecido ao buscar alunos da turma: $e');
     }
   }
 
@@ -34,33 +41,62 @@ class StudentsRepository implements IStudentsRepository {
       final db = await _dbHelper.database;
       await db.transaction((txn) async {
         for (final student in students) {
-          final existingStudentRows = await txn.query(
-            'student',
-            where: 'name = ?',
-            whereArgs: [student.name.toLowerCase().trim()],
-          );
-
           int studentId;
-          if (existingStudentRows.isNotEmpty) {
-            studentId = existingStudentRows.first['id'] as int;
+
+          if (student.id != null) {
+            final existingById = await txn.query('student', where: 'id = ?', whereArgs: [student.id]);
+            if (existingById.isNotEmpty) {
+              studentId = existingById.first['id'] as int;
+            } else {
+              final existingByName = await txn.query('student', where: 'name = ?', whereArgs: [student.name.toLowerCase().trim()]);
+              if (existingByName.isNotEmpty) {
+                studentId = existingByName.first['id'] as int;
+              } else {
+                studentId = await txn.insert('student', {
+                  "name": student.name.toLowerCase().trim(),
+                  "created_at": DateTime.now().toIso8601String(),
+                  "active": 1,
+                });
+              }
+            }
           } else {
-            studentId = await txn.insert('student', {
-              "name": student.name.toLowerCase().trim(),
-              "created_at": DateTime.now().toIso8601String(),
-              "active": 1,
-            });
+            final existingByName = await txn.query('student', where: 'name = ?', whereArgs: [student.name.toLowerCase().trim()]);
+            if (existingByName.isNotEmpty) {
+              studentId = existingByName.first['id'] as int;
+            } else {
+              studentId = await txn.insert('student', {
+                "name": student.name.toLowerCase().trim(),
+                "created_at": DateTime.now().toIso8601String(),
+                "active": 1,
+              });
+            }
           }
 
-          await txn.insert('classe_student', {
-            'student_id': studentId,
-            'classe_id': classeId,
-            'start_date': DateTime.now().toIso8601String(),
-            'active': 1,
-          }, conflictAlgorithm: ConflictAlgorithm.ignore);
+          await txn.update(
+            'student',
+            {'active': 1},
+            where: 'id = ?',
+            whereArgs: [studentId],
+          );
+
+          int updated = await txn.update(
+            'classe_student',
+            {'active': 1, 'start_date': DateTime.now().toIso8601String(), 'end_date': null},
+            where: 'student_id = ? AND classe_id = ?',
+            whereArgs: [studentId, classeId],
+          );
+          if (updated == 0) {
+            await txn.insert('classe_student', {
+              'student_id': studentId,
+              'classe_id': classeId,
+              'start_date': DateTime.now().toIso8601String(),
+              'active': 1,
+            }, conflictAlgorithm: ConflictAlgorithm.ignore);
+          }
         }
       });
     } on DatabaseException catch (e) {
-      throw Exception('Erro de banco de dados ao adicionar alunos à turma: $e');
+      throw Exception('Erro de banco de dados ao adicionar alunos à turma: ${e.toString()}');
     } catch (e) {
       throw Exception('Erro desconhecido ao adicionar alunos à turma: $e');
     }
@@ -70,27 +106,58 @@ class StudentsRepository implements IStudentsRepository {
   Future<void> deleteStudentFromClasse(Student student, int classeId) async {
     try {
       final db = await _dbHelper.database;
-      await db.delete(
+      await db.update(
         'classe_student',
+        {'active': 0, 'end_date': DateTime.now().toIso8601String()},
         where: 'student_id = ? AND classe_id = ?',
         whereArgs: [student.id, classeId],
       );
 
-      final count = Sqflite.firstIntValue(
+      final countActiveLinks = Sqflite.firstIntValue(
         await db.rawQuery(
-          'SELECT COUNT(*) FROM classe_student WHERE student_id = ?',
+          'SELECT COUNT(*) FROM classe_student WHERE student_id = ? AND active = 1',
           [student.id],
         ),
       );
-      if (count == 0) {
-        await db.delete(
+
+      if (countActiveLinks == 0) {
+        await db.update(
           'student',
+          {'active': 0},
           where: 'id = ?',
           whereArgs: [student.id],
         );
       }
+    } on DatabaseException catch (e) {
+      throw Exception('Erro de banco de dados ao remover aluno da turma: ${e.toString()}');
     } catch (e) {
-      throw Exception('Erro ao remover aluno da turma: $e');
+      throw Exception('Erro desconhecido ao remover aluno da turma: $e');
+    }
+  }
+
+  // Soft delete ou reativação de um aluno individualmente
+  Future<void> toggleStudentActiveStatus(Student student) async {
+    try {
+      final db = await _dbHelper.database;
+      final newStatus = (student.active ?? true) ? 0 : 1;
+      await db.update(
+        'student',
+        {'active': newStatus},
+        where: 'id = ?',
+        whereArgs: [student.id],
+      );
+      if (newStatus == 0) { // Se o aluno é desativado, desativa seus vínculos
+        await db.update(
+          'classe_student',
+          {'active': 0, 'end_date': DateTime.now().toIso8601String()},
+          where: 'student_id = ?',
+          whereArgs: [student.id],
+        );
+      }
+    } on DatabaseException catch (e) {
+      throw Exception('Erro de banco de dados ao mudar status do aluno: ${e.toString()}');
+    } catch (e) {
+      throw Exception('Erro desconhecido ao mudar status do aluno: $e');
     }
   }
 
@@ -98,14 +165,19 @@ class StudentsRepository implements IStudentsRepository {
   Future<void> updateStudent(Student student) async {
     try {
       final db = await _dbHelper.database;
+      final Map<String, dynamic> studentData = student.toMap();
+      studentData.remove('id');
+
       await db.update(
         'student',
-        student.toMap(),
+        studentData,
         where: 'id = ?',
         whereArgs: [student.id],
       );
+    } on DatabaseException catch (e) {
+      throw Exception('Erro de banco de dados ao atualizar aluno: ${e.toString()}');
     } catch (e) {
-      throw Exception('Erro ao atualizar aluno: $e');
+      throw Exception('Erro desconhecido ao atualizar aluno: $e');
     }
   }
 
@@ -114,14 +186,17 @@ class StudentsRepository implements IStudentsRepository {
     try {
       final db = await _dbHelper.database;
       final result = await db.query(
-        'classe',
-        where: 'id != ? AND active = ?',
-        whereArgs: [excludeId, 1],
-        orderBy: 'name COLLATE NOCASE',
+        'classe c',
+        where: 'c.id != ? AND c.active = 1 '
+               'AND c.id IN (SELECT cs.classe_id FROM classe_student cs WHERE cs.active = 1)',
+        whereArgs: [excludeId],
+        orderBy: 'c.name COLLATE NOCASE',
       );
       return result.map((e) => Classe.fromMap(e)).toList();
+    } on DatabaseException catch (e) {
+      throw Exception('Erro de banco de dados ao buscar turmas para exclusão: ${e.toString()}');
     } catch (e) {
-      throw Exception('Erro ao buscar turmas para exclusão: $e');
+      throw Exception('Erro desconhecido ao buscar turmas para exclusão: $e');
     }
   }
 
@@ -134,21 +209,40 @@ class StudentsRepository implements IStudentsRepository {
     try {
       final db = await _dbHelper.database;
       await db.transaction((txn) async {
-        await txn.delete(
+        await txn.update(
           'classe_student',
+          {'active': 0, 'end_date': DateTime.now().toIso8601String()},
           where: 'student_id = ? AND classe_id = ?',
           whereArgs: [student.id, fromClasseId],
         );
 
-        await txn.insert('classe_student', {
-          'student_id': student.id,
-          'classe_id': toClasseId,
-          'start_date': DateTime.now().toIso8601String(),
-          'active': 1,
-        }, conflictAlgorithm: ConflictAlgorithm.ignore);
+        int updated = await txn.update(
+          'classe_student',
+          {'active': 1, 'start_date': DateTime.now().toIso8601String(), 'end_date': null},
+          where: 'student_id = ? AND classe_id = ?',
+          whereArgs: [student.id, toClasseId],
+        );
+
+        if (updated == 0) {
+          await txn.insert('classe_student', {
+            'student_id': student.id,
+            'classe_id': toClasseId,
+            'start_date': DateTime.now().toIso8601String(),
+            'active': 1,
+          }, conflictAlgorithm: ConflictAlgorithm.ignore);
+        }
+        
+        await txn.update(
+            'student',
+            {'active': 1},
+            where: 'id = ?',
+            whereArgs: [student.id],
+        );
       });
+    } on DatabaseException catch (e) {
+      throw Exception('Erro de banco de dados ao mover aluno de turma: ${e.toString()}');
     } catch (e) {
-      throw Exception('Erro ao mover aluno de turma: $e');
+      throw Exception('Erro desconhecido ao mover aluno de turma: $e');
     }
   }
 
@@ -159,8 +253,9 @@ class StudentsRepository implements IStudentsRepository {
     try {
       final db = await _dbHelper.database;
       String query = 'SELECT DISTINCT c.school_year FROM classe c '
-                     'INNER JOIN classe_student cs ON c.id = cs.classe_id ' // Garante que a turma tem alunos
-                     'WHERE cs.active = 1 '; // Vínculo ativo
+                     'INNER JOIN classe_student cs ON c.id = cs.classe_id '
+                     'INNER JOIN student s ON cs.student_id = s.id '
+                     'WHERE cs.active = 1 AND s.active = 1';
 
       List<dynamic> args = [];
 
@@ -172,8 +267,10 @@ class StudentsRepository implements IStudentsRepository {
 
       final result = await db.rawQuery(query, args);
       return result.map((map) => map['school_year'] as int).toList();
+    } on DatabaseException catch (e) {
+      throw Exception('Erro de banco de dados ao buscar anos disponíveis: ${e.toString()}');
     } catch (e) {
-      throw Exception('Erro ao buscar anos disponíveis: $e');
+      throw Exception('Erro desconhecido ao buscar anos disponíveis: $e');
     }
   }
 
@@ -184,7 +281,7 @@ class StudentsRepository implements IStudentsRepository {
   }) async {
     try {
       final db = await _dbHelper.database;
-      String whereClause = 'c.id IN (SELECT classe_id FROM classe_student WHERE active = 1)'; // Apenas turmas com alunos ativos
+      String whereClause = 'c.id IN (SELECT classe_id FROM classe_student cs INNER JOIN student s ON cs.student_id = s.id WHERE cs.active = 1 AND s.active = 1)';
       List<dynamic> whereArgs = [];
 
       if (activeStatus != null) {
@@ -197,7 +294,6 @@ class StudentsRepository implements IStudentsRepository {
         whereArgs.add(year);
       }
       
-      // Use um alias 'c' para a tabela classe
       final result = await db.query(
         'classe c',
         where: whereClause,
@@ -205,8 +301,46 @@ class StudentsRepository implements IStudentsRepository {
         orderBy: 'c.name COLLATE NOCASE',
       );
       return result.map((map) => Classe.fromMap(map)).toList();
+    } on DatabaseException catch (e) {
+      throw Exception('Erro de banco de dados ao buscar turmas por status e ano: ${e.toString()}');
     } catch (e) {
-      throw Exception('Erro ao buscar turmas por status e ano: $e');
+      throw Exception('Erro desconhecido ao buscar turmas por status e ano: $e');
     }
   }
+
+  // Duplica um aluno para outra turma
+  Future<void> duplicateStudentToClasse(Student student, int toClasseId) async {
+    try {
+      final db = await _dbHelper.database;
+      await db.transaction((txn) async {
+        await txn.update(
+          'student',
+          {'active': 1},
+          where: 'id = ?',
+          whereArgs: [student.id],
+        );
+
+        int updated = await txn.update(
+          'classe_student',
+          {'active': 1, 'start_date': DateTime.now().toIso8601String(), 'end_date': null},
+          where: 'student_id = ? AND classe_id = ?',
+          whereArgs: [student.id, toClasseId],
+        );
+
+        if (updated == 0) {
+          await txn.insert('classe_student', {
+            'student_id': student.id,
+            'classe_id': toClasseId,
+            'start_date': DateTime.now().toIso8601String(),
+            'active': 1,
+          });
+        }
+      });
+    } on DatabaseException catch (e) {
+      throw Exception('Erro de banco de dados ao duplicar aluno para turma: ${e.toString()}');
+    } catch (e) {
+      throw Exception('Erro desconhecido ao duplicar aluno para turma: $e');
+    }
+  }
+
 }

@@ -35,7 +35,8 @@ class DatabaseHelper {
 CREATE TABLE discipline (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  active INTEGER NOT NULL DEFAULT 1
 );
 ''');
 
@@ -71,6 +72,7 @@ CREATE TABLE classe_student (
   start_date TEXT NOT NULL DEFAULT CURRENT_DATE,
   end_date TEXT,
   active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (student_id, classe_id),
   FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE,
   FOREIGN KEY (classe_id) REFERENCES classe(id) ON DELETE CASCADE
@@ -86,6 +88,7 @@ CREATE TABLE grade (
   start_time TEXT NOT NULL,
   end_time TEXT NOT NULL,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  active INTEGER NOT NULL DEFAULT 1,
   FOREIGN KEY (classe_id) REFERENCES classe(id) ON DELETE CASCADE,
   FOREIGN KEY (discipline_id) REFERENCES discipline(id) ON DELETE SET NULL
 );
@@ -98,6 +101,7 @@ CREATE TABLE attendance (
   grade_id INTEGER,
   date TEXT NOT NULL,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  active INTEGER NOT NULL DEFAULT 1,
   FOREIGN KEY (classe_id) REFERENCES classe(id) ON DELETE CASCADE,
   FOREIGN KEY (grade_id) REFERENCES grade(id) ON DELETE SET NULL,
   UNIQUE (classe_id, grade_id, date)
@@ -110,6 +114,7 @@ CREATE TABLE student_attendance (
   student_id INTEGER NOT NULL,
   presence INTEGER NOT NULL DEFAULT 1,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  active INTEGER NOT NULL DEFAULT 1,
   PRIMARY KEY (attendance_id, student_id),
   FOREIGN KEY (attendance_id) REFERENCES attendance(id) ON DELETE CASCADE,
   FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE

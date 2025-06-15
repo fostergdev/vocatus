@@ -6,8 +6,6 @@ import 'package:vocatus/app/models/student.dart';
 import 'package:vocatus/app/repositories/students/students_repository.dart';
 import 'package:vocatus/app/core/widgets/custom_error_dialog.dart';
 
-enum ClasseFilterStatus { active, archived, all }
-
 class StudentsController extends GetxController {
   final StudentsRepository _studentRepository = StudentsRepository(
     DatabaseHelper.instance,
@@ -24,9 +22,9 @@ class StudentsController extends GetxController {
   final studentEditNameEC = TextEditingController();
   final formEditKey = GlobalKey<FormState>();
 
-  final Rx<ClasseFilterStatus?> selectedFilterStatus = Rx<ClasseFilterStatus?>(null);
+  // Variáveis para importação
   final RxList<int> availableYears = <int>[].obs;
-  final RxInt selectedYear = RxInt(0);
+  final Rx<int?> selectedYear = Rx<int?>(null);
 
   final RxList<Classe> availableClasses = <Classe>[].obs;
   final Rx<Classe?> selectedClasseToImport = Rx<Classe?>(null);
@@ -34,6 +32,7 @@ class StudentsController extends GetxController {
   final studentsFromSelectedClasse = <Student>[].obs;
   final selectedStudentsToImport = <Student>[].obs;
 
+  // Variáveis para transferência
   final RxList<Classe> classesForTransfer = <Classe>[].obs;
   final Rx<Classe?> selectedClasseForTransfer = Rx<Classe?>(null);
 
@@ -55,6 +54,10 @@ class StudentsController extends GetxController {
         Get.dialog(CustomErrorDialog(title: 'Erro', message: 'Nenhum aluno para adicionar.'));
         return;
       }
+      if (currentClasse.id == null) {
+        Get.dialog(CustomErrorDialog(title: 'Erro', message: 'ID da turma atual é nulo. Não foi possível adicionar alunos.'));
+        return;
+      }
 
       final studentsToAdd = names.map((name) => Student(name: name)).toList();
 
@@ -69,6 +72,10 @@ class StudentsController extends GetxController {
   Future<void> updateStudent(Student student) async {
     try {
       isLoading.value = true;
+      if (student.id == null) {
+        Get.dialog(CustomErrorDialog(title: 'Erro', message: 'ID do aluno é nulo. Não foi possível atualizar.'));
+        return;
+      }
       await _studentRepository.updateStudent(student);
       await readStudents();
     } catch (e) {
@@ -78,13 +85,18 @@ class StudentsController extends GetxController {
     }
   }
 
-  Future<void> deleteStudent(Student student) async {
+  Future<void> toggleStudentStatus(Student student) async {
     try {
       isLoading.value = true;
-      await _studentRepository.deleteStudentFromClasse(student, currentClasse.id!);
-      students.remove(student);
+      if (student.id == null) {
+        Get.dialog(CustomErrorDialog(title: 'Erro', message: 'ID do aluno é nulo. Não foi possível mudar o status.'));
+        return;
+      }
+      await _studentRepository.toggleStudentActiveStatus(student);
+      await readStudents();
+      Get.back();
     } catch (e) {
-      Get.dialog(CustomErrorDialog(title: 'Erro ao Apagar Aluno', message: e.toString()));
+      Get.dialog(CustomErrorDialog(title: 'Erro ao Mudar Status do Aluno', message: e.toString()));
     } finally {
       isLoading.value = false;
     }
@@ -93,11 +105,16 @@ class StudentsController extends GetxController {
   Future<void> readStudents() async {
     try {
       isLoading.value = true;
+      if (currentClasse.id == null) {
+        Get.dialog(CustomErrorDialog(title: 'Erro', message: 'ID da turma atual é nulo. Não foi possível ler alunos.'));
+        return;
+      }
       final fetchedStudents = await _studentRepository.getStudentsByClasseId(
         currentClasse.id!,
       );
+      // Ordena todos (ativos e inativos) em ordem alfabética
+      fetchedStudents.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
       students.assignAll(fetchedStudents);
-      students.sort((a, b) => a.name.compareTo(b.name));
     } catch (e) {
       Get.dialog(CustomErrorDialog(title: 'Erro ao Ler Alunos', message: e.toString()));
     } finally {
@@ -105,11 +122,9 @@ class StudentsController extends GetxController {
     }
   }
 
-  // --- Métodos para a lógica de IMPORTAR alunos de outra turma ---
-
+  // Métodos para importação (ajuste/remova filtros de status)
   void resetImportFilters() {
-    selectedFilterStatus.value = null;
-    selectedYear.value = 0;
+    selectedYear.value = null;
     selectedClasseToImport.value = null;
     availableYears.clear();
     availableClasses.clear();
@@ -119,76 +134,62 @@ class StudentsController extends GetxController {
 
   Future<void> loadAvailableYears() async {
     try {
-      if (selectedFilterStatus.value == null) {
-        availableYears.clear();
-        selectedYear.value = 0;
-        availableClasses.clear();
-        selectedClasseToImport.value = null;
-        return;
-      }
-
-      bool? activeStatus;
-      if (selectedFilterStatus.value == ClasseFilterStatus.active) {
-        activeStatus = true;
-      } else if (selectedFilterStatus.value == ClasseFilterStatus.archived) {
-        activeStatus = false;
-      }
-
-      final years = await _studentRepository.getAvailableYears(activeStatus: activeStatus);
+      final years = await _studentRepository.getAvailableYears();
       availableYears.assignAll(years);
-
-      if (!availableYears.contains(selectedYear.value)) {
-        selectedYear.value = 0;
+      if (selectedYear.value != null && !availableYears.contains(selectedYear.value)) {
+        selectedYear.value = null;
       }
-      if (availableYears.length == 1) {
+      if (availableYears.isEmpty) {
+        selectedYear.value = null;
+      } else if (availableYears.length == 1) {
         selectedYear.value = availableYears.first;
       }
-
-      await loadAvailableClasses();
+      if (selectedYear.value != null) {
+        await loadAvailableClasses();
+      } else {
+        availableClasses.clear();
+        selectedClasseToImport.value = null;
+        studentsFromSelectedClasse.clear();
+      }
     } catch (e) {
-      Get.dialog(CustomErrorDialog(title: 'Erro', message: 'Erro ao carregar anos disponíveis: $e'));
+      Get.dialog(CustomErrorDialog(title: 'Erro', message: 'Erro ao carregar anos disponíveis: ${e.toString()}'));
     }
   }
 
   Future<void> loadAvailableClasses() async {
     try {
-      if (selectedFilterStatus.value == null || selectedYear.value == 0) {
+      if (selectedYear.value == null) {
         availableClasses.clear();
         selectedClasseToImport.value = null;
         studentsFromSelectedClasse.clear();
         return;
       }
-
-      bool? activeStatus;
-      if (selectedFilterStatus.value == ClasseFilterStatus.active) {
-        activeStatus = true;
-      } else if (selectedFilterStatus.value == ClasseFilterStatus.archived) {
-        activeStatus = false;
-      }
-
       final classes = await _studentRepository.getClassesByStatusAndYear(
-        activeStatus: activeStatus,
-        year: selectedYear.value,
+        year: selectedYear.value!,
       );
-
       availableClasses.assignAll(classes.where((c) => c.id != currentClasse.id));
-
-      if (!availableClasses.contains(selectedClasseToImport.value)) {
+      if (selectedClasseToImport.value != null && !availableClasses.contains(selectedClasseToImport.value)) {
         selectedClasseToImport.value = null;
       }
-      if (availableClasses.length == 1) {
+      if (availableClasses.isEmpty) {
+        selectedClasseToImport.value = null;
+        studentsFromSelectedClasse.clear();
+      } else if (availableClasses.length == 1) {
         selectedClasseToImport.value = availableClasses.first;
       }
-
-      await loadStudentsFromSelectedClasse();
+      if (selectedClasseToImport.value != null) {
+        await loadStudentsFromSelectedClasse();
+      } else {
+        studentsFromSelectedClasse.clear();
+      }
     } catch (e) {
-      Get.dialog(CustomErrorDialog(title: 'Erro', message: 'Erro ao carregar turmas disponíveis: $e'));
+      Get.dialog(CustomErrorDialog(title: 'Erro', message: 'Erro ao carregar turmas disponíveis: ${e.toString()}'));
     }
   }
 
   Future<void> loadStudentsFromSelectedClasse() async {
     try {
-      if (selectedClasseToImport.value == null) {
+      if (selectedClasseToImport.value == null || selectedClasseToImport.value!.id == null) {
         studentsFromSelectedClasse.clear();
         selectedStudentsToImport.clear();
         return;
@@ -199,7 +200,7 @@ class StudentsController extends GetxController {
       studentsFromSelectedClasse.assignAll(students);
       selectedStudentsToImport.clear();
     } catch (e) {
-      Get.dialog(CustomErrorDialog(title: 'Erro', message: 'Erro ao carregar alunos da turma selecionada: $e'));
+      Get.dialog(CustomErrorDialog(title: 'Erro', message: 'Erro ao carregar alunos da turma selecionada: ${e.toString()}'));
     }
   }
 
@@ -216,6 +217,10 @@ class StudentsController extends GetxController {
       Get.dialog(CustomErrorDialog(title: 'Importar Alunos', message: 'Selecione pelo menos um aluno para importar.'));
       return;
     }
+    if (currentClasse.id == null) {
+      Get.dialog(CustomErrorDialog(title: 'Erro', message: 'ID da turma atual é nulo. Não foi possível importar alunos.'));
+      return;
+    }
     try {
       isLoading.value = true;
       await _studentRepository.addStudentsToClasse(selectedStudentsToImport, currentClasse.id!);
@@ -229,21 +234,27 @@ class StudentsController extends GetxController {
     }
   }
 
-  // --- Métodos para a lógica de TRANSFERIR alunos ---
-
   Future<void> loadClassesForTransfer() async {
     try {
+      if (currentClasse.id == null) {
+        Get.dialog(CustomErrorDialog(title: 'Erro', message: 'ID da turma atual é nulo. Não foi possível carregar turmas para transferência.'));
+        return;
+      }
       classesForTransfer.assignAll(await _studentRepository.getAllClassesExcept(currentClasse.id!));
-      classesForTransfer.removeWhere((c) => c.id == currentClasse.id); // Garante que a própria turma não seja uma opção
+      classesForTransfer.removeWhere((c) => c.id == currentClasse.id);
       selectedClasseForTransfer.value = null;
     } catch (e) {
-      Get.dialog(CustomErrorDialog(title: 'Erro', message: 'Erro ao carregar turmas para transferência: $e'));
+      Get.dialog(CustomErrorDialog(title: 'Erro', message: 'Erro ao carregar turmas para transferência: ${e.toString()}'));
     }
   }
 
   Future<void> moveStudentAcrossClasses(Student student) async {
-    if (selectedClasseForTransfer.value == null) {
-      Get.dialog(CustomErrorDialog(title: 'Transferir Aluno', message: 'Selecione uma turma de destino.'));
+    if (selectedClasseForTransfer.value == null || selectedClasseForTransfer.value!.id == null) {
+      Get.dialog(CustomErrorDialog(title: 'Transferir Aluno', message: 'Selecione uma turma de destino válida.'));
+      return;
+    }
+    if (student.id == null || currentClasse.id == null) {
+      Get.dialog(CustomErrorDialog(title: 'Erro', message: 'Dados do aluno ou da turma de origem insuficientes para a transferência.'));
       return;
     }
     try {
@@ -254,6 +265,27 @@ class StudentsController extends GetxController {
       Get.back();
     } catch (e) {
       Get.dialog(CustomErrorDialog(title: 'Erro ao Mover Aluno', message: e.toString()));
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> duplicateStudentToOtherClasse(Student student, int toClasseId) async {
+    try {
+      isLoading.value = true;
+      if (student.id == null) {
+        Get.dialog(CustomErrorDialog(title: 'Erro', message: 'ID do aluno é nulo. Não foi possível duplicar.'));
+        return;
+      }
+      if (toClasseId == currentClasse.id) {
+         Get.dialog(CustomErrorDialog(title: 'Atenção', message: 'Não é possível duplicar o aluno para a mesma turma atual.'));
+         return;
+      }
+      await _studentRepository.duplicateStudentToClasse(student, toClasseId);
+      await readStudents();
+      Get.back();
+    } catch (e) {
+      Get.dialog(CustomErrorDialog(title: 'Erro ao Duplicar Aluno', message: e.toString()));
     } finally {
       isLoading.value = false;
     }

@@ -6,6 +6,7 @@ class CustomDrop<T> extends StatelessWidget {
   final String Function(T) labelBuilder;
   final ValueChanged<T?> onChanged;
   final String? hint;
+  final String? Function(T?)? validator;
 
   const CustomDrop({
     super.key,
@@ -14,11 +15,12 @@ class CustomDrop<T> extends StatelessWidget {
     required this.labelBuilder,
     required this.onChanged,
     this.hint,
+    this.validator,
   });
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButton<T>(
+    return DropdownButtonFormField<T>(
       value: value,
       hint: hint != null ? Text(hint!) : null,
       isExpanded: true,
@@ -29,6 +31,7 @@ class CustomDrop<T> extends StatelessWidget {
         );
       }).toList(),
       onChanged: onChanged,
+      validator: validator,
     );
   }
 }
