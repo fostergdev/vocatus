@@ -342,8 +342,8 @@ class GradesPage extends GetView<GradesController> {
                     onTap: () => _showEditGradeDialog(grade),
                   ),
                   CustomPopupMenuItem(
-                    label: 'Inativar',
-                    icon: Icons.visibility_off,
+                    label: 'Arquivar',
+                    icon: Icons.archive_outlined,
                     onTap: () => _showToggleGradeStatusDialog(grade),
                   ),
                 ],

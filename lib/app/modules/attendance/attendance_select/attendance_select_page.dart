@@ -1,13 +1,12 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:vocatus/app/core/constants/constants.dart';
-import 'package:vocatus/app/core/widgets/custom_error_dialog.dart';
 import 'package:vocatus/app/models/grade.dart';
 import 'package:vocatus/app/modules/attendance/attendance_register/attendance_register_page.dart';
 
 import './attendance_select_controller.dart';
+
 
 class AttendanceSelectPage extends GetView<AttendanceSelectController> {
   const AttendanceSelectPage({super.key});
@@ -156,7 +155,7 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
   Widget _buildDayColumn(
     int dayOfWeek,
     List<Grade> gradesForDay,
-    DateTime date,
+    DateTime date, // 'date' está disponível aqui
   ) {
     return Container(
       width: 180,
@@ -166,7 +165,7 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.2),
+            color: Colors.grey.withOpacity(0.2), // Use .withOpacity para clareza
             blurRadius: 5,
             spreadRadius: 2,
           ),
@@ -206,7 +205,8 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                     itemCount: gradesForDay.length,
                     itemBuilder: (context, index) {
                       final grade = gradesForDay[index];
-                      return _buildGradeCard(grade);
+                      // PASSE A 'date' AQUI para _buildGradeCard
+                      return _buildGradeCard(grade, date); 
                     },
                   ),
           ),
@@ -215,7 +215,8 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
     );
   }
 
-  Widget _buildGradeCard(Grade grade) {
+  // _buildGradeCard PRECISA RECEBER A DATA
+  Widget _buildGradeCard(Grade grade, DateTime date) { // <--- Adicione DateTime date aqui
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       color: Colors.purple.shade50,
@@ -223,7 +224,13 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: InkWell(
         onTap: () {
-          Get.to(() => AttendanceRegisterPage(), arguments: grade);
+          Get.toNamed(
+            '/attendance/register',
+            arguments: {
+              'grade': grade,
+              'date': date, // Agora 'date' está acessível e correta
+            },
+          );
         },
         borderRadius: BorderRadius.circular(8),
         child: Padding(
