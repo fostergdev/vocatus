@@ -47,9 +47,14 @@ class GradesPage extends GetView<GradesController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Horários Globais',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        title: Obx(
+          () => Text(
+            'Horário: ${controller.selectedFilterYear.value}',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
         ),
         centerTitle: true,
         backgroundColor: Constants.primaryColor,
@@ -60,71 +65,112 @@ class GradesPage extends GetView<GradesController> {
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
-            icon: const Icon(Icons.filter_list),
-            tooltip: 'Filtrar Horários',
-            color: Colors.white,
-            onPressed: () => _showFilterDialog(),
+            icon: const Icon(Icons.filter_list, color: Colors.white),
+            tooltip: 'Filtrar',
+            onPressed: () async {
+              await showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                builder: (context) {
+                  return Padding(
+                    padding: MediaQuery.of(context).viewInsets,
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Filtros',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.purple.shade800,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Obx(
+                            () => DropdownButtonFormField<int>(
+                              value: controller.selectedFilterYear.value,
+                              decoration: const InputDecoration(
+                                labelText: 'Ano',
+                                border: OutlineInputBorder(),
+                              ),
+                              items:
+                                  List.generate(
+                                        11,
+                                        (i) => DateTime.now().year - 5 + i,
+                                      )
+                                      .map(
+                                        (year) => DropdownMenuItem(
+                                          value: year,
+                                          child: Text(year.toString()),
+                                        ),
+                                      )
+                                      .toList(),
+                              onChanged: (year) {
+                                if (year != null) {
+                                  controller.selectedFilterYear.value = year;
+                                  controller.loadAllGrades();
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Obx(
+                            () => Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Transform.scale(
+                                  scale: 0.75,
+                                  child: Switch(
+                                    value:
+                                        controller.showOnlyActiveGrades.value,
+                                    onChanged: (val) {
+                                      controller.showOnlyActiveGrades.value =
+                                          val;
+                                      controller.loadAllGrades();
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                SizedBox(
+                                  width: 100,
+                                  child: Text(
+                                    controller.showOnlyActiveGrades.value
+                                        ? 'Desarquivadas'
+                                        : 'Arquivadas',
+                                    style: TextStyle(
+                                      color:
+                                          controller.showOnlyActiveGrades.value
+                                          ? Colors.green
+                                          : Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Fechar'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
           ),
         ],
       ),
       body: Column(
         children: [
-          Obx(() {
-            return Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 8.0,
-              ),
-              child: Text(
-                'Horários para o ano: ${controller.selectedFilterYear.value}',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.purple.shade700,
-                ),
-              ),
-            );
-          }),
-          Obx(() {
-            final filters = <String>[];
-            if (controller.selectedFilterClasse.value != null) {
-              filters.add(
-                'Turma: ${controller.selectedFilterClasse.value!.name}',
-              );
-            }
-            if (controller.selectedFilterDiscipline.value != null) {
-              filters.add(
-                'Disciplina: ${controller.selectedFilterDiscipline.value!.name}',
-              );
-            }
-            if (controller.selectedFilterDayOfWeek.value != null) {
-              filters.add(
-                'Dia: ${_getDayName(controller.selectedFilterDayOfWeek.value!)}',
-              );
-            }
-            if (!controller.showOnlyActiveGrades.value) {
-              filters.add('Status: Inativos');
-            } else {
-              filters.add('Status: Ativos');
-            }
-
-            if (filters.isEmpty ||
-                (filters.length == 1 &&
-                    filters.first.startsWith('Status: Ativos'))) {
-              return const SizedBox.shrink();
-            }
-
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Wrap(
-                spacing: 8.0,
-                runSpacing: 4.0,
-                children: filters
-                    .map((filter) => Chip(label: Text(filter)))
-                    .toList(),
-              ),
-            );
-          }),
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
@@ -214,7 +260,7 @@ class GradesPage extends GetView<GradesController> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.purple.withOpacity(0.1),
+            color: Colors.purple.withValues(alpha: .1),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -225,17 +271,10 @@ class GradesPage extends GetView<GradesController> {
           horizontal: 16,
           vertical: 12,
         ),
-        leading: CircleAvatar(
-          backgroundColor: grade.active! ? Colors.blueAccent : Colors.grey,
-          child: Icon(
-            Icons.schedule,
-            color: grade.active!
-                ? Colors.purple.shade800
-                : Colors.grey.shade600,
-          ),
-        ),
         title: Text(
-          '${grade.classe?.name ?? 'Turma não informada'} (${grade.classe?.schoolYear ?? ''})',
+          grade.classe?.name ?? 'Turma não informada',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: grade.active!
@@ -294,20 +333,32 @@ class GradesPage extends GetView<GradesController> {
               ),
           ],
         ),
-        trailing: CustomPopupMenu(
-          items: [
-            CustomPopupMenuItem(
-              label: 'Editar',
-              icon: Icons.edit,
-              onTap: () => _showEditGradeDialog(grade),
-            ),
-            CustomPopupMenuItem(
-              label: grade.active! ? 'Inativar' : 'Ativar',
-              icon: grade.active! ? Icons.visibility_off : Icons.visibility,
-              onTap: () => _showToggleGradeStatusDialog(grade),
-            ),
-          ],
-        ),
+        trailing: grade.active!
+            ? CustomPopupMenu(
+                items: [
+                  CustomPopupMenuItem(
+                    label: 'Editar',
+                    icon: Icons.edit,
+                    onTap: () => _showEditGradeDialog(grade),
+                  ),
+                  CustomPopupMenuItem(
+                    label: 'Inativar',
+                    icon: Icons.visibility_off,
+                    onTap: () => _showToggleGradeStatusDialog(grade),
+                  ),
+                ],
+              )
+            : IconButton(
+                icon: const Icon(Icons.insert_drive_file, color: Colors.purple),
+                tooltip: 'Relatório',
+                onPressed: () {
+                  // Lógica para relatório
+                  Get.snackbar(
+                    'Relatório',
+                    'Abrir relatório do horário inativo',
+                  );
+                },
+              ),
       ),
     );
   }
@@ -316,28 +367,46 @@ class GradesPage extends GetView<GradesController> {
     controller.resetAddGradeFields();
     Get.dialog(
       Obx(() {
-        if (controller.isLoading.value) {
-          return CustomDialog(
-            title: 'Processando...',
-            content: const Center(child: CircularProgressIndicator()),
-            actions: [],
-          );
-        }
         return CustomDialog(
           title: 'Adicionar Horário',
-          icon: Icons.add_alarm,
           content: Form(
             key: controller.formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                DropdownButtonFormField<int>(
+                  decoration: const InputDecoration(
+                    labelText: 'Ano Letivo da Turma',
+                    border: OutlineInputBorder(),
+                  ),
+                  value: controller.selectedYearForForm.value,
+                  items: List.generate(11, (i) => DateTime.now().year - 5 + i)
+                      .map((year) {
+                        return DropdownMenuItem(
+                          value: year,
+                          child: Text(year.toString()),
+                        );
+                      })
+                      .toList(),
+                  onChanged: (year) async {
+                    controller.selectedYearForForm.value = year!;
+                    await controller.loadFilteredClassesForForm(year);
+                    controller.selectedClasseForForm.value = null;
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Ano obrigatório!';
+                    }
+                    return null;
+                  },
+                ),
+
                 CustomDrop<Classe>(
-                  items: controller.availableClasses,
+                  items: controller.filteredClassesForForm,
                   value: controller.selectedClasseForForm.value,
                   labelBuilder: (c) => '${c.name} (${c.schoolYear})',
                   onChanged: (c) => controller.selectedClasseForForm.value = c,
                   hint: 'Selecione a Turma',
-                  // CORREÇÃO: Validação customizada para Dropdown (verifica se 'value' é nulo)
                   validator: (value) {
                     if (value == null) {
                       return 'Turma obrigatória!';
@@ -370,7 +439,6 @@ class GradesPage extends GetView<GradesController> {
                   onChanged: (day) {
                     controller.selectedDayOfWeekForForm.value = day!;
                   },
-                  // CORREÇÃO: Validação customizada para Dropdown (verifica se 'value' é nulo)
                   validator: (value) {
                     if (value == null) {
                       return 'Dia obrigatório!';
@@ -407,8 +475,9 @@ class GradesPage extends GetView<GradesController> {
                             }
                           },
                           validator: (value) {
-                            if (value == null || value.isEmpty)
+                            if (value == null || value.isEmpty) {
                               return 'Obrigatório!';
+                            }
                             return null;
                           },
                         ),
@@ -441,8 +510,9 @@ class GradesPage extends GetView<GradesController> {
                             }
                           },
                           validator: (value) {
-                            if (value == null || value.isEmpty)
+                            if (value == null || value.isEmpty) {
                               return 'Obrigatório!';
+                            }
                             final int startTimeInt = Grade.timeOfDayToInt(
                               controller.startTimeForForm.value,
                             );
@@ -474,6 +544,7 @@ class GradesPage extends GetView<GradesController> {
             ElevatedButton(
               onPressed: () async {
                 if (controller.formKey.currentState!.validate()) {
+                  Get.back();
                   await controller.createGrade(
                     Grade(
                       classeId: controller.selectedClasseForForm.value!.id!,
@@ -486,9 +557,9 @@ class GradesPage extends GetView<GradesController> {
                       endTimeTotalMinutes: Grade.timeOfDayToInt(
                         controller.endTimeForForm.value,
                       ),
+                      gradeYear: controller.selectedYearForForm.value,
                     ),
                   );
-                  Get.back();
                 }
               },
               child: const Text('Adicionar'),
@@ -504,13 +575,6 @@ class GradesPage extends GetView<GradesController> {
     controller.fillEditGradeFields(grade);
     Get.dialog(
       Obx(() {
-        if (controller.isLoading.value) {
-          return CustomDialog(
-            title: 'Processando...',
-            content: const Center(child: CircularProgressIndicator()),
-            actions: [],
-          );
-        }
         return CustomDialog(
           title: 'Editar Horário',
           icon: Icons.edit_calendar,
@@ -520,7 +584,8 @@ class GradesPage extends GetView<GradesController> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 CustomDrop<Classe>(
-                  items: controller.availableClasses,
+                  items:
+                      controller.filteredClassesForForm, // MUDANÇA AQUI TAMBÉM
                   value: controller.selectedClasseForForm.value,
                   labelBuilder: (c) => '${c.name} (${c.schoolYear})',
                   onChanged: (c) => controller.selectedClasseForForm.value = c,
@@ -532,6 +597,7 @@ class GradesPage extends GetView<GradesController> {
                     return null;
                   },
                 ),
+
                 const SizedBox(height: 16),
                 CustomDrop<Discipline>(
                   items: controller.availableDisciplines,
@@ -593,8 +659,9 @@ class GradesPage extends GetView<GradesController> {
                             }
                           },
                           validator: (value) {
-                            if (value == null || value.isEmpty)
+                            if (value == null || value.isEmpty) {
                               return 'Obrigatório!';
+                            }
                             return null;
                           },
                         ),
@@ -627,8 +694,9 @@ class GradesPage extends GetView<GradesController> {
                             }
                           },
                           validator: (value) {
-                            if (value == null || value.isEmpty)
+                            if (value == null || value.isEmpty) {
                               return 'Obrigatório!';
+                            }
                             final int startTimeInt = Grade.timeOfDayToInt(
                               controller.startTimeForForm.value,
                             );
@@ -688,153 +756,87 @@ class GradesPage extends GetView<GradesController> {
 
   void _showToggleGradeStatusDialog(Grade grade) {
     final isCurrentlyActive = grade.active ?? true;
-    final actionText = isCurrentlyActive ? 'Inativar' : 'Ativar';
-    final message = isCurrentlyActive
-        ? 'Tem certeza que deseja INATIVAR o horário das ${Grade.formatTimeDisplay(grade.startTimeOfDay)} - ${Grade.formatTimeDisplay(grade.endTimeOfDay)} (${_getDayName(grade.dayOfWeek)}) da turma "${grade.classe?.name ?? 'N/A'}"?\n\nEle não aparecerá mais nas listas ativas, mas o histórico será mantido e você poderá reativá-lo.'
-        : 'Tem certeza que deseja ATIVAR o horário das ${Grade.formatTimeDisplay(grade.startTimeOfDay)} - ${Grade.formatTimeDisplay(grade.endTimeOfDay)} (${_getDayName(grade.dayOfWeek)}) da turma "${grade.classe?.name ?? 'N/A'}"?\n\nEle voltará a aparecer nas listas ativas.';
-
-    Get.dialog(
-      Obx(() {
-        if (controller.isLoading.value) {
-          return CustomDialog(
-            title: 'Processando...',
-            content: const Center(child: CircularProgressIndicator()),
-            actions: [],
-          );
-        }
-        return CustomDialog(
-          title: '$actionText Horário',
-          content: Text(message),
+    if (!isCurrentlyActive) {
+      Get.dialog(
+        CustomDialog(
+          title: 'Ação não permitida',
+          content: const Text('Não é possível reativar um horário inativado.'),
           actions: [
-            ElevatedButton(
-              onPressed: () async {
-                await controller.toggleGradeStatus(grade);
-                Get.back();
-              },
-              child: Text(actionText),
-            ),
             TextButton(
               onPressed: () => Get.back(),
-              child: const Text('Cancelar'),
+              child: const Text('Fechar'),
             ),
           ],
-        );
-      }),
-      barrierDismissible: false,
-    );
-  }
+        ),
+        barrierDismissible: false,
+      );
+      return;
+    }
 
-  void _showFilterDialog() {
-    controller.resetFilterFields();
+    final code = (100 + (DateTime.now().millisecondsSinceEpoch % 900))
+        .toString();
+    final codeController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    final message =
+        'Tem certeza que deseja INATIVAR o horário das ${Grade.formatTimeDisplay(grade.startTimeOfDay)} - ${Grade.formatTimeDisplay(grade.endTimeOfDay)} (${_getDayName(grade.dayOfWeek)}) da turma "${grade.classe?.name ?? 'N/A'}"?\n\n'
+        'ATENÇÃO: Esta ação é irreversível. Não será possível reativar este horário depois.\n\n'
+        'Você ainda poderá acessar os dados deste horário para consulta/histórico, mas não poderá reativá-lo.\n\n'
+        'Para confirmar, digite o código abaixo:\n\n'
+        'Código: $code';
+
     Get.dialog(
-      Obx(() {
-        if (controller.isLoading.value) {
+      StatefulBuilder(
+        builder: (context, setState) {
           return CustomDialog(
-            title: 'Processando...',
-            content: const Center(child: CircularProgressIndicator()),
-            actions: [],
-          );
-        }
-        return CustomDialog(
-          title: 'Filtrar Horários',
-          icon: Icons.filter_list,
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CustomDrop<Classe>(
-                items: controller.availableClasses,
-                value: controller.selectedFilterClasse.value,
-                labelBuilder: (c) => '${c.name} (${c.schoolYear})',
-                onChanged: (c) => controller.selectedFilterClasse.value = c,
-                hint: 'Filtrar por Turma',
-              ),
-              const SizedBox(height: 16),
-              CustomDrop<Discipline>(
-                items: controller.availableDisciplines,
-                value: controller.selectedFilterDiscipline.value,
-                labelBuilder: (d) => d.name,
-                onChanged: (d) => controller.selectedFilterDiscipline.value = d,
-                hint: 'Filtrar por Disciplina',
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<int>(
-                decoration: const InputDecoration(
-                  labelText: 'Dia da Semana',
-                  border: OutlineInputBorder(),
-                ),
-                value: controller.selectedFilterDayOfWeek.value,
-                items: [
-                  const DropdownMenuItem<int>(
-                    value: null,
-                    child: Text('Todos os Dias'),
+            title: 'Inativar Horário',
+            content: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(message),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: codeController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 3,
+                    decoration: const InputDecoration(
+                      labelText: 'Digite o código',
+                      border: OutlineInputBorder(),
+                      counterText: '',
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Digite o código para confirmar.';
+                      }
+                      if (value != code) {
+                        return 'Código incorreto. Tente novamente.';
+                      }
+                      return null;
+                    },
                   ),
-                  ..._daysOfWeek.map((day) {
-                    return DropdownMenuItem(
-                      value: day['value'] as int,
-                      child: Text(day['label'] as String),
-                    );
-                  }).toList(),
                 ],
-                onChanged: (day) {
-                  controller.selectedFilterDayOfWeek.value = day;
-                },
-                hint: const Text('Filtrar por Dia'),
-                // CORREÇÃO: Validação customizada para Dropdown (verifica se 'value' é nulo)
-                validator: (value) {
-                  if (value == null) {
-                    return 'Campo obrigatório!'; // Pode ser "Selecione um dia" ou vazio para "Todos"
+              ),
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () async {
+                  if (formKey.currentState!.validate()) {
+                    await controller.toggleGradeStatus(grade);
+                    Get.back();
                   }
-                  return null;
                 },
+                child: const Text('Inativar'),
               ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<int>(
-                decoration: const InputDecoration(
-                  labelText: 'Ano Letivo',
-                  border: OutlineInputBorder(),
-                ),
-                value: controller.selectedFilterYear.value,
-                items: List.generate(11, (i) => DateTime.now().year - 5 + i)
-                    .map((year) {
-                      return DropdownMenuItem(
-                        value: year,
-                        child: Text(year.toString()),
-                      );
-                    })
-                    .toList(),
-                onChanged: (year) {
-                  controller.selectedFilterYear.value = year!;
-                },
-              ),
-              const SizedBox(height: 16),
-              SwitchListTile(
-                title: const Text('Mostrar apenas ativos'),
-                value: controller.showOnlyActiveGrades.value,
-                onChanged: (value) {
-                  controller.showOnlyActiveGrades.value = value;
-                },
+              TextButton(
+                onPressed: () => Get.back(),
+                child: const Text('Cancelar'),
               ),
             ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                controller.resetFilterFields();
-                controller.loadAllGrades();
-                Get.back();
-              },
-              child: const Text('Resetar Filtros'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                controller.loadAllGrades();
-                Get.back();
-              },
-              child: const Text('Aplicar Filtros'),
-            ),
-          ],
-        );
-      }),
+          );
+        },
+      ),
       barrierDismissible: false,
     );
   }

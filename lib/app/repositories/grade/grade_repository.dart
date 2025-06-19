@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:vocatus/app/core/utils/database_helper.dart';
 import 'package:vocatus/app/models/grade.dart';
@@ -14,16 +16,24 @@ class GradeRepository implements IGradeRepository {
   Future<Grade> createGrade(Grade grade) async {
     try {
       final db = await _dbHelper.database;
-      final id = await db.insert('grade', grade.toMap(),
-          conflictAlgorithm: ConflictAlgorithm.abort);
-
+      final id = await db.insert(
+        'grade',
+        grade.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.abort,
+      );
       return grade.copyWith(id: id);
-    } on DatabaseException catch (e) {
+    } on DatabaseException catch (e, stackTrace) {
+      log(stackTrace.toString(), error: e);
       if (e.toString().contains('UNIQUE constraint failed')) {
-        throw Exception('Já existe um horário agendado idêntico para esta turma, dia e hora.');
+        throw Exception(
+          'Já existe um horário agendado idêntico para esta turma, dia e hora. (DB UNIQUE)',
+        );
       }
-      throw Exception('Erro de banco de dados ao criar horário: ${e.toString()}');
-    } catch (e) {
+      throw Exception(
+        'Erro de banco de dados ao criar horário: ${e.toString()}',
+      );
+    } catch (e, stackTrace) {
+      log(stackTrace.toString(), error: e);
       throw Exception('Erro desconhecido ao criar horário: $e');
     }
   }
@@ -32,7 +42,8 @@ class GradeRepository implements IGradeRepository {
   Future<List<Grade>> getGradesByClasseId(int classeId) async {
     try {
       final db = await _dbHelper.database;
-      final result = await db.rawQuery('''
+      final result = await db.rawQuery(
+        '''
         SELECT 
           g.*, 
           d.name AS discipline_name, 
@@ -48,7 +59,9 @@ class GradeRepository implements IGradeRepository {
         INNER JOIN classe c ON g.classe_id = c.id
         WHERE g.classe_id = ? AND g.active = 1
         ORDER BY g.day_of_week, g.start_time
-      ''', [classeId]);
+      ''',
+        [classeId],
+      );
 
       return result.map((map) {
         final disciplineMap = {
@@ -67,12 +80,16 @@ class GradeRepository implements IGradeRepository {
         };
 
         return Grade.fromMap(map).copyWith(
-          discipline: map['discipline_id'] != null ? Discipline.fromMap(disciplineMap) : null,
+          discipline: map['discipline_id'] != null
+              ? Discipline.fromMap(disciplineMap)
+              : null,
           classe: Classe.fromMap(classeMap),
         );
       }).toList();
     } on DatabaseException catch (e) {
-      throw Exception('Erro de banco de dados ao buscar horários da turma: ${e.toString()}');
+      throw Exception(
+        'Erro de banco de dados ao buscar horários da turma: ${e.toString()}',
+      );
     } catch (e) {
       throw Exception('Erro desconhecido ao buscar horários da turma: $e');
     }
@@ -84,7 +101,7 @@ class GradeRepository implements IGradeRepository {
     int? disciplineId,
     int? dayOfWeek,
     bool? activeStatus = true,
-    int? year, // Adicionado o filtro de ano
+    int? year,
   }) async {
     try {
       final db = await _dbHelper.database;
@@ -122,12 +139,12 @@ class GradeRepository implements IGradeRepository {
         query += ' AND g.active = ?';
         whereArgs.add(activeStatus ? 1 : 0);
       }
-      if (year != null) { // NOVO: Filtro por ano
+      if (year != null) {
         query += ' AND c.school_year = ?';
         whereArgs.add(year);
       }
-      
-      query += ' AND c.active = 1 '; 
+
+      query += ' AND c.active = 1 ';
 
       query += ' ORDER BY g.day_of_week, g.start_time, c.name COLLATE NOCASE';
 
@@ -150,12 +167,16 @@ class GradeRepository implements IGradeRepository {
         };
 
         return Grade.fromMap(map).copyWith(
-          discipline: map['discipline_id'] != null ? Discipline.fromMap(disciplineMap) : null,
+          discipline: map['discipline_id'] != null
+              ? Discipline.fromMap(disciplineMap)
+              : null,
           classe: Classe.fromMap(classeMap),
         );
       }).toList();
     } on DatabaseException catch (e) {
-      throw Exception('Erro de banco de dados ao buscar todos os horários: ${e.toString()}');
+      throw Exception(
+        'Erro de banco de dados ao buscar todos os horários: ${e.toString()}',
+      );
     } catch (e) {
       throw Exception('Erro desconhecido ao buscar todos os horários: $e');
     }
@@ -165,21 +186,28 @@ class GradeRepository implements IGradeRepository {
   Future<void> updateGrade(Grade grade) async {
     try {
       final db = await _dbHelper.database;
+      // Simplesmente atualiza os campos da grade existente pelo ID
       final rowsAffected = await db.update(
         'grade',
-        grade.toMap(),
+        grade
+            .toMap(), // grade.toMap() agora inclui startTimeTotalMinutes e endTimeTotalMinutes
         where: 'id = ?',
         whereArgs: [grade.id],
-        conflictAlgorithm: ConflictAlgorithm.abort,
+        conflictAlgorithm: ConflictAlgorithm
+            .abort, // Para evitar conflitos de unicidade (dia, hora, turma)
       );
       if (rowsAffected == 0) {
         throw Exception('Horário não encontrado para atualização.');
       }
     } on DatabaseException catch (e) {
       if (e.toString().contains('UNIQUE constraint failed')) {
-        throw Exception('Já existe um horário agendado idêntico para esta turma, dia e hora.');
+        throw Exception(
+          'Já existe um horário agendado idêntico para esta turma, dia e hora.',
+        );
       }
-      throw Exception('Erro de banco de dados ao atualizar horário: ${e.toString()}');
+      throw Exception(
+        'Erro de banco de dados ao atualizar horário: ${e.toString()}',
+      );
     } catch (e) {
       throw Exception('Erro desconhecido ao atualizar horário: $e');
     }
@@ -189,7 +217,7 @@ class GradeRepository implements IGradeRepository {
   Future<void> toggleGradeActiveStatus(Grade grade) async {
     try {
       final db = await _dbHelper.database;
-      final newStatus = (grade.active ?? true) ? 0 : 1;
+      final newStatus = (grade.active ?? true) ? 0 : 1; // Inverte o status
       final rowsAffected = await db.update(
         'grade',
         {'active': newStatus},
@@ -200,12 +228,14 @@ class GradeRepository implements IGradeRepository {
         throw Exception('Horário não encontrado para mudança de status.');
       }
     } on DatabaseException catch (e) {
-      throw Exception('Erro de banco de dados ao mudar status do horário: ${e.toString()}');
+      throw Exception(
+        'Erro de banco de dados ao mudar status do horário: ${e.toString()}',
+      );
     } catch (e) {
       throw Exception('Erro desconhecido ao mudar status do horário: $e');
     }
   }
-  
+
   @override
   Future<List<Discipline>> getAllDisciplines() async {
     try {
@@ -218,30 +248,43 @@ class GradeRepository implements IGradeRepository {
       );
       return result.map((map) => Discipline.fromMap(map)).toList();
     } on DatabaseException catch (e) {
-      throw Exception('Erro de banco de dados ao buscar disciplinas: ${e.toString()}');
+      throw Exception(
+        'Erro de banco de dados ao buscar disciplinas: ${e.toString()}',
+      );
     } catch (e) {
       throw Exception('Erro desconhecido ao buscar disciplinas: $e');
     }
   }
 
   @override
-  Future<List<Classe>> getAllActiveClasses() async {
+  Future<List<Classe>> getAllActiveClasses([int? year]) async {
     try {
       final db = await _dbHelper.database;
+      String where = 'active = ?';
+      List<dynamic> whereArgs = [1];
+
+      if (year != null) {
+        where += ' AND school_year = ?';
+        whereArgs.add(year);
+      }
+
       final result = await db.query(
         'classe',
-        where: 'active = ?',
-        whereArgs: [1],
+        where: where,
+        whereArgs: whereArgs,
         orderBy: 'name COLLATE NOCASE',
       );
+
       return result.map((map) => Classe.fromMap(map)).toList();
     } on DatabaseException catch (e) {
-      throw Exception('Erro de banco de dados ao buscar classes ativas: ${e.toString()}');
+      throw Exception(
+        'Erro de banco de dados ao buscar classes ativas: ${e.toString()}',
+      );
     } catch (e) {
       throw Exception('Erro desconhecido ao buscar classes ativas: $e');
     }
   }
-  
+
   @override
   Future<void> deleteGrade(int gradeId) {
     // TODO: implement deleteGrade

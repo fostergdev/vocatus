@@ -6,7 +6,8 @@ import 'package:vocatus/app/core/widgets/custom_error_dialog.dart';
 import 'package:vocatus/app/core/widgets/custom_popbutton.dart';
 import 'package:vocatus/app/core/widgets/custom_text_field.dart';
 import 'package:vocatus/app/models/classe.dart';
-import './classes_controller.dart';
+import 'package:vocatus/app/modules/classes/classes_controller.dart';
+
 
 class ClassesPage extends GetView<ClassesController> {
   const ClassesPage({super.key});
@@ -16,7 +17,7 @@ class ClassesPage extends GetView<ClassesController> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Turmas',
+          'Minhas Turmas',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         centerTitle: true,
@@ -27,160 +28,198 @@ class ClassesPage extends GetView<ClassesController> {
         ),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
-          Obx(
-            () => IconButton(
-              icon: Text(
-                controller.selectedYear.value.toString(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
+          IconButton(
+            icon: const Icon(Icons.filter_list, color: Colors.white),
+            tooltip: 'Filtrar',
+            onPressed: () async {
+              await showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 ),
-              ),
-              tooltip: 'Filtrar por ano',
-              onPressed: () async {
-                final yearController = TextEditingController(
-                  text: controller.selectedYear.value.toString(),
-                );
-                await Get.defaultDialog(
-                  title: 'Filtrar por Ano',
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextFormField(
-                        controller: yearController,
-                        keyboardType: TextInputType.number,
-                        maxLength: 4,
-                        decoration: const InputDecoration(
-                          hintText: 'Digite o ano',
-                          counterText: '',
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Ano obrigatório';
-                          }
-                          if (value.length != 4) return 'Digite 4 dígitos';
-                          if (int.tryParse(value) == null) {
-                            return 'Apenas números';
-                          }
-                          return null;
-                        },
+                builder: (context) {
+                  return Padding(
+                    padding: MediaQuery.of(context).viewInsets,
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Filtros',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.purple.shade800,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Dropdown para Ano Letivo
+                          Obx(
+                            () => DropdownButtonFormField<int>(
+                              value: controller.selectedFilterYear.value,
+                              decoration: const InputDecoration(
+                                labelText: 'Ano Letivo',
+                                border: OutlineInputBorder(),
+                              ),
+                              items: List.generate(
+                                      11,
+                                      (i) => DateTime.now().year - 5 + i,
+                                    )
+                                  .map(
+                                    (year) => DropdownMenuItem(
+                                      value: year,
+                                      child: Text(year.toString()),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (year) {
+                                if (year != null) {
+                                  controller.selectedFilterYear.value = year;
+                                  controller.readClasses(
+                                    year: year,
+                                    active: controller.showOnlyActiveClasses.value,
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Switch para Ativo/Arquivado
+                          Obx(
+                            () => Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Transform.scale(
+                                  scale: 0.75,
+                                  child: Switch(
+                                    value: controller.showOnlyActiveClasses.value,
+                                    onChanged: (val) {
+                                      controller.showOnlyActiveClasses.value = val;
+                                      controller.readClasses(
+                                        active: val,
+                                        year: controller.selectedFilterYear.value,
+                                      );
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                SizedBox(
+                                  width: 100,
+                                  child: Text(
+                                    controller.showOnlyActiveClasses.value
+                                        ? 'Ativas'
+                                        : 'Arquivadas',
+                                    style: TextStyle(
+                                      color: controller.showOnlyActiveClasses.value
+                                          ? Colors.green
+                                          : Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Fechar'),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  confirm: ElevatedButton(
-                    onPressed: () {
-                      final year = int.tryParse(yearController.text);
-                      if (year != null && yearController.text.length == 4) {
-                        controller.selectedYear.value = year;
-                        controller.readClasses(year: year);
-                        Get.back();
-                      }
-                    },
-                    child: const Text('OK'),
-                  ),
-                  cancel: ElevatedButton(
-                    onPressed: () => Get.back(),
-                    child: const Text('Cancelar'),
-                  ),
-                );
-              },
-            ),
+                    ),
+                  );
+                },
+              );
+            },
           ),
         ],
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
-        }
-
-        final filteredClasses = controller.classes.toList()
-          ..sort((a, b) => a.name.compareTo(b.name));
-
-        return Column(
-          children: [
-            if (filteredClasses.isEmpty)
-              Expanded(
-                child: Center(
-                  child: Text(
-                    'Nenhuma turma ativa encontrada para ${controller.selectedYear.value}.',
-                    style: const TextStyle(fontSize: 16, color: Colors.grey),
-                    textAlign: TextAlign.center,
+        } else if (controller.classes.isEmpty) {
+          return Center(
+            child: Text(
+              'Nenhuma turma encontrada para ${controller.selectedFilterYear.value}.',
+              style: const TextStyle(fontSize: 16, color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+          );
+        } else {
+          final filteredClasses = controller.classes.toList()
+            ..sort((a, b) => a.name.compareTo(b.name));
+          return ListView.builder(
+            itemCount: filteredClasses.length,
+            itemBuilder: (context, index) {
+              final classe = filteredClasses[index];
+              return Card(
+                elevation: 2,
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.purple.shade100,
+                    child: Icon(
+                      Icons.class_,
+                      color: Colors.purple.shade800,
+                    ),
+                  ),
+                  title: Text(
+                    Constants.capitalize(classe.name),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 17,
+                      color: Constants.primaryColor,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                  subtitle: classe.description != null &&
+                          classe.description!.isNotEmpty
+                      ? Text(
+                          classe.description!,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                        )
+                      : null,
+                  trailing: CustomPopupMenu(
+                    items: [
+                      CustomPopupMenuItem(
+                        label: 'Alunos',
+                        icon: Icons.people,
+                        onTap: () async => await Get.toNamed(
+                          '/students/home',
+                          arguments: classe,
+                        ),
+                      ),
+                      CustomPopupMenuItem(
+                        label: 'Editar',
+                        icon: Icons.edit,
+                        onTap: () async =>
+                            await _showEditClasseDialog(classe),
+                      ),
+                      if (classe.active ?? true)
+                        CustomPopupMenuItem(
+                          label: 'Arquivar',
+                          icon: Icons.archive,
+                          onTap: () async {
+                            await _showArchiveClasseDialog(classe);
+                          },
+                        ),
+                    ],
                   ),
                 ),
-              )
-            else
-              Expanded(
-                child: ListView.builder(
-                  itemCount: filteredClasses.length,
-                  itemBuilder: (context, index) {
-                    final classe = filteredClasses[index];
-                    return Card(
-                      elevation: 2,
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.purple.shade100,
-                          child: Icon(
-                            Icons.class_,
-                            color: Colors.purple.shade800,
-                          ),
-                        ),
-                        title: Text(
-                          Constants.capitalize(classe.name),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 17,
-                            color: Constants.primaryColor,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                        subtitle: classe.description != null && classe.description!.isNotEmpty
-                            ? Text(
-                                classe.description!,
-                                style: const TextStyle(fontSize: 14, color: Colors.grey),
-                              )
-                            : null,
-                        trailing: CustomPopupMenu(
-                          items: [
-                            CustomPopupMenuItem(
-                              label: 'Alunos',
-                              icon: Icons.people,
-                              onTap: () async => await Get.toNamed(
-                                '/students/home',
-                                arguments: classe,
-                              ),
-                            ),
-                            CustomPopupMenuItem(
-                              label: 'Editar',
-                              icon: Icons.edit,
-                              onTap: () async =>
-                                  await _showEditClasseDialog(classe),
-                            ),
-                            if (classe.active ?? true)
-                              CustomPopupMenuItem(
-                                label: 'Arquivar',
-                                icon: Icons.archive,
-                                onTap: () async {
-                                  await _showArchiveClasseDialog(classe);
-                                },
-                              ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-          ],
-        );
+              );
+            },
+          );
+        }
       }),
       floatingActionButton: FloatingActionButton.small(
         onPressed: () async {
@@ -295,7 +334,9 @@ class ClassesPage extends GetView<ClassesController> {
                 Validatorless.required('Ano obrigatório!'),
                 Validatorless.number('Ano inválido!'),
                 (value) {
-                  if (value == null || int.tryParse(value) == null || value.length != 4) {
+                  if (value == null ||
+                      int.tryParse(value) == null ||
+                      value.length != 4) {
                     return 'Ano inválido (Ex: 2050)';
                   }
                   return null;

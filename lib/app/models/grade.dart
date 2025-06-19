@@ -11,6 +11,7 @@ class Grade {
   final int dayOfWeek;
   final int startTimeTotalMinutes;
   final int endTimeTotalMinutes;
+  final int? gradeYear; // Agora não é obrigatório
   final DateTime? createdAt;
   final bool? active;
   final Classe? classe;
@@ -23,6 +24,7 @@ class Grade {
     required this.dayOfWeek,
     required this.startTimeTotalMinutes,
     required this.endTimeTotalMinutes,
+    this.gradeYear, // Não obrigatório
     this.createdAt,
     this.active = true,
     this.classe,
@@ -33,6 +35,16 @@ class Grade {
     String startTimeStr = map['start_time'] as String;
     String endTimeStr = map['end_time'] as String;
 
+    int currentYear = DateTime.now().year;
+    int? parsedGradeYear;
+    if (map['grade_year'] == null) {
+      parsedGradeYear = currentYear;
+    } else if (map['grade_year'] is int) {
+      parsedGradeYear = map['grade_year'] as int;
+    } else {
+      parsedGradeYear = int.tryParse(map['grade_year'].toString()) ?? currentYear;
+    }
+
     return Grade(
       id: map['id'] as int?,
       classeId: map['classe_id'] as int,
@@ -40,6 +52,7 @@ class Grade {
       dayOfWeek: map['day_of_week'] as int,
       startTimeTotalMinutes: Grade._timeStringToInt(startTimeStr),
       endTimeTotalMinutes: Grade._timeStringToInt(endTimeStr),
+      gradeYear: parsedGradeYear,
       createdAt: map['created_at'] != null ? DateTime.parse(map['created_at']) : null,
       active: map['active'] == 1,
     );
@@ -53,6 +66,7 @@ class Grade {
       'day_of_week': dayOfWeek,
       'start_time': Grade._intToTimeString(startTimeTotalMinutes),
       'end_time': Grade._intToTimeString(endTimeTotalMinutes),
+      'grade_year': gradeYear,
       'created_at': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
       'active': (active ?? true) ? 1 : 0,
     };
@@ -65,6 +79,7 @@ class Grade {
     int? dayOfWeek,
     int? startTimeTotalMinutes,
     int? endTimeTotalMinutes,
+    int? gradeYear,
     DateTime? createdAt,
     bool? active,
     Classe? classe,
@@ -77,6 +92,7 @@ class Grade {
       dayOfWeek: dayOfWeek ?? this.dayOfWeek,
       startTimeTotalMinutes: startTimeTotalMinutes ?? this.startTimeTotalMinutes,
       endTimeTotalMinutes: endTimeTotalMinutes ?? this.endTimeTotalMinutes,
+      gradeYear: gradeYear ?? this.gradeYear,
       createdAt: createdAt ?? this.createdAt,
       active: active ?? this.active,
       classe: classe ?? this.classe,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:vocatus/app/routes/attendance_routes.dart';
 import 'package:vocatus/app/routes/classes_routes.dart';
 import 'package:vocatus/app/routes/disciplines_routes.dart';
 import 'package:vocatus/app/routes/grades_routers.dart';
@@ -28,7 +29,8 @@ class VocatusApp extends StatelessWidget {
         ...DisciplinesRoutes.routers,
         ...ClassesRoutes.routers,
         ...StudentsRoutes.routers,
-        ...GradesRoutes.routers, // Adicione as rotas de Grades aqui
+        ...GradesRoutes.routers,
+        ...AttendanceRoutes.routers,
       ],
       debugShowCheckedModeBanner: false,
       title: 'Vocatus',

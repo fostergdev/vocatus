@@ -78,7 +78,7 @@ class HomePage extends GetView<HomeController> {
   void _onButtonPressed(BuildContext context, int index) {
     switch (index) {
       case 0:
-        Navigator.pushNamed(context, '/attendance/home');
+        Navigator.pushNamed(context, '/attendance/select');
         break;
       case 1:
         Navigator.pushNamed(context, '/classes/home');

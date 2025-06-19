@@ -19,6 +19,9 @@ class ClassesController extends GetxController {
   );
   final formKey = GlobalKey<FormState>();
 
+  final RxInt selectedFilterYear = DateTime.now().year.obs;
+  final RxBool showOnlyActiveClasses = true.obs;
+
   final RxInt selectedYear = RxInt(DateTime.now().year);
 
   final classeEditNameEC = TextEditingController();
@@ -26,7 +29,10 @@ class ClassesController extends GetxController {
 
   @override
   void onInit() {
-    readClasses();
+    readClasses(
+      active: showOnlyActiveClasses.value,
+      year: selectedFilterYear.value,
+    );
     super.onInit();
   }
 
@@ -34,7 +40,10 @@ class ClassesController extends GetxController {
     try {
       isLoading.value = true;
       await _classeRepository.createClasse(classe);
-      await readClasses(year: classe.schoolYear);
+      await readClasses(
+        active: showOnlyActiveClasses.value,
+        year: selectedFilterYear.value,
+      );
     } catch (e) {
       String userMessage = 'Erro desconhecido';
       if (e is String) {
@@ -51,8 +60,8 @@ class ClassesController extends GetxController {
   Future<void> readClasses({bool? active, int? year}) async {
     isLoading.value = true;
     try {
-      final filterActive = active ?? true;
-      final filterYear = year ?? DateTime.now().year;
+      final filterActive = active ?? showOnlyActiveClasses.value;
+      final filterYear = year ?? selectedFilterYear.value;
 
       classes.value = await _classeRepository.readClasses(
         active: filterActive,
@@ -75,7 +84,10 @@ class ClassesController extends GetxController {
     isLoading.value = true;
     try {
       await _classeRepository.updateClasse(classe);
-      await readClasses(year: classe.schoolYear);
+      await readClasses(
+        active: showOnlyActiveClasses.value,
+        year: selectedFilterYear.value,
+      );
       classeEditNameEC.clear();
     } catch (e) {
       String userMessage = 'Erro desconhecido';
@@ -90,21 +102,17 @@ class ClassesController extends GetxController {
     }
   }
 
-  /*  Future<void> toggleClasseActiveStatus(Classe classe) async {
+  Future<void> toggleClasseActiveStatus(Classe classe) async {
     isLoading.value = true;
     try {
       final newStatus = !(classe.active ?? true);
       await _classeRepository.updateClasse(
-        Classe(
-          id: classe.id,
-          name: classe.name,
-          description: classe.description,
-          schoolYear: classe.schoolYear,
-          createdAt: classe.createdAt,
-          active: newStatus,
-        ),
+        classe.copyWith(active: newStatus),
       );
-      await readClasses();
+      await readClasses(
+        active: showOnlyActiveClasses.value,
+        year: selectedFilterYear.value,
+      );
     } catch (e) {
       String userMessage = 'Erro desconhecido ao mudar status da turma.';
       if (e is String) {
@@ -116,5 +124,5 @@ class ClassesController extends GetxController {
     } finally {
       isLoading.value = false;
     }
-  } */
+  }
 }

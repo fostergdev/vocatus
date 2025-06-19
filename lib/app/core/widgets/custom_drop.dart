@@ -27,11 +27,24 @@ class CustomDrop<T> extends StatelessWidget {
       items: items.map((item) {
         return DropdownMenuItem<T>(
           value: item,
-          child: Text(labelBuilder(item)),
+          child: Text(
+            labelBuilder(item),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         );
       }).toList(),
       onChanged: onChanged,
       validator: validator,
+      selectedItemBuilder: (context) {
+        return items.map((item) {
+          return Text(
+            labelBuilder(item),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          );
+        }).toList();
+      },
     );
   }
 }

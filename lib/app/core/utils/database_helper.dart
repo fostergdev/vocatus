@@ -87,10 +87,12 @@ CREATE TABLE grade (
   day_of_week INTEGER NOT NULL,
   start_time TEXT NOT NULL,
   end_time TEXT NOT NULL,
+  grade_year INTEGER NOT NULL, -- ou INTEGER se permitir nulo
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   active INTEGER NOT NULL DEFAULT 1,
   FOREIGN KEY (classe_id) REFERENCES classe(id) ON DELETE CASCADE,
-  FOREIGN KEY (discipline_id) REFERENCES discipline(id) ON DELETE SET NULL
+  FOREIGN KEY (discipline_id) REFERENCES discipline(id) ON DELETE SET NULL,
+  UNIQUE (classe_id, day_of_week, start_time) -- Adicione esta linha
 );
 ''');
 
