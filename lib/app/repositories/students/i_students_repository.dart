@@ -18,4 +18,7 @@ abstract class IStudentsRepository {
     int? year,
   });
 
+  // Adicione os métodos extras usados no repositório concreto:
+  Future<void> archiveStudentPermanently(Student student);
+  Future<void> duplicateStudentToClasse(Student student, int toClasseId);
 }

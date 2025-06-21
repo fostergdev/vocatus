@@ -102,6 +102,7 @@ CREATE TABLE attendance (
   classe_id INTEGER NOT NULL,
   grade_id INTEGER,
   date TEXT NOT NULL,
+  content TEXT, -- Adicione esta linha
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   active INTEGER NOT NULL DEFAULT 1,
   FOREIGN KEY (classe_id) REFERENCES classe(id) ON DELETE CASCADE,

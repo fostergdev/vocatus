@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:vocatus/app/core/constants/constants.dart';
 import 'package:vocatus/app/models/grade.dart';
-import 'package:vocatus/app/modules/attendance/attendance_register/attendance_register_page.dart';
-
 import './attendance_select_controller.dart';
-
 
 class AttendanceSelectPage extends GetView<AttendanceSelectController> {
   const AttendanceSelectPage({super.key});
@@ -72,6 +69,14 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // Button for previous week
+                  IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back_ios,
+                      color: Colors.purple,
+                    ),
+                    onPressed: controller.goToPreviousWeek,
+                  ),
                   GestureDetector(
                     onTap: () async {
                       final DateTime? pickedDate = await showDatePicker(
@@ -105,6 +110,14 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                         ),
                       ],
                     ),
+                  ),
+                  // Button for next week
+                  IconButton(
+                    icon: const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.purple,
+                    ),
+                    onPressed: controller.goToNextWeek,
                   ),
                 ],
               );
@@ -155,7 +168,7 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
   Widget _buildDayColumn(
     int dayOfWeek,
     List<Grade> gradesForDay,
-    DateTime date, // 'date' está disponível aqui
+    DateTime date,
   ) {
     return Container(
       width: 180,
@@ -165,7 +178,7 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2), // Use .withOpacity para clareza
+            color: Colors.grey.withOpacity(0.2),
             blurRadius: 5,
             spreadRadius: 2,
           ),
@@ -205,8 +218,9 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                     itemCount: gradesForDay.length,
                     itemBuilder: (context, index) {
                       final grade = gradesForDay[index];
-                      // PASSE A 'date' AQUI para _buildGradeCard
-                      return _buildGradeCard(grade, date); 
+                      final bool hasAttendance =
+                          controller.gradeAttendanceStatus[grade.id!] ?? false;
+                      return _buildGradeCard(grade, date, hasAttendance);
                     },
                   ),
           ),
@@ -215,21 +229,18 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
     );
   }
 
-  // _buildGradeCard PRECISA RECEBER A DATA
-  Widget _buildGradeCard(Grade grade, DateTime date) { // <--- Adicione DateTime date aqui
+  Widget _buildGradeCard(Grade grade, DateTime date, bool hasAttendance) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      color: Colors.purple.shade50,
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: InkWell(
         onTap: () {
           Get.toNamed(
             '/attendance/register',
-            arguments: {
-              'grade': grade,
-              'date': date, // Agora 'date' está acessível e correta
-            },
+            arguments: {'grade': grade, 'date': date},
           );
         },
         borderRadius: BorderRadius.circular(8),
@@ -239,11 +250,13 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${grade.classe?.name ?? 'N/A'} (${grade.classe?.schoolYear ?? ''})',
+                '${grade.classe?.name ?? 'N/A'} ',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
-                  color: Constants.primaryColor,
+                  color: hasAttendance
+                      ? Colors.green.shade800
+                      : Colors.red.shade800,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -257,6 +270,18 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
                   overflow: TextOverflow.ellipsis,
                 ),
+              Padding(
+                padding: const EdgeInsets.only(top: 4.0),
+                child: Row(
+                  children: [
+                    Icon(
+                      hasAttendance ? Icons.check_circle : Icons.warning,
+                      color: hasAttendance ? Colors.green : Colors.red,
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

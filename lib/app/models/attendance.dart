@@ -14,6 +14,7 @@ class Attendance {
   // Campos extras para conveniência na UI (não persistem no DB)
   final Classe? classe;
   final Grade? grade; // Grade completa associada
+  final String? content;
 
   const Attendance({
     this.id,
@@ -24,6 +25,7 @@ class Attendance {
     this.classe,
     this.grade,
     this.active = true, // Default to active
+    this.content,
   });
 
   factory Attendance.fromMap(Map<String, dynamic> map) {
@@ -34,6 +36,7 @@ class Attendance {
       date: DateTime.parse(map['date'] as String),
       createdAt: map['created_at'] != null ? DateTime.parse(map['created_at']) : null,
       active: map['active'] == 1, // Convert int to bool
+      content: map['content'] as String?,
     );
   }
 
@@ -45,6 +48,7 @@ class Attendance {
       'date': date.toIso8601String().split('T')[0], // Salva apenas a data (YYYY-MM-DD)
       'created_at': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
       'active': (active ?? true) ? 1 : 0, // Salva o status ativo
+      'content': content,
     };
   }
 
@@ -57,6 +61,7 @@ class Attendance {
     Classe? classe,
     Grade? grade,
     bool? active,
+    String? content,
   }) {
     return Attendance(
       id: id ?? this.id,
@@ -67,6 +72,7 @@ class Attendance {
       classe: classe ?? this.classe,
       grade: grade ?? this.grade,
       active: active ?? this.active,
+      content: content ?? this.content,
     );
   }
 

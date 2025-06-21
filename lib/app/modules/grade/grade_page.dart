@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:vocatus/app/core/constants/constants.dart';
+import 'package:vocatus/app/core/widgets/custom_confirmation_dialog_with_code.dart';
 import 'package:vocatus/app/core/widgets/custom_drop.dart';
 import 'package:vocatus/app/core/widgets/custom_popbutton.dart';
 import 'package:vocatus/app/core/widgets/custom_dialog.dart';
@@ -756,6 +757,7 @@ class GradesPage extends GetView<GradesController> {
 
   void _showToggleGradeStatusDialog(Grade grade) {
     final isCurrentlyActive = grade.active ?? true;
+
     if (!isCurrentlyActive) {
       Get.dialog(
         CustomDialog(
@@ -773,68 +775,18 @@ class GradesPage extends GetView<GradesController> {
       return;
     }
 
-    final code = (100 + (DateTime.now().millisecondsSinceEpoch % 900))
-        .toString();
-    final codeController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
     final message =
         'Tem certeza que deseja INATIVAR o horário das ${Grade.formatTimeDisplay(grade.startTimeOfDay)} - ${Grade.formatTimeDisplay(grade.endTimeOfDay)} (${_getDayName(grade.dayOfWeek)}) da turma "${grade.classe?.name ?? 'N/A'}"?\n\n'
         'ATENÇÃO: Esta ação é irreversível. Não será possível reativar este horário depois.\n\n'
-        'Você ainda poderá acessar os dados deste horário para consulta/histórico, mas não poderá reativá-lo.\n\n'
-        'Para confirmar, digite o código abaixo:\n\n'
-        'Código: $code';
+        'Você ainda poderá acessar os dados deste horário para consulta/histórico, mas não poderá reativá-lo.';
 
     Get.dialog(
-      StatefulBuilder(
-        builder: (context, setState) {
-          return CustomDialog(
-            title: 'Inativar Horário',
-            content: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(message),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: codeController,
-                    keyboardType: TextInputType.number,
-                    maxLength: 3,
-                    decoration: const InputDecoration(
-                      labelText: 'Digite o código',
-                      border: OutlineInputBorder(),
-                      counterText: '',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Digite o código para confirmar.';
-                      }
-                      if (value != code) {
-                        return 'Código incorreto. Tente novamente.';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              ElevatedButton(
-                onPressed: () async {
-                  if (formKey.currentState!.validate()) {
-                    await controller.toggleGradeStatus(grade);
-                    Get.back();
-                  }
-                },
-                child: const Text('Inativar'),
-              ),
-              TextButton(
-                onPressed: () => Get.back(),
-                child: const Text('Cancelar'),
-              ),
-            ],
-          );
+      CustomConfirmationDialogWithCode(
+        title: 'Inativar Horário',
+        message: message,
+        confirmButtonText: 'Inativar',
+        onConfirm: () async {
+          await controller.toggleGradeStatus(grade);
         },
       ),
       barrierDismissible: false,

@@ -1,12 +1,12 @@
 // lib/app/repositories/attendance_select/attendance_select_repository.dart
 
+import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:vocatus/app/core/utils/database_helper.dart';
 import 'package:vocatus/app/models/grade.dart';
 import 'package:vocatus/app/models/discipline.dart';
 import 'package:vocatus/app/models/classe.dart';
 import 'package:vocatus/app/repositories/attendance/attendance_select/i_attendance_select_repository.dart';
-
 
 class AttendanceSelectRepository implements IAttendanceSelectRepository {
   final DatabaseHelper _dbHelper;
@@ -18,15 +18,15 @@ class AttendanceSelectRepository implements IAttendanceSelectRepository {
     int? classeId,
     int? disciplineId,
     int? dayOfWeek,
-    bool? activeStatus = true, // Padrão: busca apenas horários ativos
-    int? year,                  // Ano da grade
+    bool? activeStatus = true,
+    int? year,
   }) async {
     try {
       final db = await _dbHelper.database;
       String query = '''
-        SELECT 
-          g.*, 
-          d.name AS discipline_name, 
+        SELECT
+          g.*,
+          d.name AS discipline_name,
           d.created_at AS discipline_created_at,
           d.active AS discipline_active,
           c.id AS classe_id_fk,
@@ -37,8 +37,8 @@ class AttendanceSelectRepository implements IAttendanceSelectRepository {
           c.created_at AS classe_created_at
         FROM grade g
         LEFT JOIN discipline d ON g.discipline_id = d.id
-        INNER JOIN classe c ON g.classe_id = c.id 
-        WHERE 1=1 
+        INNER JOIN classe c ON g.classe_id = c.id
+        WHERE 1=1
       ''';
       List<dynamic> whereArgs = [];
 
@@ -55,17 +55,15 @@ class AttendanceSelectRepository implements IAttendanceSelectRepository {
         whereArgs.add(dayOfWeek);
       }
       if (activeStatus != null) {
-        query += ' AND g.active = ?'; // Filtra pelo status do horário (grade.active)
+        query += ' AND g.active = ?';
         whereArgs.add(activeStatus ? 1 : 0);
       }
       if (year != null) {
-        query += ' AND g.grade_year = ?'; // Filtra pelo ano da grade (grade.grade_year)
+        query += ' AND g.grade_year = ?';
         whereArgs.add(year);
       }
-      
-      // Garante que a CLASSE associada também esteja ATIVA
-      query += ' AND c.active = 1 '; 
 
+      query += ' AND c.active = 1 ';
       query += ' ORDER BY g.day_of_week, g.start_time, c.name COLLATE NOCASE';
 
       final result = await db.rawQuery(query, whereArgs);
@@ -78,7 +76,7 @@ class AttendanceSelectRepository implements IAttendanceSelectRepository {
           'active': map['discipline_active'],
         };
         final classeMap = {
-          'id': map['classe_id_fk'], // Renomeado para evitar conflito com 'classe_id' de Grade
+          'id': map['classe_id_fk'],
           'name': map['classe_name'],
           'description': map['classe_description'],
           'school_year': map['classe_school_year'],
@@ -87,14 +85,39 @@ class AttendanceSelectRepository implements IAttendanceSelectRepository {
         };
 
         return Grade.fromMap(map).copyWith(
-          discipline: map['discipline_id'] != null ? Discipline.fromMap(disciplineMap) : null,
+          discipline: map['discipline_id'] != null
+              ? Discipline.fromMap(disciplineMap)
+              : null,
           classe: Classe.fromMap(classeMap),
         );
       }).toList();
     } on DatabaseException catch (e) {
-      throw Exception('Erro de banco de dados ao buscar horários para seleção: ${e.toString()}');
+      throw Exception(
+        'Erro de banco de dados ao buscar horários para seleção: ${e.toString()}',
+      );
     } catch (e) {
       throw Exception('Erro desconhecido ao buscar horários para seleção: $e');
+    }
+  }
+
+  Future<bool> hasAttendanceForGradeAndDate(int gradeId, DateTime date) async {
+    try {
+      final db = await _dbHelper.database;
+      final formattedDate = DateFormat('yyyy-MM-dd').format(date);
+      final result = await db.query(
+        'attendance',
+        columns: ['id'],
+        where: 'grade_id = ? AND date = ?',
+        whereArgs: [gradeId, formattedDate],
+        limit: 1,
+      );
+      return result.isNotEmpty;
+    } on DatabaseException catch (e) {
+      throw Exception(
+        'Erro de banco de dados ao verificar chamada existente: ${e.toString()}',
+      );
+    } catch (e) {
+      throw Exception('Erro desconhecido ao verificar chamada existente: $e');
     }
   }
 
@@ -110,7 +133,9 @@ class AttendanceSelectRepository implements IAttendanceSelectRepository {
       );
       return result.map((map) => Discipline.fromMap(map)).toList();
     } on DatabaseException catch (e) {
-      throw Exception('Erro de banco de dados ao buscar disciplinas ativas: ${e.toString()}');
+      throw Exception(
+        'Erro de banco de dados ao buscar disciplinas ativas: ${e.toString()}',
+      );
     } catch (e) {
       throw Exception('Erro desconhecido ao buscar disciplinas ativas: $e');
     }
@@ -128,7 +153,9 @@ class AttendanceSelectRepository implements IAttendanceSelectRepository {
       );
       return result.map((map) => Classe.fromMap(map)).toList();
     } on DatabaseException catch (e) {
-      throw Exception('Erro de banco de dados ao buscar classes ativas: ${e.toString()}');
+      throw Exception(
+        'Erro de banco de dados ao buscar classes ativas: ${e.toString()}',
+      );
     } catch (e) {
       throw Exception('Erro desconhecido ao buscar classes ativas: $e');
     }

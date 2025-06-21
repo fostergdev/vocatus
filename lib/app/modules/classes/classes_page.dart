@@ -2,12 +2,12 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:validatorless/validatorless.dart';
 import 'package:vocatus/app/core/constants/constants.dart';
+import 'package:vocatus/app/core/widgets/custom_confirmation_dialog_with_code.dart';
 import 'package:vocatus/app/core/widgets/custom_error_dialog.dart';
 import 'package:vocatus/app/core/widgets/custom_popbutton.dart';
 import 'package:vocatus/app/core/widgets/custom_text_field.dart';
 import 'package:vocatus/app/models/classe.dart';
 import 'package:vocatus/app/modules/classes/classes_controller.dart';
-
 
 class ClassesPage extends GetView<ClassesController> {
   const ClassesPage({super.key});
@@ -28,7 +28,7 @@ class ClassesPage extends GetView<ClassesController> {
         ),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
-          IconButton(
+         /*  IconButton(
             icon: const Icon(Icons.filter_list, color: Colors.white),
             tooltip: 'Filtrar',
             onPressed: () async {
@@ -63,23 +63,25 @@ class ClassesPage extends GetView<ClassesController> {
                                 labelText: 'Ano Letivo',
                                 border: OutlineInputBorder(),
                               ),
-                              items: List.generate(
-                                      11,
-                                      (i) => DateTime.now().year - 5 + i,
-                                    )
-                                  .map(
-                                    (year) => DropdownMenuItem(
-                                      value: year,
-                                      child: Text(year.toString()),
-                                    ),
-                                  )
-                                  .toList(),
+                              items:
+                                  List.generate(
+                                        11,
+                                        (i) => DateTime.now().year - 5 + i,
+                                      )
+                                      .map(
+                                        (year) => DropdownMenuItem(
+                                          value: year,
+                                          child: Text(year.toString()),
+                                        ),
+                                      )
+                                      .toList(),
                               onChanged: (year) {
                                 if (year != null) {
                                   controller.selectedFilterYear.value = year;
                                   controller.readClasses(
                                     year: year,
-                                    active: controller.showOnlyActiveClasses.value,
+                                    active:
+                                        controller.showOnlyActiveClasses.value,
                                   );
                                 }
                               },
@@ -94,12 +96,15 @@ class ClassesPage extends GetView<ClassesController> {
                                 Transform.scale(
                                   scale: 0.75,
                                   child: Switch(
-                                    value: controller.showOnlyActiveClasses.value,
+                                    value:
+                                        controller.showOnlyActiveClasses.value,
                                     onChanged: (val) {
-                                      controller.showOnlyActiveClasses.value = val;
+                                      controller.showOnlyActiveClasses.value =
+                                          val;
                                       controller.readClasses(
                                         active: val,
-                                        year: controller.selectedFilterYear.value,
+                                        year:
+                                            controller.selectedFilterYear.value,
                                       );
                                     },
                                   ),
@@ -112,7 +117,8 @@ class ClassesPage extends GetView<ClassesController> {
                                         ? 'Ativas'
                                         : 'Arquivadas',
                                     style: TextStyle(
-                                      color: controller.showOnlyActiveClasses.value
+                                      color:
+                                          controller.showOnlyActiveClasses.value
                                           ? Colors.green
                                           : Colors.red,
                                       fontWeight: FontWeight.bold,
@@ -134,7 +140,7 @@ class ClassesPage extends GetView<ClassesController> {
                 },
               );
             },
-          ),
+          ), */
         ],
       ),
       body: Obx(() {
@@ -164,10 +170,7 @@ class ClassesPage extends GetView<ClassesController> {
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: Colors.purple.shade100,
-                    child: Icon(
-                      Icons.class_,
-                      color: Colors.purple.shade800,
-                    ),
+                    child: Icon(Icons.class_, color: Colors.purple.shade800),
                   ),
                   title: Text(
                     Constants.capitalize(classe.name),
@@ -179,7 +182,8 @@ class ClassesPage extends GetView<ClassesController> {
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                   ),
-                  subtitle: classe.description != null &&
+                  subtitle:
+                      classe.description != null &&
                           classe.description!.isNotEmpty
                       ? Text(
                           classe.description!,
@@ -202,8 +206,7 @@ class ClassesPage extends GetView<ClassesController> {
                       CustomPopupMenuItem(
                         label: 'Editar',
                         icon: Icons.edit,
-                        onTap: () async =>
-                            await _showEditClasseDialog(classe),
+                        onTap: () async => await _showEditClasseDialog(classe),
                       ),
                       if (classe.active ?? true)
                         CustomPopupMenuItem(
@@ -391,49 +394,42 @@ class ClassesPage extends GetView<ClassesController> {
   }
 
   Future<void> _showArchiveClasseDialog(Classe classe) async {
-    await Get.defaultDialog(
-      title: 'Arquivar Turma',
-      middleText:
-          'Você tem certeza que deseja ARQUIVAR a turma "${Constants.capitalize(classe.name)} (${classe.schoolYear})"?\n\n'
-          'Ao arquivar, esta turma será removida da lista de turmas ativas, mas todos os seus dados e históricos (alunos, chamadas, etc.) serão MANTIDOS para consulta.\n\n'
-          'Você poderá acessá-la posteriormente na tela de Relatórios para visualizar seus dados.',
-      confirm: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          ElevatedButton(
-            onPressed: () async {
-              try {
-                await controller.updateClasse(
-                  Classe(
-                    id: classe.id,
-                    name: classe.name,
-                    description: classe.description,
-                    schoolYear: classe.schoolYear,
-                    createdAt: classe.createdAt,
-                    active: false,
-                  ),
-                );
-                Get.back();
-              } catch (e) {
-                Get.dialog(
-                  CustomErrorDialog(
-                    title: 'Erro ao Arquivar',
-                    message: e.toString(),
-                  ),
-                  barrierDismissible: false,
-                );
-              }
-            },
-            child: const Text('Sim, Arquivar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Get.back();
-            },
-            child: const Text('Cancelar'),
-          ),
-        ],
+    // O texto da mensagem que será exibido no diálogo de confirmação.
+    final String message =
+        'Você tem certeza que deseja ARQUIVAR a turma "${Constants.capitalize(classe.name)} (${classe.schoolYear})"?\n\n'
+        'Ao arquivar, esta turma será removida da lista de turmas ativas, mas todos os seus dados e históricos (alunos, chamadas, etc.) serão MANTIDOS para consulta.\n\n'
+        'Você poderá acessá-la posteriormente na tela de Relatórios para visualizar seus dados.';
+
+    await Get.dialog(
+      CustomConfirmationDialogWithCode(
+        title: 'Arquivar Turma',
+        message: message,
+        confirmButtonText: 'Sim, Arquivar',
+        onConfirm: () async {
+          try {
+            await controller.updateClasse(
+              Classe(
+                id: classe.id,
+                name: classe.name,
+                description: classe.description,
+                schoolYear: classe.schoolYear,
+                createdAt: classe.createdAt,
+                active: false,
+              ),
+            );
+          } catch (e) {
+            Get.dialog(
+              CustomErrorDialog(
+                title: 'Erro ao Arquivar',
+                message: e.toString(),
+              ),
+              barrierDismissible: false,
+            );
+          }
+        },
       ),
+      barrierDismissible:
+          false, // Impede que o diálogo seja fechado ao clicar fora
     );
   }
 }

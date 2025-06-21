@@ -2,14 +2,15 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:validatorless/validatorless.dart';
 import 'package:vocatus/app/core/constants/constants.dart';
-import 'package:vocatus/app/core/widgets/custom_drop.dart'; // Certifique-se de que este widget está disponível
-import 'package:vocatus/app/core/widgets/custom_error_dialog.dart'; // Diálogo de erro customizado
-import 'package:vocatus/app/core/widgets/custom_popbutton.dart'; // Widget de menu de contexto customizado
-import 'package:vocatus/app/core/widgets/custom_text_field.dart'; // Campo de texto customizado
-import 'package:vocatus/app/core/widgets/custom_dialog.dart'; // Diálogo customizado para mensagens
-import 'package:vocatus/app/models/classe.dart'; // Modelo de Classe
-import 'package:vocatus/app/models/student.dart'; // Modelo de Student
-import './students_controller.dart'; // Importa o controller completo e atualizado
+import 'package:vocatus/app/core/widgets/custom_drop.dart';
+import 'package:vocatus/app/core/widgets/custom_error_dialog.dart';
+import 'package:vocatus/app/core/widgets/custom_popbutton.dart';
+import 'package:vocatus/app/core/widgets/custom_text_field.dart';
+import 'package:vocatus/app/core/widgets/custom_dialog.dart';
+import 'package:vocatus/app/core/widgets/custom_confirmation_dialog_with_code.dart'; // Importação do dialog com código
+import 'package:vocatus/app/models/classe.dart';
+import 'package:vocatus/app/models/student.dart';
+import './students_controller.dart';
 
 class StudentsPage extends GetView<StudentsController> {
   const StudentsPage({super.key});
@@ -101,10 +102,14 @@ class StudentsPage extends GetView<StudentsController> {
                         maxLines: 1,
                       ),
                       subtitle: Text(
-                        (student.active ?? true) ? 'Status: Ativo' : 'Status: Inativo',
+                        (student.active ?? true)
+                            ? 'Status: Ativo'
+                            : 'Status: Arquivado',
                         style: TextStyle(
                           fontSize: 14,
-                          color: (student.active ?? true) ? Colors.green.shade700 : Colors.deepOrange.shade700,
+                          color: (student.active ?? true)
+                              ? Colors.green.shade700
+                              : Colors.deepOrange.shade700,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -116,7 +121,8 @@ class StudentsPage extends GetView<StudentsController> {
                             onTap: () => _showConfirmationDialog(
                               context: context,
                               title: 'Confirmar Edição',
-                              message: 'Você irá editar os dados do aluno "${student.name}". Deseja continuar?',
+                              message:
+                                  'Você irá editar os dados do aluno "${student.name}". Deseja continuar?',
                               onConfirm: () => _showEditStudentDialog(student),
                             ),
                           ),
@@ -126,7 +132,8 @@ class StudentsPage extends GetView<StudentsController> {
                             onTap: () => _showConfirmationDialog(
                               context: context,
                               title: 'Confirmar Transferência',
-                              message: 'Você irá transferir o aluno "${student.name}" para outra turma. Ele será removido desta turma e adicionado à nova. Deseja continuar?',
+                              message:
+                                  'Você irá transferir o aluno "${student.name}" para outra turma. Ele será removido desta turma e adicionado à nova. Deseja continuar?',
                               onConfirm: () async {
                                 await controller.loadClassesForTransfer();
                                 _showTransferStudentDialog(student);
@@ -139,7 +146,8 @@ class StudentsPage extends GetView<StudentsController> {
                             onTap: () => _showConfirmationDialog(
                               context: context,
                               title: 'Confirmar Duplicação',
-                              message: 'Você irá duplicar o aluno "${student.name}" para outra turma. Ele permanecerá nesta turma e será adicionado à nova. Deseja continuar?',
+                              message:
+                                  'Você irá duplicar o aluno "${student.name}" para outra turma. Ele permanecerá nesta turma e será adicionado à nova. Deseja continuar?',
                               onConfirm: () async {
                                 await controller.loadClassesForTransfer();
                                 _showCopyStudentDialog(student);
@@ -147,9 +155,13 @@ class StudentsPage extends GetView<StudentsController> {
                             ),
                           ),
                           CustomPopupMenuItem(
-                            label: (student.active ?? true) ? 'Desativar' : 'Ativar',
-                            icon: (student.active ?? true) ? Icons.visibility_off : Icons.visibility,
-                            onTap: () => _showToggleStudentStatusDialog(student),
+                            label: (student.active ?? true)
+                                ? 'Arquivar'
+                                : 'Ação não permitida',
+                            icon: (student.active ?? true)
+                                ? Icons.archive
+                                : Icons.do_not_disturb_alt,
+                            onTap: () => _showArchiveStudentDialog(student),
                           ),
                         ],
                       ),
@@ -325,7 +337,8 @@ class StudentsPage extends GetView<StudentsController> {
                       return DropdownMenuItem(
                         value: classe,
                         child: Text(
-                            '${classe.name} (${classe.schoolYear}) - ${classe.active! ? "Ativa" : "Arquivada"}'),
+                          '${classe.name} (${classe.schoolYear}) - ${classe.active! ? "Ativa" : "Arquivada"}',
+                        ),
                       );
                     }).toList(),
                     onChanged: (classe) {
@@ -342,9 +355,7 @@ class StudentsPage extends GetView<StudentsController> {
                   else if (controller.selectedClasseToImport.value != null &&
                       controller.studentsFromSelectedClasse.isEmpty)
                     const Expanded(
-                      child: Center(
-                        child: Text('Nenhum aluno nesta turma.'),
-                      ),
+                      child: Center(child: Text('Nenhum aluno nesta turma.')),
                     )
                   else if (controller.selectedClasseToImport.value == null)
                     const SizedBox.shrink()
@@ -354,12 +365,18 @@ class StudentsPage extends GetView<StudentsController> {
                         physics: const AlwaysScrollableScrollPhysics(),
                         itemCount: controller.studentsFromSelectedClasse.length,
                         itemBuilder: (context, index) {
-                          final student = controller.studentsFromSelectedClasse[index];
+                          final student =
+                              controller.studentsFromSelectedClasse[index];
                           return CheckboxListTile(
                             contentPadding: EdgeInsets.zero,
                             controlAffinity: ListTileControlAffinity.leading,
-                            value: controller.selectedStudentsToImport.contains(student),
-                            title: Text(student.name, style: const TextStyle(fontSize: 16)),
+                            value: controller.selectedStudentsToImport.contains(
+                              student,
+                            ),
+                            title: Text(
+                              student.name,
+                              style: const TextStyle(fontSize: 16),
+                            ),
                             onChanged: (selected) {
                               controller.toggleStudentToImport(
                                 student,
@@ -376,15 +393,20 @@ class StudentsPage extends GetView<StudentsController> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TextButton(
-                        style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16)),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                        ),
                         onPressed: () => Get.back(),
                         child: const Text('CANCELAR'),
                       ),
                       const SizedBox(width: 8),
                       ElevatedButton(
-                        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16)),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                        ),
                         onPressed: () async {
-                          await controller.importSelectedStudentsToCurrentClasse();
+                          await controller
+                              .importSelectedStudentsToCurrentClasse();
                         },
                         child: const Text('IMPORTAR'),
                       ),
@@ -415,7 +437,8 @@ class StudentsPage extends GetView<StudentsController> {
                   items: controller.classesForTransfer,
                   value: controller.selectedClasseForTransfer.value,
                   labelBuilder: (c) => '${c.name} (${c.schoolYear})',
-                  onChanged: (c) => controller.selectedClasseForTransfer.value = c,
+                  onChanged: (c) =>
+                      controller.selectedClasseForTransfer.value = c,
                   hint: 'Selecione uma turma de destino',
                 ),
           actions: [
@@ -451,7 +474,8 @@ class StudentsPage extends GetView<StudentsController> {
                   items: controller.classesForTransfer,
                   value: controller.selectedClasseForTransfer.value,
                   labelBuilder: (c) => '${c.name} (${c.schoolYear})',
-                  onChanged: (c) => controller.selectedClasseForTransfer.value = c,
+                  onChanged: (c) =>
+                      controller.selectedClasseForTransfer.value = c,
                   hint: 'Selecione uma turma de destino',
                 ),
           actions: [
@@ -463,10 +487,18 @@ class StudentsPage extends GetView<StudentsController> {
               onPressed: () async {
                 final targetClasse = controller.selectedClasseForTransfer.value;
                 if (targetClasse == null || targetClasse.id == null) {
-                  Get.dialog(CustomErrorDialog(title: 'Atenção', message: 'Selecione uma turma de destino válida.'));
+                  Get.dialog(
+                    CustomErrorDialog(
+                      title: 'Atenção',
+                      message: 'Selecione uma turma de destino válida.',
+                    ),
+                  );
                   return;
                 }
-                await controller.duplicateStudentToOtherClasse(student, targetClasse.id!);
+                await controller.duplicateStudentToOtherClasse(
+                  student,
+                  targetClasse.id!,
+                );
                 Get.back();
               },
               child: const Text('Duplicar'),
@@ -478,30 +510,47 @@ class StudentsPage extends GetView<StudentsController> {
     );
   }
 
-  void _showToggleStudentStatusDialog(Student student) {
+  void _showArchiveStudentDialog(Student student) {
     final isCurrentlyActive = student.active ?? true;
-    final actionText = isCurrentlyActive ? 'Desativar' : 'Ativar';
-    final message = isCurrentlyActive
-        ? 'Tem certeza que deseja DESATIVAR o aluno "${student.name}"?\n\nEle não aparecerá mais nas listas ativas de turmas e chamadas. Você poderá reativá-lo posteriormente.'
-        : 'Tem certeza que deseja ATIVAR o aluno "${student.name}"?\n\nEle voltará a aparecer nas listas ativas de turmas e chamadas.';
+
+    // Se o aluno já está inativo, mostre um diálogo de "Ação não permitida"
+    if (!isCurrentlyActive) {
+      Get.dialog(
+        CustomDialog(
+          title: 'Ação não permitida',
+          content: const Text(
+            'Este aluno já está arquivado e não pode ser reativado.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text('Fechar'),
+            ),
+          ],
+        ),
+        barrierDismissible: false,
+      );
+      return; // Sai da função
+    }
+
+    // Se o aluno está ativo, mostre o diálogo de confirmação com código para ARQUIVAR
+    final message =
+        'Tem certeza que deseja ARQUIVAR o aluno "${student.name}"?\n\n'
+        'ATENÇÃO: Esta ação é irreversível. Não será possível reativar este aluno depois.\n\n'
+        'Você ainda poderá acessar os dados deste aluno para consulta/histórico, mas não poderá reativá-lo.';
 
     Get.dialog(
-      CustomDialog(
-        title: '$actionText Aluno',
-        content: Text(message),
-        actions: [
-          ElevatedButton(
-            onPressed: () async {
-              await controller.toggleStudentStatus(student);
-              // O Get.back() é chamado no controller após a operação
-            },
-            child: Text(actionText),
-          ),
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancelar'),
-          ),
-        ],
+      CustomConfirmationDialogWithCode(
+        title: 'Arquivar Aluno',
+        message: message,
+        confirmButtonText: 'Arquivar',
+        onConfirm: () async {
+          // Esta função será chamada SOMENTE se o código for digitado corretamente
+          await controller.archiveStudent(
+            student,
+          ); // Chamada para a nova função no controller
+          // O Get.back() já é tratado pelo ConfirmationDialogWithCode
+        },
       ),
       barrierDismissible: false,
     );

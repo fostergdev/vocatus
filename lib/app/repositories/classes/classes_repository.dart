@@ -33,13 +33,9 @@ class ClasseRepository implements IClasseRepository {
       if (e.toString().contains('UNIQUE constraint failed')) {
         throw ('Já existe uma turma com esse nome para o ano ${classe.schoolYear}!');
       } else {
-        // Se não for um erro de UNIQUE, relance a exceção original
-        // ou uma mensagem genérica de erro de banco de dados.
         throw ('Erro de banco de dados ao criar turma: ${e.toString()}');
-        // Ou simplesmente: throw e; // relança a exceção original
       }
     } catch (e) {
-      // Já está bom aqui, pois você já tem um throw
       throw ('Erro desconhecido ao criar turma: $e');
     }
   }
@@ -48,19 +44,13 @@ class ClasseRepository implements IClasseRepository {
   Future<List<Classe>> readClasses({bool? active, int? year}) async {
     try {
       final db = await _databaseHelper.database;
-      final currentYear = DateTime.now().year; // Ano atual
-      final effectiveYear =
-          year ?? currentYear; // Se 'year' for nulo, usa o ano atual
-      final effectiveActive = active; // Permite que seja nulo para buscar todos
-
+      final currentYear = DateTime.now().year;
+      final effectiveYear = year ?? currentYear;
+      final effectiveActive = active;
       String whereClause = '';
       List<dynamic> whereArgs = [];
-
-      // Filtro por ano letivo
       whereClause += "school_year = ?";
       whereArgs.add(effectiveYear);
-
-      // Filtro por status ativo/inativo
       if (effectiveActive != null) {
         whereClause += " AND active = ?";
         whereArgs.add(effectiveActive ? 1 : 0);
@@ -70,20 +60,17 @@ class ClasseRepository implements IClasseRepository {
         'classe',
         where: whereClause,
         whereArgs: whereArgs,
-        orderBy: 'name ASC', // Ordenar por nome por padrão
+        orderBy: 'name ASC',
       );
       return result.map((map) => Classe.fromMap(map)).toList();
     } on DatabaseException catch (e) {
-      // --- Adicionei as condições de erro específicas e um throw final ---
       if (e.isNoSuchTableError('classe')) {
         throw ('Tabela de turmas não encontrada ao tentar ler!|$e');
       } else if (e.isSyntaxError()) {
         throw ('Erro de sintaxe ao buscar turmas!|$e');
       }
-      // Se não for nenhum dos erros específicos, relança o erro original
-      throw ('Erro ao buscar as turmas: $e'); // <--- Garante que uma exceção é SEMPRE lançada aqui
+      throw ('Erro ao buscar as turmas: $e');
     } catch (e) {
-      // Para qualquer outra exceção não esperada
       throw ('Erro desconhecido ao buscar classes: $e');
     }
   }
@@ -97,7 +84,7 @@ class ClasseRepository implements IClasseRepository {
         {
           'name': classe.name.toLowerCase(),
           'description': classe.description,
-          'school_year': classe.schoolYear, // Incluído school_year
+          'school_year': classe.schoolYear,
           'created_at': classe.createdAt?.toIso8601String(),
           'active': (classe.active ?? true) ? 1 : 0,
         },
@@ -106,7 +93,6 @@ class ClasseRepository implements IClasseRepository {
       );
     } on DatabaseException catch (e) {
       if (e.toString().contains('UNIQUE constraint failed')) {
-        // Ajustado para a mensagem de erro comum do SQLite
         throw ('Já existe uma turma com esse nome para o ano ${classe.schoolYear}!');
       }
       // ... outros catchs
@@ -114,6 +100,4 @@ class ClasseRepository implements IClasseRepository {
       throw ('Erro desconhecido ao atualizar turma: $e');
     }
   }
-
-
 }

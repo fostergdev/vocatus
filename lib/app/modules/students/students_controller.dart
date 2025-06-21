@@ -85,22 +85,26 @@ class StudentsController extends GetxController {
     }
   }
 
-  Future<void> toggleStudentStatus(Student student) async {
+  // --- NOVA FUNÇÃO PARA ARQUIVAR ALUNO (substitui toggleStudentStatus) ---
+  Future<void> archiveStudent(Student student) async {
     try {
       isLoading.value = true;
       if (student.id == null) {
-        Get.dialog(CustomErrorDialog(title: 'Erro', message: 'ID do aluno é nulo. Não foi possível mudar o status.'));
+        Get.dialog(CustomErrorDialog(title: 'Erro', message: 'ID do aluno é nulo. Não foi possível arquivar.'));
         return;
       }
-      await _studentRepository.toggleStudentActiveStatus(student);
+      // Chama a nova função no repositório para arquivar permanentemente
+      await _studentRepository.archiveStudentPermanently(student);
       await readStudents();
-      Get.back();
+      // Não chama Get.back() aqui, pois o diálogo de confirmação já fez isso.
     } catch (e) {
-      Get.dialog(CustomErrorDialog(title: 'Erro ao Mudar Status do Aluno', message: e.toString()));
+      Get.dialog(CustomErrorDialog(title: 'Erro ao Arquivar Aluno', message: e.toString()));
     } finally {
       isLoading.value = false;
     }
   }
+
+
 
   Future<void> readStudents() async {
     try {

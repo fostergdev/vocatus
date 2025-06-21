@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Para formatar datas
 import 'package:vocatus/app/core/constants/constants.dart';
+import 'package:vocatus/app/core/widgets/custom_popbutton.dart';
 import 'package:vocatus/app/core/widgets/custom_text_field.dart';
 import 'package:vocatus/app/models/grade.dart'; // Modelo Grade para usar formatTimeDisplay
 import 'package:vocatus/app/models/student_attendance.dart'; // Modelo StudentAttendance e enum PresenceStatus
@@ -56,24 +57,19 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
         children: [
           Padding(
             padding: const EdgeInsets.all(1.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${_getDayName(selectedGrade.dayOfWeek)}: ${DateFormat('dd/MM/yyyy').format(controller.selectedDate.value)} ${Grade.formatTimeDisplay(selectedGrade.startTimeOfDay)} - ${Grade.formatTimeDisplay(selectedGrade.endTimeOfDay)}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.purple,
-                  ),
+            child: ListTile(
+              title: Text(
+                '${_getDayName(selectedGrade.dayOfWeek)}: ${DateFormat('dd/MM/yyyy').format(controller.selectedDate.value)}  -  ${Grade.formatTimeDisplay(selectedGrade.startTimeOfDay)} - ${Grade.formatTimeDisplay(selectedGrade.endTimeOfDay)}',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.purple,
                 ),
-                Text(
-                  'Disciplina: ${selectedGrade.discipline?.name ?? 'Não Definida'}',
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-
-                const SizedBox(height: 8),
-              ],
+              ),
+              subtitle: Text(
+                'Disciplina: ${selectedGrade.discipline?.name ?? 'Não Definida'}',
+                style: const TextStyle(fontSize: 16, color: Colors.grey),
+              ),
             ),
           ),
           Padding(
@@ -83,6 +79,7 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
               maxLines: 1,
               minLines: 1,
               keyboardType: TextInputType.multiline,
+              controller: controller.contentController,
               decoration: InputDecoration(
                 labelText: "Conteúdo",
                 alignLabelWithHint: true,
@@ -95,6 +92,20 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                   vertical: 16,
                   horizontal: 16,
                 ),
+              ),
+              suffixIcon: CustomPopupMenu(
+                items: [
+                  CustomPopupMenuItem(
+                    label: 'tarefa',
+                    icon: Icons.task,
+                    onTap: () {},
+                  ),
+                  CustomPopupMenuItem(
+                    label: 'ocorrência',
+                    icon: Icons.report,
+                    onTap: () {},
+                  ),
+                ],
               ),
             ),
           ),
@@ -132,12 +143,14 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                         ),
                       ),
                       subtitle: Text(
-                        studentAttendance.student?.active ?? true
-                            ? 'Ativo na Turma'
-                            : 'Inativo na Turma',
+                        studentAttendance.presence == PresenceStatus.present
+                            ? 'Presente'
+                            : 'Ausente',
                         style: TextStyle(
                           fontSize: 12,
-                          color: studentAttendance.student?.active ?? true
+                          color:
+                              studentAttendance.presence ==
+                                  PresenceStatus.present
                               ? Colors.green
                               : Colors.red,
                         ),
