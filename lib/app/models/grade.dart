@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:vocatus/app/models/classe.dart';
-import 'package:vocatus/app/models/discipline.dart';
+import 'package:vocatus/app/models/discipline.dart'; 
 
 @immutable
 class Grade {
@@ -11,7 +11,7 @@ class Grade {
   final int dayOfWeek;
   final int startTimeTotalMinutes;
   final int endTimeTotalMinutes;
-  final int? gradeYear; // Agora não é obrigatório
+  final int? gradeYear;
   final DateTime? createdAt;
   final bool? active;
   final Classe? classe;
@@ -24,7 +24,7 @@ class Grade {
     required this.dayOfWeek,
     required this.startTimeTotalMinutes,
     required this.endTimeTotalMinutes,
-    this.gradeYear, // Não obrigatório
+    this.gradeYear,
     this.createdAt,
     this.active = true,
     this.classe,
@@ -53,7 +53,9 @@ class Grade {
       startTimeTotalMinutes: Grade._timeStringToInt(startTimeStr),
       endTimeTotalMinutes: Grade._timeStringToInt(endTimeStr),
       gradeYear: parsedGradeYear,
-      createdAt: map['created_at'] != null ? DateTime.parse(map['created_at']) : null,
+      createdAt: map['created_at'] != null && (map['created_at'] is String) && (map['created_at'] as String).isNotEmpty
+          ? DateTime.parse(map['created_at'] as String)
+          : null,
       active: map['active'] == 1,
     );
   }
@@ -137,4 +139,9 @@ class Grade {
 
   TimeOfDay get startTimeOfDay => Grade.intToTimeOfDay(startTimeTotalMinutes);
   TimeOfDay get endTimeOfDay => Grade.intToTimeOfDay(endTimeTotalMinutes);
+
+  @override
+  String toString() {
+    return 'Grade(id: $id, classeId: $classeId, disciplineId: $disciplineId, dayOfWeek: $dayOfWeek, startTimeTotalMinutes: $startTimeTotalMinutes, endTimeTotalMinutes: $endTimeTotalMinutes, gradeYear: $gradeYear, createdAt: $createdAt, active: $active)';
+  }
 }

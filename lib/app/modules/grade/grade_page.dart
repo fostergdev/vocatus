@@ -48,13 +48,11 @@ class GradesPage extends GetView<GradesController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Obx(
-          () => Text(
-            'Horário: ${controller.selectedFilterYear.value}',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+        title: Text(
+          'Horário: ${controller.selectedFilterYear.value}',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
         centerTitle: true,
@@ -65,7 +63,7 @@ class GradesPage extends GetView<GradesController> {
         ),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
-          IconButton(
+          /* IconButton(
             icon: const Icon(Icons.filter_list, color: Colors.white),
             tooltip: 'Filtrar',
             onPressed: () async {
@@ -167,7 +165,7 @@ class GradesPage extends GetView<GradesController> {
                 },
               );
             },
-          ),
+          ), */
         ],
       ),
       body: Column(

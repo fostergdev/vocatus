@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart'; // Para @immutable
+import 'package:flutter/material.dart';
 import 'package:vocatus/app/models/classe.dart';
 import 'package:vocatus/app/models/grade.dart';
 
@@ -6,14 +6,12 @@ import 'package:vocatus/app/models/grade.dart';
 class Attendance {
   final int? id;
   final int classeId;
-  final int gradeId; // A qual Grade (horário agendado) esta chamada se refere
-  final DateTime date; // A data real em que a chamada foi feita (YYYY-MM-DD)
+  final int gradeId;
+  final DateTime date;
   final DateTime? createdAt;
-  final bool? active; // Adicionado para soft delete da Attendance
-
-  // Campos extras para conveniência na UI (não persistem no DB)
+  final bool? active;
   final Classe? classe;
-  final Grade? grade; // Grade completa associada
+  final Grade? grade;
   final String? content;
 
   const Attendance({
@@ -24,7 +22,7 @@ class Attendance {
     this.createdAt,
     this.classe,
     this.grade,
-    this.active = true, // Default to active
+    this.active = true,
     this.content,
   });
 
@@ -34,8 +32,10 @@ class Attendance {
       classeId: map['classe_id'] as int,
       gradeId: map['grade_id'] as int,
       date: DateTime.parse(map['date'] as String),
-      createdAt: map['created_at'] != null ? DateTime.parse(map['created_at']) : null,
-      active: map['active'] == 1, // Convert int to bool
+      createdAt: map['created_at'] != null && (map['created_at'] is String) && (map['created_at'] as String).isNotEmpty
+          ? DateTime.parse(map['created_at'] as String)
+          : null,
+      active: map['active'] == 1,
       content: map['content'] as String?,
     );
   }
@@ -45,9 +45,9 @@ class Attendance {
       'id': id,
       'classe_id': classeId,
       'grade_id': gradeId,
-      'date': date.toIso8601String().split('T')[0], // Salva apenas a data (YYYY-MM-DD)
+      'date': date.toIso8601String().split('T')[0],
       'created_at': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
-      'active': (active ?? true) ? 1 : 0, // Salva o status ativo
+      'active': (active ?? true) ? 1 : 0,
       'content': content,
     };
   }
@@ -84,4 +84,9 @@ class Attendance {
 
   @override
   int get hashCode => id.hashCode;
+
+  @override
+  String toString() {
+    return 'Attendance(id: $id, classeId: $classeId, gradeId: $gradeId, date: $date, createdAt: $createdAt, active: $active, content: $content)';
+  }
 }

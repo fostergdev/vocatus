@@ -52,11 +52,6 @@ CREATE TABLE classe (
 ''');
 
         await db.execute('''
-CREATE UNIQUE INDEX idx_classe_name_year
-ON classe (name, school_year);
-''');
-
-        await db.execute('''
 CREATE TABLE student (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,

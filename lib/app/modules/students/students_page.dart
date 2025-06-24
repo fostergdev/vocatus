@@ -1,3 +1,5 @@
+// app/pages/students/students_page.dart
+
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:validatorless/validatorless.dart';
@@ -7,7 +9,7 @@ import 'package:vocatus/app/core/widgets/custom_error_dialog.dart';
 import 'package:vocatus/app/core/widgets/custom_popbutton.dart';
 import 'package:vocatus/app/core/widgets/custom_text_field.dart';
 import 'package:vocatus/app/core/widgets/custom_dialog.dart';
-import 'package:vocatus/app/core/widgets/custom_confirmation_dialog_with_code.dart'; // Importação do dialog com código
+import 'package:vocatus/app/core/widgets/custom_confirmation_dialog_with_code.dart';
 import 'package:vocatus/app/models/classe.dart';
 import 'package:vocatus/app/models/student.dart';
 import './students_controller.dart';
@@ -35,12 +37,15 @@ class StudentsPage extends GetView<StudentsController> {
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
-            icon: const Icon(Icons.file_download),
+            icon: Icon(Icons.file_copy),
             tooltip: 'Importar alunos de outra turma',
             color: Colors.white,
             onPressed: () async {
               controller.resetImportFilters();
-              _showImportStudentsDialog(context);
+              await controller.loadAvailableYears();
+              if (context.mounted) {
+                _showImportStudentsDialog(context);
+              }
             },
           ),
         ],
@@ -73,6 +78,16 @@ class StudentsPage extends GetView<StudentsController> {
                 itemCount: controller.students.length,
                 itemBuilder: (context, index) {
                   final student = controller.students[index];
+                  // Determina se o aluno está ativo em QUALQUER turma (status global)
+                  // IMPORTANTE: O student.active é o status global do aluno na tabela 'student'.
+                  // Se o aluno for inativado globalmente, ele não aparecerá nesta lista
+                  // pois a consulta getStudentsByClasseId filtra por cs.active = 1
+                  // Se você precisa que o status global reflita a última busca,
+                  // você pode precisar de um campo Student.isGloballyActive
+                  // ou outra forma de buscar o status global mais recente.
+                  // Por enquanto, seguimos com a lógica atual de student.active
+                  final isStudentGloballyActive = student.active ?? true;
+
                   return Card(
                     key: ValueKey(student.id),
                     elevation: 2,
@@ -101,31 +116,8 @@ class StudentsPage extends GetView<StudentsController> {
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
-                      subtitle: Text(
-                        (student.active ?? true)
-                            ? 'Status: Ativo'
-                            : 'Status: Arquivado',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: (student.active ?? true)
-                              ? Colors.green.shade700
-                              : Colors.deepOrange.shade700,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
                       trailing: CustomPopupMenu(
                         items: [
-                          CustomPopupMenuItem(
-                            label: 'Editar',
-                            icon: Icons.edit,
-                            onTap: () => _showConfirmationDialog(
-                              context: context,
-                              title: 'Confirmar Edição',
-                              message:
-                                  'Você irá editar os dados do aluno "${student.name}". Deseja continuar?',
-                              onConfirm: () => _showEditStudentDialog(student),
-                            ),
-                          ),
                           CustomPopupMenuItem(
                             label: 'Transferir',
                             icon: Icons.swap_horiz,
@@ -155,13 +147,34 @@ class StudentsPage extends GetView<StudentsController> {
                             ),
                           ),
                           CustomPopupMenuItem(
-                            label: (student.active ?? true)
+                            label: isStudentGloballyActive
                                 ? 'Arquivar'
-                                : 'Ação não permitida',
-                            icon: (student.active ?? true)
+                                : 'Aluno já Arquivado',
+                            icon: isStudentGloballyActive
                                 ? Icons.archive
                                 : Icons.do_not_disturb_alt,
-                            onTap: () => _showArchiveStudentDialog(student),
+                            onTap: () {
+                              if (isStudentGloballyActive) {
+                                // Se o aluno está ativo globalmente, permite arquivar
+                                _showArchiveStudentDialog(student);
+                              } else {
+                                // Se o aluno já está arquivado globalmente, exibe um aviso
+                                Get.dialog(
+                                  CustomDialog(
+                                    title: 'Ação não permitida',
+                                    content: const Text(
+                                      'Este aluno já está arquivado globalmente. Não é possível arquivá-lo novamente ou reativá-lo por aqui.',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Get.back(),
+                                        child: const Text('Fechar'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                            },
                           ),
                         ],
                       ),
@@ -197,6 +210,8 @@ class StudentsPage extends GetView<StudentsController> {
     );
   }
 
+  // --- FUNÇÕES AUXILIARES DA CLASSE StudentsPage (DENTRO DO ESCOPO DA CLASSE) ---
+
   Future<void> _showConfirmationDialog({
     required BuildContext context,
     required String title,
@@ -214,7 +229,7 @@ class StudentsPage extends GetView<StudentsController> {
           ),
           ElevatedButton(
             onPressed: () {
-              Get.back();
+              Get.back(); // Fechar o diálogo de confirmação ANTES de executar onConfirm
               onConfirm();
             },
             child: const Text('Continuar'),
@@ -225,54 +240,6 @@ class StudentsPage extends GetView<StudentsController> {
     );
   }
 
-  void _showEditStudentDialog(Student student) {
-    controller.studentEditNameEC.text = student.name;
-    Get.dialog(
-      Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        return CustomDialog(
-          title: 'Editar Aluno',
-          icon: Icons.edit,
-          content: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Form(
-              key: controller.formEditKey,
-              child: CustomTextField(
-                validator: Validatorless.required('Campo obrigatório!'),
-                controller: controller.studentEditNameEC,
-                maxLines: 1,
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Get.back(),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (controller.formEditKey.currentState!.validate()) {
-                  await controller.updateStudent(
-                    student.copyWith(
-                      name: controller.studentEditNameEC.text.trim(),
-                    ),
-                  );
-                  controller.studentEditNameEC.clear();
-                  Get.back();
-                }
-              },
-              child: const Text('Atualizar'),
-            ),
-          ],
-        );
-      }),
-      barrierDismissible: false,
-    );
-  }
-
-  // Diálogo de Importação de Alunos (sem filtros)
   void _showImportStudentsDialog(BuildContext context) {
     Get.dialog(
       Obx(() {
@@ -336,9 +303,7 @@ class StudentsPage extends GetView<StudentsController> {
                     items: controller.availableClasses.map((classe) {
                       return DropdownMenuItem(
                         value: classe,
-                        child: Text(
-                          '${classe.name} (${classe.schoolYear}) - ${classe.active! ? "Ativa" : "Arquivada"}',
-                        ),
+                        child: Text(classe.name),
                       );
                     }).toList(),
                     onChanged: (classe) {
@@ -367,22 +332,23 @@ class StudentsPage extends GetView<StudentsController> {
                         itemBuilder: (context, index) {
                           final student =
                               controller.studentsFromSelectedClasse[index];
-                          return CheckboxListTile(
-                            contentPadding: EdgeInsets.zero,
-                            controlAffinity: ListTileControlAffinity.leading,
-                            value: controller.selectedStudentsToImport.contains(
-                              student,
+                          return Obx(
+                            () => CheckboxListTile(
+                              contentPadding: EdgeInsets.zero,
+                              controlAffinity: ListTileControlAffinity.leading,
+                              value: controller.selectedStudentsToImport
+                                  .contains(student),
+                              title: Text(
+                                student.name,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                              onChanged: (selected) {
+                                controller.toggleStudentToImport(
+                                  student,
+                                  selected ?? false,
+                                );
+                              },
                             ),
-                            title: Text(
-                              student.name,
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                            onChanged: (selected) {
-                              controller.toggleStudentToImport(
-                                student,
-                                selected ?? false,
-                              );
-                            },
                           );
                         },
                         separatorBuilder: (_, __) => const Divider(height: 1),
@@ -511,33 +477,11 @@ class StudentsPage extends GetView<StudentsController> {
   }
 
   void _showArchiveStudentDialog(Student student) {
-    final isCurrentlyActive = student.active ?? true;
-
-    // Se o aluno já está inativo, mostre um diálogo de "Ação não permitida"
-    if (!isCurrentlyActive) {
-      Get.dialog(
-        CustomDialog(
-          title: 'Ação não permitida',
-          content: const Text(
-            'Este aluno já está arquivado e não pode ser reativado.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Get.back(),
-              child: const Text('Fechar'),
-            ),
-          ],
-        ),
-        barrierDismissible: false,
-      );
-      return; // Sai da função
-    }
-
-    // Se o aluno está ativo, mostre o diálogo de confirmação com código para ARQUIVAR
     final message =
-        'Tem certeza que deseja ARQUIVAR o aluno "${student.name}"?\n\n'
-        'ATENÇÃO: Esta ação é irreversível. Não será possível reativar este aluno depois.\n\n'
-        'Você ainda poderá acessar os dados deste aluno para consulta/histórico, mas não poderá reativá-lo.';
+        'Tem certeza que deseja ARQUIVAR o aluno "${student.name}" desta turma (${controller.currentClasse.name})?\n\n'
+        'A matrícula deste aluno nesta turma será inativada.\n\n'
+        'Se esta for a ÚLTIMA matrícula ativa do aluno em qualquer turma, ele será arquivado GLOBALMENTE e não poderá ser reativado. Você ainda poderá acessá-lo no histórico.\n\n'
+        'Esta ação é irreversível.';
 
     Get.dialog(
       CustomConfirmationDialogWithCode(
@@ -545,11 +489,7 @@ class StudentsPage extends GetView<StudentsController> {
         message: message,
         confirmButtonText: 'Arquivar',
         onConfirm: () async {
-          // Esta função será chamada SOMENTE se o código for digitado corretamente
-          await controller.archiveStudent(
-            student,
-          ); // Chamada para a nova função no controller
-          // O Get.back() já é tratado pelo ConfirmationDialogWithCode
+          await controller.archiveStudentFromCurrentClasse(student);
         },
       ),
       barrierDismissible: false,

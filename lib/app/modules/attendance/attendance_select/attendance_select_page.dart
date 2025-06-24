@@ -37,7 +37,7 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
       appBar: AppBar(
         title: Obx(
           () => Text(
-            'Horário: ${controller.selectedFilterYear}',
+            '${controller.selectedFilterYear}',
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -178,7 +178,7 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: Colors.grey.withValues(alpha: .2),
             blurRadius: 5,
             spreadRadius: 2,
           ),

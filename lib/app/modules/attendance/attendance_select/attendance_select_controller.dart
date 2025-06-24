@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:vocatus/app/core/utils/database_helper.dart';
 import 'package:vocatus/app/core/widgets/custom_error_dialog.dart';
 import 'package:vocatus/app/models/grade.dart';

@@ -1,3 +1,5 @@
+// app/repositories/students/students_repository.dart
+
 import 'package:sqflite/sqflite.dart';
 import 'package:vocatus/app/core/utils/database_helper.dart';
 import 'package:vocatus/app/models/classe.dart';
@@ -18,7 +20,7 @@ class StudentsRepository implements IStudentsRepository {
         SELECT s.*, cs.active as link_active
         FROM student s
         INNER JOIN classe_student cs ON cs.student_id = s.id
-        WHERE cs.classe_id = ?
+        WHERE cs.classe_id = ? AND cs.active = 1
         ORDER BY s.name COLLATE NOCASE
         ''',
         [classeId],
@@ -42,6 +44,10 @@ class StudentsRepository implements IStudentsRepository {
           int studentId;
 
           if (student.id != null) {
+            // Se o ID do aluno foi fornecido, tentamos encontrá-lo.
+            // Se ele existir, usamos o ID existente. Se não, é um erro de lógica
+            // pois estamos tentando adicionar um aluno com um ID inexistente.
+            // Poderíamos adicionar uma validação mais robusta aqui se necessário.
             final existingById = await txn.query(
               'student',
               where: 'id = ?',
@@ -50,22 +56,22 @@ class StudentsRepository implements IStudentsRepository {
             if (existingById.isNotEmpty) {
               studentId = existingById.first['id'] as int;
             } else {
-              final existingByName = await txn.query(
-                'student',
-                where: 'name = ?',
-                whereArgs: [student.name.toLowerCase().trim()],
-              );
-              if (existingByName.isNotEmpty) {
-                studentId = existingByName.first['id'] as int;
-              } else {
-                studentId = await txn.insert('student', {
-                  "name": student.name.toLowerCase().trim(),
-                  "created_at": DateTime.now().toIso8601String(),
-                  "active": 1,
-                });
-              }
+              // Se o ID foi fornecido mas não existe, isso geralmente indica um erro.
+              // Para este cenário, vamos criar um novo aluno, já que o ID fornecido não é válido.
+              // Alternativamente, você poderia lançar um erro ou ter uma lógica de "upsert" mais clara.
+              print('AVISO: Aluno com ID ${student.id} não encontrado. Criando novo registro para ${student.name}.');
+              studentId = await txn.insert('student', {
+                "name": student.name.trim(), // Removido toLowerCase() para manter o case original
+                "created_at": DateTime.now().toIso8601String(),
+                "active": 1,
+              });
             }
           } else {
+            // Se o ID do aluno não foi fornecido (student.id == null),
+            // SEMPRE criamos um novo aluno, mesmo que o nome seja igual a um existente.
+            // Cada adição sem ID explícito gera um novo registro de aluno.
+            // --- Lógica de busca e reuso pelo nome removida/comentada ---
+            /*
             final existingByName = await txn.query(
               'student',
               where: 'name = ?',
@@ -74,15 +80,23 @@ class StudentsRepository implements IStudentsRepository {
             if (existingByName.isNotEmpty) {
               studentId = existingByName.first['id'] as int;
             } else {
+              // Se não encontrou nem por ID nem por nome, insere um novo aluno
               studentId = await txn.insert('student', {
                 "name": student.name.toLowerCase().trim(),
                 "created_at": DateTime.now().toIso8601String(),
                 "active": 1,
               });
             }
+            */
+            // --- Nova lógica: sempre insere um novo se o ID não for fornecido ---
+            studentId = await txn.insert('student', {
+              "name": student.name.trim(), // Removido toLowerCase() para manter o case original
+              "created_at": DateTime.now().toIso8601String(),
+              "active": 1,
+            });
           }
 
-          // Ao adicionar, sempre ative o student e o vínculo
+          // Ativa o aluno (caso estivesse inativo)
           await txn.update(
             'student',
             {'active': 1},
@@ -90,6 +104,7 @@ class StudentsRepository implements IStudentsRepository {
             whereArgs: [studentId],
           );
 
+          // Tenta atualizar a ligação classe_student (se já existia e estava inativa)
           int updated = await txn.update(
             'classe_student',
             {
@@ -101,12 +116,13 @@ class StudentsRepository implements IStudentsRepository {
             whereArgs: [studentId, classeId],
           );
           if (updated == 0) {
+            // Se não atualizou (não existia ou não encontrou), insere uma nova ligação
             await txn.insert('classe_student', {
               'student_id': studentId,
               'classe_id': classeId,
               'start_date': DateTime.now().toIso8601String(),
               'active': 1,
-            }, conflictAlgorithm: ConflictAlgorithm.ignore);
+            }, conflictAlgorithm: ConflictAlgorithm.ignore); // Usa ignore para evitar erro se por algum motivo já existir
           }
         }
       });
@@ -120,32 +136,33 @@ class StudentsRepository implements IStudentsRepository {
   }
 
   @override
-  Future<void> deleteStudentFromClasse(Student student, int classeId) async {
+  Future<void> removeStudentFromClasse(Student student, int classeId) async {
     try {
       final db = await _dbHelper.database;
-      await db.update(
-        'classe_student',
-        {'active': 0, 'end_date': DateTime.now().toIso8601String()},
-        where: 'student_id = ? AND classe_id = ?',
-        whereArgs: [student.id, classeId],
-      );
-
-      final countActiveLinks = Sqflite.firstIntValue(
-        await db.rawQuery(
-          'SELECT COUNT(*) FROM classe_student WHERE student_id = ? AND active = 1',
-          [student.id],
-        ),
-      );
-
-      // Se não há mais vínculos ativos, pode considerar o aluno inativo globalmente
-      if (countActiveLinks == 0) {
-        await db.update(
-          'student',
-          {'active': 0},
-          where: 'id = ?',
-          whereArgs: [student.id],
+      await db.transaction((txn) async {
+        await txn.update(
+          'classe_student',
+          {'active': 0, 'end_date': DateTime.now().toIso8601String()},
+          where: 'student_id = ? AND classe_id = ?',
+          whereArgs: [student.id, classeId],
         );
-      }
+
+        final countActiveLinks = Sqflite.firstIntValue(
+          await txn.rawQuery(
+            'SELECT COUNT(*) FROM classe_student WHERE student_id = ? AND active = 1',
+            [student.id],
+          ),
+        );
+
+        if (countActiveLinks == 0) {
+          await txn.update(
+            'student',
+            {'active': 0},
+            where: 'id = ?',
+            whereArgs: [student.id],
+          );
+        }
+      });
     } on DatabaseException catch (e) {
       throw Exception(
         'Erro de banco de dados ao remover aluno da turma: ${e.toString()}',
@@ -156,44 +173,11 @@ class StudentsRepository implements IStudentsRepository {
   }
 
   @override
-  Future<void> archiveStudentPermanently(Student student) async {
-    try {
-      final db = await _dbHelper.database;
-      await db.transaction((txn) async {
-        // Define o aluno como inativo (arquivado)
-        await txn.update(
-          'student',
-          {'active': 0},
-          where: 'id = ?',
-          whereArgs: [student.id],
-        );
-        // Desativa TODOS os vínculos do aluno com qualquer turma
-        await txn.update(
-          'classe_student',
-          {'active': 0, 'end_date': DateTime.now().toIso8601String()},
-          where: 'student_id = ?',
-          whereArgs: [student.id],
-        );
-      });
-    } on DatabaseException catch (e) {
-      throw Exception(
-        'Erro de banco de dados ao arquivar aluno permanentemente: ${e.toString()}',
-      );
-    } catch (e) {
-      throw Exception(
-        'Erro desconhecido ao arquivar aluno permanentemente: $e',
-      );
-    }
-  }
-
-
-  @override
   Future<void> updateStudent(Student student) async {
     try {
       final db = await _dbHelper.database;
       final Map<String, dynamic> studentData = student.toMap();
       studentData.remove('id');
-
       await db.update(
         'student',
         studentData,
@@ -210,13 +194,14 @@ class StudentsRepository implements IStudentsRepository {
   }
 
   @override
-  Future<List<Classe>> getAllClassesExcept(int excludeId) async {
+  Future<List<Classe>> getAllClassesExcept(int excludeId, {int? year}) async {
     try {
       final db = await _dbHelper.database;
+      int yearToUse = year ?? DateTime.now().year;
       final result = await db.query(
         'classe c',
-        where: 'c.id != ? AND c.active = 1',
-        whereArgs: [excludeId],
+        where: 'c.id != ? AND c.active = 1 AND c.school_year = ?',
+        whereArgs: [excludeId, yearToUse],
         orderBy: 'c.name COLLATE NOCASE',
       );
       return result.map((e) => Classe.fromMap(e)).toList();
@@ -238,7 +223,6 @@ class StudentsRepository implements IStudentsRepository {
     try {
       final db = await _dbHelper.database;
       await db.transaction((txn) async {
-        // Desativa o vínculo do aluno com a turma de origem
         await txn.update(
           'classe_student',
           {'active': 0, 'end_date': DateTime.now().toIso8601String()},
@@ -246,7 +230,6 @@ class StudentsRepository implements IStudentsRepository {
           whereArgs: [student.id, fromClasseId],
         );
 
-        // Tenta atualizar um vínculo existente para a turma de destino
         int updated = await txn.update(
           'classe_student',
           {
@@ -258,17 +241,15 @@ class StudentsRepository implements IStudentsRepository {
           whereArgs: [student.id, toClasseId],
         );
 
-        // Se não houver vínculo existente, insere um novo
         if (updated == 0) {
           await txn.insert('classe_student', {
             'student_id': student.id,
             'classe_id': toClasseId,
             'start_date': DateTime.now().toIso8601String(),
             'active': 1,
-          }, conflictAlgorithm: ConflictAlgorithm.ignore);
+          });
         }
 
-        // Garante que o aluno principal (na tabela 'student') esteja ativo ao ser transferido
         await txn.update(
           'student',
           {'active': 1},
@@ -293,24 +274,18 @@ class StudentsRepository implements IStudentsRepository {
           'SELECT DISTINCT c.school_year FROM classe c '
           'INNER JOIN classe_student cs ON c.id = cs.classe_id '
           'INNER JOIN student s ON cs.student_id = s.id ';
-
       List<dynamic> args = [];
       List<String> conditions = [];
-
-      // Apenas consideramos vínculos e alunos ativos para anos disponíveis de importação
       conditions.add('cs.active = 1');
       conditions.add('s.active = 1');
-
       if (activeStatus != null) {
         conditions.add('c.active = ?');
         args.add(activeStatus ? 1 : 0);
       }
-
       if (conditions.isNotEmpty) {
         query += ' WHERE ${conditions.join(' AND ')}';
       }
       query += ' ORDER BY c.school_year DESC';
-
       final result = await db.rawQuery(query, args);
       return result.map((map) => map['school_year'] as int).toList();
     } on DatabaseException catch (e) {
@@ -331,22 +306,17 @@ class StudentsRepository implements IStudentsRepository {
       final db = await _dbHelper.database;
       List<String> whereClauses = [];
       List<dynamic> whereArgs = [];
-
-      // Filtra por turmas que têm alunos (ativos) e vínculos (ativos)
       whereClauses.add(
         'c.id IN (SELECT classe_id FROM classe_student cs INNER JOIN student s ON cs.student_id = s.id WHERE cs.active = 1 AND s.active = 1)',
       );
-
       if (activeStatus != null) {
         whereClauses.add('c.active = ?');
         whereArgs.add(activeStatus ? 1 : 0);
       }
-
       if (year != null) {
         whereClauses.add('c.school_year = ?');
         whereArgs.add(year);
       }
-
       final result = await db.query(
         'classe c',
         where: whereClauses.join(' AND '),
@@ -370,7 +340,6 @@ class StudentsRepository implements IStudentsRepository {
     try {
       final db = await _dbHelper.database;
       await db.transaction((txn) async {
-        // Garante que o aluno principal (na tabela 'student') esteja ativo ao ser duplicado
         await txn.update(
           'student',
           {'active': 1},

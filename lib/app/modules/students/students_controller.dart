@@ -1,3 +1,5 @@
+// app/controllers/students_controller.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:vocatus/app/core/utils/database_helper.dart';
@@ -19,9 +21,6 @@ class StudentsController extends GetxController {
   final studentNameEC = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
-  final studentEditNameEC = TextEditingController();
-  final formEditKey = GlobalKey<FormState>();
-
   // Variáveis para importação
   final RxList<int> availableYears = <int>[].obs;
   final Rx<int?> selectedYear = Rx<int?>(null);
@@ -32,7 +31,7 @@ class StudentsController extends GetxController {
   final studentsFromSelectedClasse = <Student>[].obs;
   final selectedStudentsToImport = <Student>[].obs;
 
-  // Variáveis para transferência
+  // Variáveis para transferência/duplicação
   final RxList<Classe> classesForTransfer = <Classe>[].obs;
   final Rx<Classe?> selectedClasseForTransfer = Rx<Classe?>(null);
 
@@ -69,34 +68,18 @@ class StudentsController extends GetxController {
     }
   }
 
-  Future<void> updateStudent(Student student) async {
+  // Renomeado e redefinido este método para ser a única ação de arquivar
+  Future<void> archiveStudentFromCurrentClasse(Student student) async {
     try {
       isLoading.value = true;
-      if (student.id == null) {
-        Get.dialog(CustomErrorDialog(title: 'Erro', message: 'ID do aluno é nulo. Não foi possível atualizar.'));
+      if (student.id == null || currentClasse.id == null) {
+        Get.dialog(CustomErrorDialog(title: 'Erro', message: 'ID do aluno ou da turma é nulo. Não foi possível arquivar.'));
         return;
       }
-      await _studentRepository.updateStudent(student);
-      await readStudents();
-    } catch (e) {
-      Get.dialog(CustomErrorDialog(title: 'Erro ao Atualizar Aluno', message: e.toString()));
-    } finally {
-      isLoading.value = false;
-    }
-  }
 
-  // --- NOVA FUNÇÃO PARA ARQUIVAR ALUNO (substitui toggleStudentStatus) ---
-  Future<void> archiveStudent(Student student) async {
-    try {
-      isLoading.value = true;
-      if (student.id == null) {
-        Get.dialog(CustomErrorDialog(title: 'Erro', message: 'ID do aluno é nulo. Não foi possível arquivar.'));
-        return;
-      }
-      // Chama a nova função no repositório para arquivar permanentemente
-      await _studentRepository.archiveStudentPermanently(student);
-      await readStudents();
-      // Não chama Get.back() aqui, pois o diálogo de confirmação já fez isso.
+      // Este método agora lida tanto com a remoção da turma QUANTO com o arquivamento global se for o último link
+      await _studentRepository.removeStudentFromClasse(student, currentClasse.id!);
+      await readStudents(); // Atualiza a lista de alunos ativos na turma atual
     } catch (e) {
       Get.dialog(CustomErrorDialog(title: 'Erro ao Arquivar Aluno', message: e.toString()));
     } finally {
@@ -104,7 +87,8 @@ class StudentsController extends GetxController {
     }
   }
 
-
+  // O método archiveStudentGlobally foi removido daqui
+  // Future<void> archiveStudentGlobally(Student student) async { ... }
 
   Future<void> readStudents() async {
     try {
@@ -116,7 +100,6 @@ class StudentsController extends GetxController {
       final fetchedStudents = await _studentRepository.getStudentsByClasseId(
         currentClasse.id!,
       );
-      // Ordena todos (ativos e inativos) em ordem alfabética
       fetchedStudents.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
       students.assignAll(fetchedStudents);
     } catch (e) {
@@ -126,7 +109,6 @@ class StudentsController extends GetxController {
     }
   }
 
-  // Métodos para importação (ajuste/remova filtros de status)
   void resetImportFilters() {
     selectedYear.value = null;
     selectedClasseToImport.value = null;

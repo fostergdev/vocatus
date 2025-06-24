@@ -31,18 +31,17 @@ class Student {
     return <String, dynamic>{
       'id': id,
       'name': name,
-      'created_at': createdAt?.millisecondsSinceEpoch,
+      'created_at': createdAt?.toIso8601String(),
       'active': active == null ? null : (active! ? 1 : 0),
     };
   }
 
   factory Student.fromMap(Map<String, dynamic> map) {
     return Student(
-      id: map['id'] != null ? map['id'] as int : null,
+      id: map['id'] as int?,
       name: map['name'] as String,
-      createdAt: map['created_at'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(
-              int.tryParse(map['created_at'].toString()) ?? 0)
+      createdAt: map['created_at'] != null && (map['created_at'] as String).isNotEmpty
+          ? DateTime.parse(map['created_at'] as String)
           : null,
       active: map['active'] != null ? (map['active'] as int) == 1 : null,
     );
@@ -60,7 +59,6 @@ class Student {
   @override
   bool operator ==(covariant Student other) {
     if (identical(this, other)) return true;
-
     return other.id == id &&
         other.name == name &&
         other.createdAt == createdAt &&

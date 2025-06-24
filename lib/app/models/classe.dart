@@ -41,8 +41,8 @@ class Classe {
       name: map['name'] as String,
       description: map['description'] as String?,
       schoolYear: map['school_year'] as int,
-      createdAt: map['created_at'] != null
-          ? DateTime.tryParse(map['created_at'].toString())
+      createdAt: map['created_at'] != null && (map['created_at'] is String) && (map['created_at'] as String).isNotEmpty
+          ? DateTime.tryParse(map['created_at'] as String)
           : null,
       active: map['active'] != null ? (map['active'] as int) == 1 : null,
     );
@@ -54,8 +54,7 @@ class Classe {
       'name': name,
       'description': description,
       'school_year': schoolYear,
-      'created_at':
-          createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
+      'created_at': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
       'active': (active ?? true) ? 1 : 0,
     };
   }
@@ -67,28 +66,17 @@ class Classe {
 
   @override
   String toString() {
-    return 'Classe(id: $id, name: $name, description: $description, schoolYear: $schoolYear, createdAt: $createdAt, active: $active)';
+    return 'Classe(id: $id, name: $name, schoolYear: $schoolYear, createdAt: $createdAt)';
   }
 
   @override
-  bool operator ==(covariant Classe other) {
+  bool operator ==(Object other) {
     if (identical(this, other)) return true;
-
-    return other.id == id &&
-        other.name == name &&
-        other.description == description &&
-        other.schoolYear == schoolYear &&
-        other.createdAt == createdAt &&
-        other.active == active;
+    return other is Classe && other.id == id;
   }
 
   @override
   int get hashCode {
-    return id.hashCode ^
-        name.hashCode ^
-        description.hashCode ^
-        schoolYear.hashCode ^
-        createdAt.hashCode ^
-        active.hashCode;
+    return id.hashCode;
   }
 }

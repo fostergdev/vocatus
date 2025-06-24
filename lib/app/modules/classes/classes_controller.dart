@@ -1,3 +1,5 @@
+// app/controllers/classes_controller.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:vocatus/app/core/utils/database_helper.dart';
@@ -6,9 +8,10 @@ import 'package:vocatus/app/repositories/classes/classes_repository.dart';
 import 'package:vocatus/app/core/widgets/custom_error_dialog.dart';
 
 class ClassesController extends GetxController {
-  final ClasseRepository _classeRepository = ClasseRepository(
-    DatabaseHelper.instance,
-  );
+  final ClasseRepository _classeRepository;
+
+  ClassesController() : _classeRepository = ClasseRepository(DatabaseHelper.instance);
+
   final isLoading = false.obs;
   final classes = <Classe>[].obs;
 
@@ -51,7 +54,7 @@ class ClassesController extends GetxController {
       } else {
         userMessage = e.toString().replaceAll('Exception: ', '');
       }
-      throw userMessage;
+      Get.dialog(CustomErrorDialog(title: 'Erro', message: userMessage));
     } finally {
       isLoading.value = false;
     }
@@ -96,25 +99,23 @@ class ClassesController extends GetxController {
       } else {
         userMessage = e.toString().replaceAll('Exception: ', '');
       }
-      throw userMessage;
+      Get.dialog(CustomErrorDialog(title: 'Erro', message: userMessage));
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> toggleClasseActiveStatus(Classe classe) async {
+  Future<void> archiveClasse(Classe classe) async {
     isLoading.value = true;
     try {
-      final newStatus = !(classe.active ?? true);
-      await _classeRepository.updateClasse(
-        classe.copyWith(active: newStatus),
-      );
+      await _classeRepository.archiveClasseAndStudents(classe);
       await readClasses(
         active: showOnlyActiveClasses.value,
         year: selectedFilterYear.value,
       );
+      Get.back();
     } catch (e) {
-      String userMessage = 'Erro desconhecido ao mudar status da turma.';
+      String userMessage = 'Erro ao arquivar turma e alunos.';
       if (e is String) {
         userMessage = e;
       } else {
@@ -123,6 +124,14 @@ class ClassesController extends GetxController {
       Get.dialog(CustomErrorDialog(title: 'Erro', message: userMessage));
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> toggleClasseActiveStatus(Classe classe) async {
+    if (classe.active ?? true) {
+      await archiveClasse(classe);
+    } else {
+      Get.dialog(CustomErrorDialog(title: 'Ação Inválida', message: 'Não é possível reativar uma turma arquivada.'));
     }
   }
 }

@@ -46,38 +46,40 @@ class _CustomConfirmationDialogWithCodeState
       title: widget.title,
       content: Form(
         key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('${widget.message}\n\nCódigo: $_generatedCode'),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _codeController,
-              keyboardType: TextInputType.number,
-              maxLength: 3,
-              decoration: const InputDecoration(
-                labelText: 'Digite o código',
-                border: OutlineInputBorder(),
-                counterText: '',
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SelectableText('${widget.message}\n\nCódigo: $_generatedCode'),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _codeController,
+                keyboardType: TextInputType.number,
+                maxLength: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Digite o código',
+                  border: OutlineInputBorder(),
+                  counterText: '',
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Digite o código para confirmar.';
+                  }
+                  if (value != _generatedCode) {
+                    return 'Código incorreto. Tente novamente.';
+                  }
+                  return null;
+                },
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Digite o código para confirmar.';
-                }
-                if (value != _generatedCode) {
-                  return 'Código incorreto. Tente novamente.';
-                }
-                return null;
-              },
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       actions: [
         ElevatedButton(
           onPressed: () {
             if (_formKey.currentState!.validate()) {
-              Get.back(); // Fecha o diálogo antes de executar a ação
+              Get.back(); 
               widget.onConfirm();
             }
           },

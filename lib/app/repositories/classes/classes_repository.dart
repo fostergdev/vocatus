@@ -1,6 +1,11 @@
+// app/repositories/classes/classes_repository.dart
+
 import 'package:sqflite/sqflite.dart';
 import 'package:vocatus/app/core/utils/database_helper.dart';
 import 'package:vocatus/app/models/classe.dart';
+import 'package:vocatus/app/models/discipline.dart';
+import 'package:vocatus/app/models/grade.dart';
+import 'package:vocatus/app/models/student.dart';
 import 'package:vocatus/app/repositories/classes/i_classes_repository.dart';
 
 class ClasseRepository implements IClasseRepository {
@@ -12,6 +17,17 @@ class ClasseRepository implements IClasseRepository {
   Future<Classe> createClasse(Classe classe) async {
     try {
       final db = await _databaseHelper.database;
+
+      final existing = await db.query(
+        'classe',
+        where: 'LOWER(name) = ? AND school_year = ? AND active = 1',
+        whereArgs: [classe.name.toLowerCase(), classe.schoolYear],
+      );
+
+      if (existing.isNotEmpty) {
+        throw ('Já existe uma turma ATIVA com esse nome para o ano ${classe.schoolYear}!');
+      }
+
       final id = await db.insert('classe', {
         'name': classe.name.toLowerCase(),
         'description': classe.description,
@@ -95,9 +111,172 @@ class ClasseRepository implements IClasseRepository {
       if (e.toString().contains('UNIQUE constraint failed')) {
         throw ('Já existe uma turma com esse nome para o ano ${classe.schoolYear}!');
       }
-      // ... outros catchs
     } catch (e) {
       throw ('Erro desconhecido ao atualizar turma: $e');
+    }
+  }
+
+  @override
+  Future<void> archiveClasseAndStudents(Classe classe) async {
+    if (classe.id == null) {
+      throw Exception('ID da classe é nulo, não foi possível arquivar.');
+    }
+    if (!(classe.active ?? true)) {
+      return;
+    }
+
+    try {
+      final db = await _databaseHelper.database;
+      await db.transaction((txn) async {
+        await txn.update(
+          'classe',
+          {'active': 0},
+          where: 'id = ?',
+          whereArgs: [classe.id],
+        );
+
+        final List<Map<String, dynamic>> studentsInClasseMaps = await txn
+            .rawQuery(
+              '''
+          SELECT s.*
+          FROM student s
+          INNER JOIN classe_student cs ON s.id = cs.student_id
+          WHERE cs.classe_id = ? AND cs.active = 1
+          ''',
+              [classe.id],
+            );
+        final List<Student> studentsInClasse = studentsInClasseMaps
+            .map((e) => Student.fromMap(e))
+            .toList();
+
+        for (final student in studentsInClasse) {
+          await txn.update(
+            'classe_student',
+            {'active': 0, 'end_date': DateTime.now().toIso8601String()},
+            where: 'student_id = ? AND classe_id = ?',
+            whereArgs: [student.id, classe.id],
+          );
+
+          final countActiveLinks = Sqflite.firstIntValue(
+            await txn.rawQuery(
+              'SELECT COUNT(*) FROM classe_student WHERE student_id = ? AND active = 1',
+              [student.id],
+            ),
+          );
+
+          if (countActiveLinks == 0) {
+            await txn.update(
+              'student',
+              {'active': 0},
+              where: 'id = ?',
+              whereArgs: [student.id],
+            );
+          }
+        }
+      });
+    } on DatabaseException catch (e) {
+      throw Exception(
+        'Erro de banco de dados ao arquivar turma e alunos: ${e.toString()}',
+      );
+    } catch (e) {
+      throw Exception('Erro desconhecido ao arquivar turma e alunos: $e');
+    }
+  }
+
+  @override
+  Future<Classe?> getClasseDetailsById(int classeId) async {
+    try {
+      final db = await _databaseHelper.database;
+      final result = await db.query(
+        'classe',
+        where: 'id = ?',
+        whereArgs: [classeId],
+      );
+      if (result.isNotEmpty) {
+        return Classe.fromMap(result.first);
+      }
+      return null;
+    } on DatabaseException catch (e) {
+      throw Exception(
+        'Erro de banco de dados ao buscar detalhes da classe: ${e.toString()}',
+      );
+    } catch (e) {
+      throw Exception('Erro desconhecido ao buscar detalhes da classe: $e');
+    }
+  }
+
+  @override
+  Future<List<Student>> getStudentsInClasse(
+    int classeId, {
+    bool activeOnly = true,
+  }) async {
+    try {
+      final db = await _databaseHelper.database;
+      List<String> whereClauses = [];
+      List<dynamic> whereArgs = [classeId];
+
+      whereClauses.add('cs.classe_id = ?');
+      if (activeOnly) {
+        whereClauses.add('cs.active = 1');
+        whereClauses.add('s.active = 1');
+      }
+
+      final result = await db.rawQuery('''
+        SELECT s.*, cs.start_date, cs.end_date, cs.active AS classe_student_active
+        FROM student s
+        INNER JOIN classe_student cs ON s.id = cs.student_id
+        WHERE ${whereClauses.join(' AND ')}
+        ORDER BY s.name COLLATE NOCASE;
+        ''', whereArgs);
+
+      return result.map((e) => Student.fromMap(e)).toList();
+    } on DatabaseException catch (e) {
+      throw Exception(
+        'Erro de banco de dados ao buscar alunos na classe: ${e.toString()}',
+      );
+    } catch (e) {
+      throw Exception('Erro desconhecido ao buscar alunos na classe: $e');
+    }
+  }
+
+  @override
+  Future<List<Grade>> getClasseGrades(
+    int classeId, {
+    bool activeOnly = true,
+  }) async {
+    try {
+      final db = await _databaseHelper.database;
+      List<String> whereClauses = [];
+      List<dynamic> whereArgs = [classeId];
+
+      whereClauses.add('g.classe_id = ?');
+      if (activeOnly) {
+        whereClauses.add('g.active = 1');
+      }
+
+      final result = await db.rawQuery('''
+        SELECT g.*, d.name AS discipline_name
+        FROM grade g
+        LEFT JOIN discipline d ON g.discipline_id = d.id
+        WHERE ${whereClauses.join(' AND ')}
+        ORDER BY g.day_of_week ASC, g.start_time ASC;
+        ''', whereArgs);
+
+      return result.map((map) {
+        final grade = Grade.fromMap(map);
+        final disciplineName = map['discipline_name'] as String?;
+        return grade.copyWith(
+          discipline: disciplineName != null
+              ? Discipline(id: grade.disciplineId, name: disciplineName)
+              : null,
+        );
+      }).toList();
+    } on DatabaseException catch (e) {
+      throw Exception(
+        'Erro de banco de dados ao buscar horários da classe: ${e.toString()}',
+      );
+    } catch (e) {
+      throw Exception('Erro desconhecido ao buscar horários da classe: $e');
     }
   }
 }

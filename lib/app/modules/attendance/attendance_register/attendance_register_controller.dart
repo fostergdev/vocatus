@@ -75,7 +75,7 @@ class AttendanceRegisterController extends GetxController {
         contentController.clear();
         final studentsInClass = await _attendanceRepository
             .getStudentsByClasseId(
-              grade.classeId!,
+              grade.classeId,
             );
 
         studentAttendances.assignAll(
@@ -129,7 +129,7 @@ class AttendanceRegisterController extends GetxController {
 
       final attendance = Attendance(
         id: currentAttendanceId.value,
-        classeId: grade.classeId!,
+        classeId: grade.classeId,
         gradeId: grade.id!,
         date: selectedDate.value,
         content: contentController.text,
