@@ -27,10 +27,11 @@ class DatabaseHelper {
 
     return openDatabase(
       path,
-      version: 1,
+      version: 1, // Versão do banco de dados
       onCreate: (db, version) async {
         await db.execute('PRAGMA foreign_keys = ON;');
 
+        // Criação da tabela discipline
         await db.execute('''
 CREATE TABLE discipline (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,6 +41,7 @@ CREATE TABLE discipline (
 );
 ''');
 
+        // Criação da tabela classe
         await db.execute('''
 CREATE TABLE classe (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,6 +53,7 @@ CREATE TABLE classe (
 );
 ''');
 
+        // Criação da tabela student
         await db.execute('''
 CREATE TABLE student (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -60,6 +63,7 @@ CREATE TABLE student (
 );
 ''');
 
+        // Criação da tabela classe_student
         await db.execute('''
 CREATE TABLE classe_student (
   student_id INTEGER NOT NULL,
@@ -74,6 +78,7 @@ CREATE TABLE classe_student (
 );
 ''');
 
+        // Criação da tabela grade
         await db.execute('''
 CREATE TABLE grade (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -82,22 +87,23 @@ CREATE TABLE grade (
   day_of_week INTEGER NOT NULL,
   start_time TEXT NOT NULL,
   end_time TEXT NOT NULL,
-  grade_year INTEGER NOT NULL, -- ou INTEGER se permitir nulo
+  grade_year INTEGER NOT NULL,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   active INTEGER NOT NULL DEFAULT 1,
   FOREIGN KEY (classe_id) REFERENCES classe(id) ON DELETE CASCADE,
   FOREIGN KEY (discipline_id) REFERENCES discipline(id) ON DELETE SET NULL,
-  UNIQUE (classe_id, day_of_week, start_time) -- Adicione esta linha
+  UNIQUE (classe_id, day_of_week, start_time)
 );
 ''');
 
+        // Criação da tabela attendance
         await db.execute('''
 CREATE TABLE attendance (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   classe_id INTEGER NOT NULL,
   grade_id INTEGER,
   date TEXT NOT NULL,
-  content TEXT, -- Adicione esta linha
+  content TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   active INTEGER NOT NULL DEFAULT 1,
   FOREIGN KEY (classe_id) REFERENCES classe(id) ON DELETE CASCADE,
@@ -106,6 +112,7 @@ CREATE TABLE attendance (
 );
 ''');
 
+        // Criação da tabela student_attendance
         await db.execute('''
 CREATE TABLE student_attendance (
   attendance_id INTEGER NOT NULL,
@@ -114,6 +121,21 @@ CREATE TABLE student_attendance (
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   active INTEGER NOT NULL DEFAULT 1,
   PRIMARY KEY (attendance_id, student_id),
+  FOREIGN KEY (attendance_id) REFERENCES attendance(id) ON DELETE CASCADE,
+  FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE
+);
+''');
+
+        await db.execute('''
+CREATE TABLE occurrence (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  attendance_id INTEGER NOT NULL,          -- Liga à sessão de chamada específica
+  student_id INTEGER,                      -- NULL para ocorrência geral, NOT NULL para específica do aluno
+  occurrence_type TEXT,                    -- Ex: 'Comportamento', 'Saúde', 'Atraso', 'Material'
+  description TEXT NOT NULL,               -- Descrição detalhada da ocorrência
+  occurrence_date TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Quando o evento realmente ocorreu
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,               -- Quando este registro foi criado no DB
+  active INTEGER NOT NULL DEFAULT 1,
   FOREIGN KEY (attendance_id) REFERENCES attendance(id) ON DELETE CASCADE,
   FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE
 );
@@ -129,6 +151,7 @@ CREATE TABLE student_attendance (
 
   Future<void> close() async {
     final db = await instance.database;
-    db.close();
+    await db.close(); // Usa await para fechar o banco de dados
+    _database = null; // Limpa a instância estática
   }
 }

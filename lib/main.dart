@@ -8,6 +8,7 @@ import 'package:vocatus/app/routes/grades_routers.dart';
 import 'package:vocatus/app/routes/history_routes.dart';
 import 'package:vocatus/app/routes/home_routes.dart';
 import 'package:vocatus/app/routes/report_files_routes.dart';
+import 'package:vocatus/app/routes/reports_routes.dart';
 import 'package:vocatus/app/routes/students_routes.dart';
 
 void main() {
@@ -35,6 +36,7 @@ class VocatusApp extends StatelessWidget {
         ...AttendanceRoutes.routers,
         ...HistoryRoutes.routers,
         ...ReportFilesRoutes.routers,
+        ...ReportsRoutes.routers,
       ],
       debugShowCheckedModeBanner: false,
       title: 'Vocatus',

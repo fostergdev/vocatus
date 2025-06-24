@@ -373,7 +373,7 @@ class GradesPage extends GetView<GradesController> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                DropdownButtonFormField<int>(
+                /*  DropdownButtonFormField<int>(
                   decoration: const InputDecoration(
                     labelText: 'Ano Letivo da Turma',
                     border: OutlineInputBorder(),
@@ -399,7 +399,7 @@ class GradesPage extends GetView<GradesController> {
                     return null;
                   },
                 ),
-
+ */
                 CustomDrop<Classe>(
                   items: controller.filteredClassesForForm,
                   value: controller.selectedClasseForForm.value,

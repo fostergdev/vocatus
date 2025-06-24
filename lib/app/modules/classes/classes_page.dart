@@ -19,7 +19,7 @@ class ClassesPage extends GetView<ClassesController> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Minhas Turmas',
+          'Turmas',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         centerTitle: true,
@@ -30,7 +30,7 @@ class ClassesPage extends GetView<ClassesController> {
         ),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
-          CustomPopupMenu(
+          /* CustomPopupMenu(
             textAlign: TextAlign.center,
             iconColor: Colors.white,
             // Troque o ícone do menu de "more_vert" para "calendar_today" apenas aqui:
@@ -53,7 +53,7 @@ class ClassesPage extends GetView<ClassesController> {
                   },
                 ),
             ],
-          ),
+          ), */
         ],
       ),
       body: Obx(() {
@@ -190,7 +190,7 @@ class ClassesPage extends GetView<ClassesController> {
     controller.classeNameEC.clear();
     controller.classeSchoolYearEC.text = DateTime.now().year.toString();
     final currentYear = DateTime.now().year;
-    final years = List.generate(11, (i) => currentYear - 5 + i);
+    /* final years = List.generate(11, (i) => currentYear - 5 + i); */
 
     await Get.defaultDialog(
       title: 'Adicionar Turma',
@@ -204,7 +204,7 @@ class ClassesPage extends GetView<ClassesController> {
               controller: controller.classeNameEC,
               hintText: 'Nome da turma (Ex: 3º Ano A)',
             ),
-            const SizedBox(height: 16),
+          /*   const SizedBox(height: 16),
             DropdownButtonFormField<int>(
               value:
                   int.tryParse(controller.classeSchoolYearEC.text) ??
@@ -231,7 +231,7 @@ class ClassesPage extends GetView<ClassesController> {
                 }
               },
               validator: (val) => val == null ? 'Ano obrigatório!' : null,
-            ),
+            ), */
           ],
         ),
       ),

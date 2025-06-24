@@ -27,7 +27,7 @@ class HomePage extends GetView<HomeController> {
             mainAxisSpacing: 20,
             crossAxisSpacing: 20,
             childAspectRatio: 1.2,
-            children: List.generate(6, (index) {
+            children: List.generate(5, (index) {
               return CustomSquareButton(
                 text: _getButtonText(index),
                 icon: _getButtonIcon(index),
@@ -53,8 +53,8 @@ class HomePage extends GetView<HomeController> {
         return 'Disciplinas';
       case 4:
         return 'Relatórios';
-      case 5:
-        return 'Histórico';
+ /*      case 5:
+        return 'Histórico'; */
       default:
         return '';
     }
@@ -72,8 +72,8 @@ class HomePage extends GetView<HomeController> {
         return Icons.library_books;
       case 4:
         return Icons.assignment;
-      case 5:
-        return Icons.history;
+ /*      case 5:
+        return Icons.history; */
       default:
         return Icons.help;
     }
@@ -96,9 +96,9 @@ class HomePage extends GetView<HomeController> {
       case 4:
         Navigator.pushNamed(context, '/reports/home');
         break;
-      case 5:
+    /*   case 5:
         Navigator.pushNamed(context, '/history/home');
-        break;
+        break; */
     }
   }
 }
