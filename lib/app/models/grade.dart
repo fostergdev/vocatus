@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:vocatus/app/models/classe.dart';
-import 'package:vocatus/app/models/discipline.dart'; 
+// lib/app/models/grade.dart
+
+import 'package:flutter/material.dart'; // Para TimeOfDay e MaterialLocalizations
+import 'package:get/get.dart'; // Para Get.context!
+import 'package:vocatus/app/models/classe.dart'; // Importa Classe se Grade tiver uma referência a ela
+import 'package:vocatus/app/models/discipline.dart'; // Importa Discipline se Grade tiver uma referência a ela
+
 
 @immutable
 class Grade {
@@ -14,8 +17,8 @@ class Grade {
   final int? gradeYear;
   final DateTime? createdAt;
   final bool? active;
-  final Classe? classe;
-  final Discipline? discipline;
+  final Classe? classe; // Referência opcional à Classe
+  final Discipline? discipline; // Referência opcional à Discipline
 
   const Grade({
     this.id,
@@ -27,8 +30,8 @@ class Grade {
     this.gradeYear,
     this.createdAt,
     this.active = true,
-    this.classe,
-    this.discipline,
+    this.classe, // Deve ser fornecido externamente, não mapeado do 'map' da Grade
+    this.discipline, // Deve ser fornecido externamente, não mapeado do 'map' da Grade
   });
 
   factory Grade.fromMap(Map<String, dynamic> map) {
@@ -50,13 +53,16 @@ class Grade {
       classeId: map['classe_id'] as int,
       disciplineId: map['discipline_id'] as int?,
       dayOfWeek: map['day_of_week'] as int,
-      startTimeTotalMinutes: Grade._timeStringToInt(startTimeStr),
-      endTimeTotalMinutes: Grade._timeStringToInt(endTimeStr),
+      startTimeTotalMinutes: Grade.timeStringToInt(startTimeStr), // <--- Método público
+      endTimeTotalMinutes: Grade.timeStringToInt(endTimeStr),     // <--- Método público
       gradeYear: parsedGradeYear,
       createdAt: map['created_at'] != null && (map['created_at'] is String) && (map['created_at'] as String).isNotEmpty
           ? DateTime.parse(map['created_at'] as String)
           : null,
       active: map['active'] == 1,
+      // Não preenche 'classe' ou 'discipline' aqui via fromMap da Grade,
+      // pois eles geralmente são carregados via JOINs em queries separadas
+      // e anexados ao objeto Grade posteriormente, ou em uma fromMap especializada.
     );
   }
 
@@ -66,8 +72,8 @@ class Grade {
       'classe_id': classeId,
       'discipline_id': disciplineId,
       'day_of_week': dayOfWeek,
-      'start_time': Grade._intToTimeString(startTimeTotalMinutes),
-      'end_time': Grade._intToTimeString(endTimeTotalMinutes),
+      'start_time': Grade.intToTimeString(startTimeTotalMinutes), // <--- Método público
+      'end_time': Grade.intToTimeString(endTimeTotalMinutes),     // <--- Método público
       'grade_year': gradeYear,
       'created_at': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
       'active': (active ?? true) ? 1 : 0,
@@ -120,18 +126,24 @@ class Grade {
   }
 
   static String formatTimeDisplay(TimeOfDay time) {
-    final localizations = MaterialLocalizations.of(Get.context!);
-    return localizations.formatTimeOfDay(time, alwaysUse24HourFormat: true);
+    if (Get.context != null) {
+      final localizations = MaterialLocalizations.of(Get.context!);
+      return localizations.formatTimeOfDay(time, alwaysUse24HourFormat: true);
+    }
+    final hours = (time.hour).toString().padLeft(2, '0');
+    final minutes = (time.minute).toString().padLeft(2, '0');
+    return '$hours:$minutes';
   }
 
-  static int _timeStringToInt(String timeString) {
+  // Métodos de conversão de tempo tornados públicos
+  static int timeStringToInt(String timeString) { // Antigo _timeStringToInt
     final parts = timeString.split(':');
     final hour = int.parse(parts[0]);
     final minute = int.parse(parts[1]);
     return hour * 60 + minute;
   }
 
-  static String _intToTimeString(int totalMinutes) {
+  static String intToTimeString(int totalMinutes) { // Antigo _intToTimeString
     final hours = (totalMinutes ~/ 60).toString().padLeft(2, '0');
     final minutes = (totalMinutes % 60).toString().padLeft(2, '0');
     return '$hours:$minutes';

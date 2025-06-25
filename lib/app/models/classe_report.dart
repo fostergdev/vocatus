@@ -1,4 +1,4 @@
-class ClasseReport {
+/* class ClasseReport {
   final int id;
   final String name;
   final List<ScheduleDetail> schedules;
@@ -47,3 +47,4 @@ class ScheduleDetail {
   }
 }
 
+ */

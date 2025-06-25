@@ -1,4 +1,7 @@
+// lib/app/models/classe.dart
+
 import 'dart:convert';
+import 'package:vocatus/app/models/grade.dart'; // Importa Grade, pois Classe agora terá uma lista de Grades
 
 class Classe {
   final int? id;
@@ -6,7 +9,8 @@ class Classe {
   final String? description;
   final int schoolYear;
   final DateTime? createdAt;
-  final bool? active;
+  final bool? active; // <--- O `active` é bool aqui, como no seu modelo original.
+  final List<Grade> schedules; // <--- Lista de Grades para os agendamentos.
 
   Classe({
     this.id,
@@ -14,7 +18,8 @@ class Classe {
     this.description,
     required this.schoolYear,
     this.createdAt,
-    this.active = true,
+    this.active = true, // Valor padrão para bool
+    this.schedules = const [], // Inicializa como lista vazia por padrão
   });
 
   Classe copyWith({
@@ -23,7 +28,8 @@ class Classe {
     String? description,
     int? schoolYear,
     DateTime? createdAt,
-    bool? active,
+    bool? active, // Tipo bool
+    List<Grade>? schedules,
   }) {
     return Classe(
       id: id ?? this.id,
@@ -32,10 +38,15 @@ class Classe {
       schoolYear: schoolYear ?? this.schoolYear,
       createdAt: createdAt ?? this.createdAt,
       active: active ?? this.active,
+      schedules: schedules ?? this.schedules,
     );
   }
 
   factory Classe.fromMap(Map<String, dynamic> map) {
+    // Note: Esta factory é para carregar a CLASSE BASE do banco de dados (tabela 'classe').
+    // Ela NÃO espera os dados de 'schedules' diretamente do map da tabela 'classe'.
+    // Os 'schedules' serão preenchidos separadamente no controlador,
+    // a partir da query `getClassesRawReport` que retorna dados JOINED.
     return Classe(
       id: map['id'] as int?,
       name: map['name'] as String,
@@ -44,7 +55,8 @@ class Classe {
       createdAt: map['created_at'] != null && (map['created_at'] is String) && (map['created_at'] as String).isNotEmpty
           ? DateTime.tryParse(map['created_at'] as String)
           : null,
-      active: map['active'] != null ? (map['active'] as int) == 1 : null,
+      active: map['active'] != null ? (map['active'] as int) == 1 : null, // Mapeia int do DB para bool
+      schedules: [], // Sempre inicia vazia, será preenchida no ReportsController
     );
   }
 
@@ -55,7 +67,7 @@ class Classe {
       'description': description,
       'school_year': schoolYear,
       'created_at': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
-      'active': (active ?? true) ? 1 : 0,
+      'active': (active ?? true) ? 1 : 0, // Mapeia bool para int (1 ou 0) para o DB
     };
   }
 
@@ -66,7 +78,7 @@ class Classe {
 
   @override
   String toString() {
-    return 'Classe(id: $id, name: $name, schoolYear: $schoolYear, createdAt: $createdAt)';
+    return 'Classe(id: $id, name: $name, schoolYear: $schoolYear, active: $active, schedules: $schedules)';
   }
 
   @override
