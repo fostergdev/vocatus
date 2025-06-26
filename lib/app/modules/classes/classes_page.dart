@@ -29,32 +29,7 @@ class ClassesPage extends GetView<ClassesController> {
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          /* CustomPopupMenu(
-            textAlign: TextAlign.center,
-            iconColor: Colors.white,
-            // Troque o ícone do menu de "more_vert" para "calendar_today" apenas aqui:
-            // Basta adicionar o parâmetro 'icon' ao CustomPopupMenu.
-            icon: Icons.calendar_today,
-            items: [
-              for (var year in List.generate(4, (i) => DateTime.now().year + i))
-                CustomPopupMenuItem(
-                  label: year.toString(),
-                  onTap: () {
-                    developer.log(
-                      'Ano selecionado no filtro: $year',
-                      name: 'ClassesPage',
-                    );
-                    controller.selectedFilterYear.value = year;
-                    controller.readClasses(
-                      year: year,
-                      active: controller.showOnlyActiveClasses.value,
-                    );
-                  },
-                ),
-            ],
-          ), */
-        ],
+        actions: [],
       ),
       body: Obx(() {
         developer.log(
@@ -111,8 +86,7 @@ class ClassesPage extends GetView<ClassesController> {
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                   ),
-                  subtitle:
-                      classe.description != null &&
+                  subtitle: classe.description != null &&
                           classe.description!.isNotEmpty
                       ? Text(
                           classe.description!,
@@ -189,8 +163,6 @@ class ClassesPage extends GetView<ClassesController> {
     developer.log('Diálogo de adicionar turma aberto', name: 'ClassesPage');
     controller.classeNameEC.clear();
     controller.classeSchoolYearEC.text = DateTime.now().year.toString();
-    final currentYear = DateTime.now().year;
-    /* final years = List.generate(11, (i) => currentYear - 5 + i); */
 
     await Get.defaultDialog(
       title: 'Adicionar Turma',
@@ -204,34 +176,6 @@ class ClassesPage extends GetView<ClassesController> {
               controller: controller.classeNameEC,
               hintText: 'Nome da turma (Ex: 3º Ano A)',
             ),
-          /*   const SizedBox(height: 16),
-            DropdownButtonFormField<int>(
-              value:
-                  int.tryParse(controller.classeSchoolYearEC.text) ??
-                  currentYear,
-              decoration: const InputDecoration(
-                labelText: 'Ano Letivo',
-                border: OutlineInputBorder(),
-              ),
-              items: years
-                  .map(
-                    (year) => DropdownMenuItem(
-                      value: year,
-                      child: Text(year.toString()),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (val) {
-                if (val != null) {
-                  controller.classeSchoolYearEC.text = val.toString();
-                  developer.log(
-                    'Ano letivo selecionado no cadastro: $val',
-                    name: 'ClassesPage',
-                  );
-                }
-              },
-              validator: (val) => val == null ? 'Ano obrigatório!' : null,
-            ), */
           ],
         ),
       ),
@@ -289,7 +233,6 @@ class ClassesPage extends GetView<ClassesController> {
     controller.classeSchoolYearEC.text = classe.schoolYear.toString();
 
     final currentYear = DateTime.now().year;
-    // Garante que o ano da classe editada esteja na lista
     final years = List.generate(4, (i) => currentYear + i);
     final yearsSet = {...years, classe.schoolYear};
     final yearsList = yearsSet.toList()..sort();

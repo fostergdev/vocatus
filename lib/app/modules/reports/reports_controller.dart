@@ -3,26 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:vocatus/app/core/utils/database_helper.dart';
 import 'package:vocatus/app/repositories/reports/reports_repository.dart';
-import 'package:vocatus/app/models/classe.dart'; // <--- Importa Classe (unificada)
-import 'package:vocatus/app/models/grade.dart'; // <--- Importa Grade (para criar e usar helpers de tempo)
-import 'package:vocatus/app/models/discipline.dart'; // <--- Importa Discipline (se precisar criar Discipline)
-
+import 'package:vocatus/app/models/classe.dart';
+import 'package:vocatus/app/models/grade.dart';
+import 'package:vocatus/app/models/discipline.dart';
 
 class ReportsController extends GetxController {
   final ReportsRepository _reportsRepository = ReportsRepository(
     DatabaseHelper.instance,
   );
 
-  final selectedTabIndex = 0.obs;
   final selectedFilterYear = 0.obs;
   final yearsByTab = <int, List<int>>{}.obs;
 
-  // As listas agora são de objetos Classe (unificada)
   final RxList<Classe> reportClasses = <Classe>[].obs;
   final RxList<Classe> filteredReportClasses = <Classe>[].obs;
 
-  final RxList<Map<String, dynamic>> archivedStudents = <Map<String, dynamic>>[].obs;
-  final RxList<Map<String, dynamic>> filteredArchivedStudents = <Map<String, dynamic>>[].obs;
+  final RxList<Map<String, dynamic>> attendanceReportData = <Map<String, dynamic>>[].obs;
+  final RxBool isLoadingAttendance = false.obs;
 
   final searchText = ''.obs;
 
@@ -31,10 +28,10 @@ class ReportsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadYears();
+    loadYearsAndClasses();
     debounce(
       searchText,
-      (_) => filterLists(),
+      (_) => filterClasses(),
       time: const Duration(milliseconds: 300),
     );
   }
@@ -45,10 +42,10 @@ class ReportsController extends GetxController {
     super.onClose();
   }
 
-  Future<void> loadYears() async {
+  Future<void> loadYearsAndClasses() async {
     final yearsMap = await _reportsRepository.getMinMaxYearsByTable();
     yearsByTab[0] = yearsMap['classes'] ?? [];
-    yearsByTab[1] = yearsMap['students'] ?? [];
+
     final initialYears = yearsByTab[0] ?? [];
     if (initialYears.isNotEmpty) {
       selectedFilterYear.value = initialYears.first;
@@ -57,49 +54,14 @@ class ReportsController extends GetxController {
       selectedFilterYear.value = DateTime.now().year;
       await readClasses(year: selectedFilterYear.value);
     }
-     if (yearsByTab[1]?.isNotEmpty ?? false) {
-      await readStudents(year: yearsByTab[1]!.first);
-    } else {
-      await readStudents(year: DateTime.now().year);
-    }
-
-    filterLists();
-  }
-
-  void onTabChanged(int index) {
-    selectedTabIndex.value = index;
-    searchText.value = '';
-    searchInputController.clear();
-
-    final years = yearsByTab[index] ?? [];
-    if (years.isNotEmpty) {
-      selectedFilterYear.value = years.first;
-      if (index == 0) {
-        readClasses(year: selectedFilterYear.value);
-      } else {
-        readStudents(year: selectedFilterYear.value);
-      }
-    } else {
-      selectedFilterYear.value = DateTime.now().year;
-      if (index == 0) {
-        readClasses(year: selectedFilterYear.value);
-      } else {
-        readStudents(year: selectedFilterYear.value);
-      }
-    }
-    filterLists();
+    filterClasses();
   }
 
   void onYearSelected(int tabIndex, int year) {
     selectedFilterYear.value = year;
     searchText.value = '';
     searchInputController.clear();
-
-    if (selectedTabIndex.value == 0) {
-      readClasses(year: year);
-    } else {
-      readStudents(year: year);
-    }
+    readClasses(year: year);
   }
 
   Future<void> readClasses({required int year}) async {
@@ -129,10 +91,10 @@ class ReportsController extends GetxController {
             dayOfWeek: row['day_of_week'] as int,
             startTimeTotalMinutes: startTimeMinutes,
             endTimeTotalMinutes: endTimeMinutes,
-            disciplineId: row['discipline_id'] as int?, // Garante que o ID da disciplina é passado para o Grade
+            disciplineId: row['discipline_id'] as int?,
             discipline: row['discipline_name'] != null
                 ? Discipline(
-                    id: row['discipline_id'] as int?, // Passa o ID da disciplina para o objeto Discipline
+                    id: row['discipline_id'] as int?,
                     name: row['discipline_name'] as String,
                   )
                 : null,
@@ -146,7 +108,7 @@ class ReportsController extends GetxController {
             description: classeDescription,
             schoolYear: schoolYear,
             createdAt: classeCreatedAt,
-            active: classeActive == 1, // Converte int (0 ou 1) para bool
+            active: classeActive == 1,
             schedules: [],
           );
         }
@@ -156,7 +118,7 @@ class ReportsController extends GetxController {
       }
 
       reportClasses.addAll(classMap.values.toList());
-      filterLists();
+      filterClasses();
 
     } catch (e) {
       Get.snackbar(
@@ -164,54 +126,45 @@ class ReportsController extends GetxController {
         'Não foi possível carregar os relatórios de turmas: ${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError, // Corrigido aqui
+        colorText: Get.theme.colorScheme.onError,
       );
     }
   }
 
-  Future<void> readStudents({required int year}) async {
-    try {
-      final rawData = await _reportsRepository.getArchivedStudentsByYear(year);
-      archivedStudents.value = rawData;
-      filterLists();
-    } catch (e) {
-      Get.snackbar(
-        'Erro',
-        'Não foi possível carregar os relatórios de alunos: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError, // Corrigido aqui
-      );
-    }
-  }
-
-  void filterLists() {
+  void filterClasses() {
     final query = searchText.value.toLowerCase().trim();
 
-    if (selectedTabIndex.value == 0) {
-      if (query.isEmpty) {
-        filteredReportClasses.value = reportClasses.toList();
-      } else {
-        filteredReportClasses.value = reportClasses.where((classe) {
-          final name = classe.name.toLowerCase();
-          final id = classe.id.toString().toLowerCase();
-          return name.contains(query) || id.contains(query);
-        }).toList();
-      }
+    if (query.isEmpty) {
+      filteredReportClasses.value = reportClasses.toList();
     } else {
-      if (query.isEmpty) {
-        filteredArchivedStudents.value = archivedStudents.toList();
-      } else {
-        filteredArchivedStudents.value = archivedStudents.where((student) {
-          final name = (student['name'] as String? ?? '').toLowerCase();
-          final id = (student['id'] as int? ?? 0).toString().toLowerCase();
-          return name.contains(query) || id.contains(query);
-        }).toList();
-      }
+      filteredReportClasses.value = reportClasses.where((classe) {
+        final name = classe.name.toLowerCase();
+        final id = classe.id.toString().toLowerCase();
+        return name.contains(query) || id.contains(query);
+      }).toList();
     }
   }
 
   void onSearchTextChanged(String text) {
     searchText.value = text;
+  }
+
+  Future<void> loadAttendanceReport(int classId) async {
+    isLoadingAttendance.value = true;
+    try {
+      final data = await _reportsRepository.getAttendanceReportByClassId(classId);
+      attendanceReportData.value = data;
+    } catch (e) {
+      Get.snackbar(
+        'Erro',
+        'Não foi possível carregar o relatório de chamadas: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Get.theme.colorScheme.onError,
+      );
+      attendanceReportData.clear();
+    } finally {
+      isLoadingAttendance.value = false;
+    }
   }
 }

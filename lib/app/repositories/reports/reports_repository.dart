@@ -15,10 +15,10 @@ class ReportsRepository implements IReportsRepository {
       SELECT
         c.id AS classe_id,
         c.name AS classe_name,
-        c.description, -- Adicionado: descrição da classe
-        c.school_year, -- Adicionado: ano da classe
-        c.created_at,  -- Adicionado: data de criação da classe
-        d.id AS discipline_id, -- <--- ADICIONADO: ID da disciplina
+        c.description,
+        c.school_year,
+        c.created_at,
+        d.id AS discipline_id,
         d.name AS discipline_name,
         g.day_of_week,
         g.start_time,
@@ -83,5 +83,63 @@ class ReportsRepository implements IReportsRepository {
     ''',
       [year],
     );
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getAttendanceReportByClassId(
+    int classId,
+  ) async {
+    final db = await _dbHelper.database;
+    final List<Map<String, dynamic>> result = await db.rawQuery(
+      '''
+      SELECT
+        s.name AS student_name,
+        a.date,
+        a.content,
+        CASE
+          WHEN sa.presence = 0 THEN 'P'
+          WHEN sa.presence = 1 THEN 'F'
+          ELSE 'Desconhecido'
+        END AS status
+      FROM attendance a
+      JOIN student_attendance sa ON a.id = sa.attendance_id
+      JOIN student s ON sa.student_id = s.id
+      WHERE a.classe_id = ?
+      ORDER BY s.name, a.date;
+      ''',
+      [classId],
+    );
+    return result;
+  }
+
+
+  @override
+  Future<List<Map<String, dynamic>>> getStudentsByClassId(int classId) async {
+    final db = await _dbHelper.database;
+    return await db.rawQuery(
+      '''
+      SELECT s.id, s.name, s.active, s.created_at,
+             cs.start_date, cs.end_date, cs.active AS classe_student_active
+      FROM student s
+      INNER JOIN classe_student cs ON s.id = cs.student_id
+      WHERE cs.classe_id = ?
+      ORDER BY s.name COLLATE NOCASE;
+      ''',
+      [classId],
+    );
+  }
+
+  @override
+  Future<Map<String, dynamic>?> getStudentDetails(int studentId) async {
+    final db = await _dbHelper.database;
+    final List<Map<String, dynamic>> result = await db.rawQuery(
+      '''
+      SELECT s.id, s.name, s.active, s.created_at
+      FROM student s
+      WHERE s.id = ?;
+      ''',
+      [studentId],
+    );
+    return result.isNotEmpty ? result.first : null;
   }
 }
