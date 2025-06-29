@@ -68,13 +68,15 @@ class AttendanceReportPage extends GetView<ReportsController> {
           final Set<String> allStudentsNames = {};
 
           for (var record in controller.attendanceReportData) {
-            final String rawDate = record['date'] as String;
+            final String rawDate = record['date']?.toString() ?? '';
+            if (rawDate.isEmpty) continue; // Skip records without date
+            
             final String formattedDate = DateFormat(
               'dd/MM',
             ).format(DateTime.parse(rawDate));
-            final String studentName = record['student_name'] as String;
-            final String status = record['status'] as String;
-            final String content = record['content'] as String? ?? '';
+            final String studentName = record['student_name']?.toString() ?? 'Nome não informado';
+            final String status = record['status']?.toString() ?? 'P';
+            final String content = record['content']?.toString() ?? '';
 
             if (!classesByDay.containsKey(formattedDate)) {
               classesByDay[formattedDate] = {

@@ -56,7 +56,7 @@ class HomePage extends GetView<HomeController> {
       case 5:
         return 'Ocorrências';
       case 6:
-        return 'Relatórios';
+        return 'Alunos';
       case 7:
         return 'Configurações';
  /*      case 6:
@@ -81,7 +81,7 @@ class HomePage extends GetView<HomeController> {
       case 5:
         return Icons.report;
       case 6:
-        return Icons.assessment;
+        return Icons.person;
       case 7:
         return Icons.settings;
  /*      case 6:
@@ -112,7 +112,7 @@ class HomePage extends GetView<HomeController> {
         Navigator.pushNamed(context, '/occurrence/select');
         break;
       case 6:
-        Navigator.pushNamed(context, '/reports/home');
+        Navigator.pushNamed(context, '/students/reports');
         break;
       case 7:
         Navigator.pushNamed(context, '/settings/home');

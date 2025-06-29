@@ -44,10 +44,7 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Colors.purple.shade50,
-              Colors.white,
-            ],
+            colors: [Colors.purple.shade50, Colors.white],
           ),
         ),
         child: Padding(
@@ -55,8 +52,6 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-    
-              
               // Dropdown de turmas
               Obx(() {
                 if (controller.isLoading.value) {
@@ -67,7 +62,7 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
                     ),
                   );
                 }
-                
+
                 if (controller.availableClasses.isEmpty) {
                   return Card(
                     color: Colors.orange.shade50,
@@ -91,9 +86,7 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
                           const SizedBox(height: 4),
                           Text(
                             'Certifique-se de que existem turmas cadastradas e ativas.',
-                            style: TextStyle(
-                              color: Colors.orange.shade700,
-                            ),
+                            style: TextStyle(color: Colors.orange.shade700),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -101,38 +94,37 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
                     ),
                   );
                 }
-                
+
                 return CustomDrop<Classe>(
                   items: controller.availableClasses,
                   value: controller.selectedClasse.value,
-                  labelBuilder: (classe) => '${classe.name} (${classe.schoolYear})',
-                  onChanged: (classe) => controller.selectedClasse.value = classe,
+                  labelBuilder: (classe) =>
+                      '${classe.name} (${classe.schoolYear})',
+                  onChanged: (classe) =>
+                      controller.selectedClasse.value = classe,
                   hint: 'Selecione uma turma',
                 );
               }),
-              
+
               const SizedBox(height: 32),
-              
+
               // Lista de chamadas da turma selecionada
               Expanded(
                 child: Obx(() {
                   if (controller.isLoading.value) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  
+
                   if (controller.selectedClasse.value == null) {
                     return const Center(
                       child: Text(
                         'Selecione uma turma para visualizar as chamadas disponíveis',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
-                        ),
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
                         textAlign: TextAlign.center,
                       ),
                     );
                   }
-                  
+
                   if (controller.availableAttendances.isEmpty) {
                     return const Center(
                       child: Column(
@@ -146,17 +138,14 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
                           SizedBox(height: 16),
                           Text(
                             'Nenhuma chamada encontrada para esta turma',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey,
-                            ),
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
                             textAlign: TextAlign.center,
                           ),
                         ],
                       ),
                     );
                   }
-                  
+
                   return ListView.builder(
                     itemCount: controller.availableAttendances.length,
                     itemBuilder: (context, index) {
@@ -168,7 +157,9 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
                           leading: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Constants.primaryColor.withValues(alpha: 0.1),
+                              color: Constants.primaryColor.withValues(
+                                alpha: 0.1,
+                              ),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
@@ -178,19 +169,21 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
                           ),
                           title: Text(
                             'Chamada - ${controller.formatDate(attendance.date)}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                           subtitle: Text(
-                            attendance.content?.isNotEmpty == true 
+                            attendance.content?.isNotEmpty == true
                                 ? attendance.content!
                                 : 'Sem conteúdo registrado',
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                          onTap: () => controller.navigateToOccurrences(attendance),
+                          trailing: const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                          ),
+                          onTap: () =>
+                              controller.navigateToOccurrences(attendance),
                         ),
                       );
                     },
