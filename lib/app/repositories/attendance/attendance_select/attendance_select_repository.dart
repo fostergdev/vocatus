@@ -119,7 +119,6 @@ class AttendanceSelectRepository implements IAttendanceSelectRepository {
     }
   }
 
-  @override // Métodos do IAttendanceSelectRepository devem ser marcados com @override
   Future<bool> hasAttendanceForGradeAndDate(int gradeId, DateTime date) async {
     log('AttendanceSelectRepository.hasAttendanceForGradeAndDate - Verificando existência de chamada para gradeId: $gradeId na data: ${DateFormat('yyyy-MM-dd').format(date)}', name: 'AttendanceSelectRepository');
     try {

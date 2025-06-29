@@ -185,26 +185,46 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                       label: 'Adicionar Tarefa',
                       icon: Icons.task,
                       onTap: () {
-                        Get.snackbar(
-                          'Ação',
-                          'Adicionar Tarefa clicado!',
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: Colors.blue.shade100,
-                          colorText: Colors.blue.shade800,
-                        );
+                        // Navegar para o módulo de homework da turma atual
+                        if (controller.grade.classe != null) {
+                          Get.toNamed(
+                            '/homework/home',
+                            arguments: controller.grade.classe!,
+                          );
+                        } else {
+                          Get.snackbar(
+                            'Erro',
+                            'Não foi possível acessar as tarefas. Turma não encontrada.',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.red.shade100,
+                            colorText: Colors.red.shade800,
+                          );
+                        }
                       },
                     ),
                     CustomPopupMenuItem(
                       label: 'Registrar Ocorrência',
                       icon: Icons.report,
-                      onTap: () {
-                        Get.snackbar(
-                          'Ação',
-                          'Registrar Ocorrência clicado!',
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: Colors.red.shade100,
-                          colorText: Colors.red.shade800,
-                        );
+                      onTap: () async {
+                        // Primeiro salva a chamada se houver dados
+                        if (controller.studentAttendances.isNotEmpty) {
+                          await controller.saveAttendance();
+                        }
+                        
+                        // Verifica se há uma chamada salva para navegar
+                        if (controller.currentAttendanceId.value != null) {
+                          // Cria um objeto Attendance para passar como argumento
+                          final attendance = controller.createAttendanceObject();
+                          Get.toNamed('/occurrence', arguments: attendance);
+                        } else {
+                          Get.snackbar(
+                            'Atenção',
+                            'É necessário salvar a chamada antes de registrar ocorrências.',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.orange.shade100,
+                            colorText: Colors.orange.shade800,
+                          );
+                        }
                       },
                     ),
                   ],

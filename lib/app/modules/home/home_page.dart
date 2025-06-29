@@ -26,8 +26,8 @@ class HomePage extends GetView<HomeController> {
             crossAxisCount: 2,
             mainAxisSpacing: 20,
             crossAxisSpacing: 20,
-            childAspectRatio: 1.2,
-            children: List.generate(5, (index) {
+            childAspectRatio: 1.0,
+            children: List.generate(8, (index) {
               return CustomSquareButton(
                 text: _getButtonText(index),
                 icon: _getButtonIcon(index),
@@ -48,12 +48,18 @@ class HomePage extends GetView<HomeController> {
       case 1:
         return 'Turmas';
       case 2:
-        return 'Horário';
+        return 'Tarefas';
       case 3:
-        return 'Disciplinas';
+        return 'Horário';
       case 4:
+        return 'Disciplinas';
+      case 5:
+        return 'Ocorrências';
+      case 6:
         return 'Relatórios';
- /*      case 5:
+      case 7:
+        return 'Configurações';
+ /*      case 6:
         return 'Histórico'; */
       default:
         return '';
@@ -67,12 +73,18 @@ class HomePage extends GetView<HomeController> {
       case 1:
         return Icons.group;
       case 2:
-        return Icons.schedule;
+        return Icons.assignment_outlined;
       case 3:
-        return Icons.library_books;
+        return Icons.schedule;
       case 4:
-        return Icons.assignment;
- /*      case 5:
+        return Icons.library_books;
+      case 5:
+        return Icons.report;
+      case 6:
+        return Icons.assessment;
+      case 7:
+        return Icons.settings;
+ /*      case 6:
         return Icons.history; */
       default:
         return Icons.help;
@@ -88,15 +100,24 @@ class HomePage extends GetView<HomeController> {
         Navigator.pushNamed(context, '/classes/home');
         break;
       case 2:
-        Navigator.pushNamed(context, '/grade/home');
+        Navigator.pushNamed(context, '/homework/select');
         break;
       case 3:
-        Navigator.pushNamed(context, '/disciplines/home');
+        Navigator.pushNamed(context, '/grade/home');
         break;
       case 4:
+        Navigator.pushNamed(context, '/disciplines/home');
+        break;
+      case 5:
+        Navigator.pushNamed(context, '/occurrence/select');
+        break;
+      case 6:
         Navigator.pushNamed(context, '/reports/home');
         break;
-    /*   case 5:
+      case 7:
+        Navigator.pushNamed(context, '/settings/home');
+        break;
+    /*   case 6:
         Navigator.pushNamed(context, '/history/home');
         break; */
     }

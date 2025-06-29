@@ -225,6 +225,21 @@ class ClassesPage extends GetView<ClassesController> {
                           );
                         },
                       ),
+                      if (isActive)
+                        CustomPopupMenuItem(
+                          label: 'Tarefas',
+                          icon: Icons.assignment_outlined,
+                          onTap: () async {
+                            developer.log(
+                              'Abrindo tarefas da turma ${classe.name}',
+                              name: 'ClassesPage',
+                            );
+                            await Get.toNamed(
+                              '/homework/home',
+                              arguments: classe,
+                            );
+                          },
+                        ),
                       CustomPopupMenuItem(
                         label: 'Editar',
                         icon: Icons.edit_outlined,

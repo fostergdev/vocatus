@@ -178,6 +178,17 @@ class AttendanceRegisterController extends GetxController {
     loadAttendanceData();
   }
 
+  Attendance createAttendanceObject() {
+    return Attendance(
+      id: currentAttendanceId.value,
+      classeId: grade.classeId,
+      gradeId: grade.id!,
+      date: selectedDate.value,
+      content: contentController.text,
+      active: true,
+    );
+  }
+
   @override
   void onClose() {
     contentController.dispose();
