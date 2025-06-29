@@ -29,10 +29,21 @@ class StudentsPage extends GetView<StudentsController> {
           ),
         ),
         centerTitle: true,
-        backgroundColor: Constants.primaryColor,
-        elevation: 4,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Constants.primaryColor.withValues(alpha: .9),
+                Constants.primaryColor,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 8,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
@@ -50,6 +61,35 @@ class StudentsPage extends GetView<StudentsController> {
           ),
         ],
       ),
+
+      /* AppBar(
+        title: Text(
+          selectedGrade.classe?.name ?? 'Turma',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 20,
+          ),
+        ),
+        centerTitle: true,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Constants.primaryColor.withValues(alpha: .9),
+                Constants.primaryColor,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 8,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ), */
       body: Column(
         children: [
           Text(
@@ -78,14 +118,7 @@ class StudentsPage extends GetView<StudentsController> {
                 itemCount: controller.students.length,
                 itemBuilder: (context, index) {
                   final student = controller.students[index];
-                  // Determina se o aluno está ativo em QUALQUER turma (status global)
-                  // IMPORTANTE: O student.active é o status global do aluno na tabela 'student'.
-                  // Se o aluno for inativado globalmente, ele não aparecerá nesta lista
-                  // pois a consulta getStudentsByClasseId filtra por cs.active = 1
-                  // Se você precisa que o status global reflita a última busca,
-                  // você pode precisar de um campo Student.isGloballyActive
-                  // ou outra forma de buscar o status global mais recente.
-                  // Por enquanto, seguimos com a lógica atual de student.active
+
                   final isStudentGloballyActive = student.active ?? true;
 
                   return Card(

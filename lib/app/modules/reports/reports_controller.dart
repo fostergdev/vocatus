@@ -139,8 +139,7 @@ class ReportsController extends GetxController {
     } else {
       filteredReportClasses.value = reportClasses.where((classe) {
         final name = classe.name.toLowerCase();
-        final id = classe.id.toString().toLowerCase();
-        return name.contains(query) || id.contains(query);
+        return name.contains(query);
       }).toList();
     }
   }

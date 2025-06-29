@@ -56,130 +56,79 @@ class GradesPage extends GetView<GradesController> {
           ),
         ),
         centerTitle: true,
-        backgroundColor: Constants.primaryColor,
-        elevation: 4,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Constants.primaryColor.withValues(alpha: .9),
+                Constants.primaryColor,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 8,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          /* IconButton(
-            icon: const Icon(Icons.filter_list, color: Colors.white),
-            tooltip: 'Filtrar',
-            onPressed: () async {
-              await showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                ),
-                builder: (context) {
-                  return Padding(
-                    padding: MediaQuery.of(context).viewInsets,
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Filtros',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.purple.shade800,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Obx(
-                            () => DropdownButtonFormField<int>(
-                              value: controller.selectedFilterYear.value,
-                              decoration: const InputDecoration(
-                                labelText: 'Ano',
-                                border: OutlineInputBorder(),
-                              ),
-                              items:
-                                  List.generate(
-                                        11,
-                                        (i) => DateTime.now().year - 5 + i,
-                                      )
-                                      .map(
-                                        (year) => DropdownMenuItem(
-                                          value: year,
-                                          child: Text(year.toString()),
-                                        ),
-                                      )
-                                      .toList(),
-                              onChanged: (year) {
-                                if (year != null) {
-                                  controller.selectedFilterYear.value = year;
-                                  controller.loadAllGrades();
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Obx(
-                            () => Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Transform.scale(
-                                  scale: 0.75,
-                                  child: Switch(
-                                    value:
-                                        controller.showOnlyActiveGrades.value,
-                                    onChanged: (val) {
-                                      controller.showOnlyActiveGrades.value =
-                                          val;
-                                      controller.loadAllGrades();
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                SizedBox(
-                                  width: 100,
-                                  child: Text(
-                                    controller.showOnlyActiveGrades.value
-                                        ? 'Desarquivadas'
-                                        : 'Arquivadas',
-                                    style: TextStyle(
-                                      color:
-                                          controller.showOnlyActiveGrades.value
-                                          ? Colors.green
-                                          : Colors.red,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Fechar'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          ), */
-        ],
+        actions: [],
       ),
       body: Column(
         children: [
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
-                return const Center(child: CircularProgressIndicator());
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CircularProgressIndicator(
+                        color: Constants.primaryColor,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Carregando horários...',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
               }
               if (controller.grades.isEmpty) {
-                return const Center(
-                  child: Text(
-                    'Nenhum horário agendado encontrado.',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        size: 80,
+                        color: Colors.grey.shade300,
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Nenhum horário agendado para este ano.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Que tal adicionar um novo horário agora?',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
                   ),
                 );
               }
@@ -200,7 +149,9 @@ class GradesPage extends GetView<GradesController> {
         ],
       ),
       floatingActionButton: FloatingActionButton.small(
-        onPressed: () => _showAddGradeDialog(),
+        onPressed: () async {
+          _showAddGradeDialog();
+        },
         tooltip: 'Adicionar Horário',
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         backgroundColor: Colors.purple.shade800,
@@ -252,23 +203,42 @@ class GradesPage extends GetView<GradesController> {
   }
 
   Widget _buildScheduleItem(Grade grade) {
+    final isActive = grade.active ?? true;
+    final textColor = isActive ? Colors.purple.shade900 : Colors.grey.shade700;
+    final subtitleColor = isActive
+        ? Colors.grey.shade700
+        : Colors.grey.shade500;
+    final iconColor = isActive ? Constants.primaryColor : Colors.grey.shade600;
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.purple.withValues(alpha: .1),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.purple.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
+        border: Border.all(
+          color: isActive
+              ? Constants.primaryColor.withOpacity(0.2)
+              : Colors.grey.withOpacity(0.2),
+          width: 0.8,
+        ),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
-          vertical: 12,
+          vertical: 10,
+        ),
+        leading: CircleAvatar(
+          backgroundColor: isActive
+              ? Constants.primaryColor.withOpacity(0.1)
+              : Colors.grey.shade100,
+          child: Icon(Icons.school_outlined, color: iconColor, size: 24),
         ),
         title: Text(
           grade.classe?.name ?? 'Turma não informada',
@@ -276,10 +246,8 @@ class GradesPage extends GetView<GradesController> {
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: grade.active!
-                ? Colors.purple.shade900
-                : Colors.grey.shade700,
-            fontSize: 16,
+            color: textColor,
+            fontSize: 17,
           ),
         ),
         subtitle: Column(
@@ -288,56 +256,53 @@ class GradesPage extends GetView<GradesController> {
             const SizedBox(height: 4),
             Text(
               grade.discipline?.name ?? 'Disciplina não informada',
-              style: TextStyle(
-                color: grade.active!
-                    ? Colors.grey.shade700
-                    : Colors.grey.shade500,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: subtitleColor, fontSize: 14),
             ),
             const SizedBox(height: 8),
             Row(
               children: [
-                Icon(
-                  Icons.watch_later,
-                  size: 16,
-                  color: grade.active!
-                      ? Colors.purple.shade600
-                      : Colors.grey.shade600,
-                ),
-                const SizedBox(width: 4),
+                Icon(Icons.schedule_outlined, size: 18, color: iconColor),
+                const SizedBox(width: 6),
                 Text(
                   '${Grade.formatTimeDisplay(grade.startTimeOfDay)} - ${Grade.formatTimeDisplay(grade.endTimeOfDay)}',
                   style: TextStyle(
-                    color: grade.active!
-                        ? Colors.purple.shade600
-                        : Colors.grey.shade600,
+                    color: iconColor,
                     fontWeight: FontWeight.w500,
                     fontSize: 14,
                   ),
                 ),
               ],
             ),
-            if (!grade.active!)
+            if (!isActive)
               Padding(
-                padding: const EdgeInsets.only(top: 4.0),
-                child: Text(
-                  'Status: Inativo',
-                  style: TextStyle(
-                    color: Colors.red.shade700,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                padding: const EdgeInsets.only(top: 6.0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade100,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'INATIVO',
+                    style: TextStyle(
+                      color: Colors.red.shade700,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
                   ),
                 ),
               ),
           ],
         ),
-        trailing: grade.active!
+        trailing: isActive
             ? CustomPopupMenu(
                 items: [
                   CustomPopupMenuItem(
                     label: 'Editar',
-                    icon: Icons.edit,
+                    icon: Icons.edit_outlined,
                     onTap: () => _showEditGradeDialog(grade),
                   ),
                   CustomPopupMenuItem(
@@ -348,13 +313,18 @@ class GradesPage extends GetView<GradesController> {
                 ],
               )
             : IconButton(
-                icon: const Icon(Icons.insert_drive_file, color: Colors.purple),
+                icon: Icon(
+                  Icons.description_outlined,
+                  color: Colors.purple.shade600,
+                ),
                 tooltip: 'Relatório',
                 onPressed: () {
-                  // Lógica para relatório
                   Get.snackbar(
                     'Relatório',
                     'Abrir relatório do horário inativo',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.purple.shade50,
+                    colorText: Constants.primaryColor,
                   );
                 },
               ),
@@ -362,212 +332,295 @@ class GradesPage extends GetView<GradesController> {
     );
   }
 
-  void _showAddGradeDialog() {
+  void _showAddGradeDialog() async {
     controller.resetAddGradeFields();
-    Get.dialog(
-      Obx(() {
-        return CustomDialog(
-          title: 'Adicionar Horário',
-          content: Form(
-            key: controller.formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                /*  DropdownButtonFormField<int>(
-                  decoration: const InputDecoration(
-                    labelText: 'Ano Letivo da Turma',
-                    border: OutlineInputBorder(),
-                  ),
-                  value: controller.selectedYearForForm.value,
-                  items: List.generate(11, (i) => DateTime.now().year - 5 + i)
-                      .map((year) {
-                        return DropdownMenuItem(
-                          value: year,
-                          child: Text(year.toString()),
-                        );
-                      })
-                      .toList(),
-                  onChanged: (year) async {
-                    controller.selectedYearForForm.value = year!;
-                    await controller.loadFilteredClassesForForm(year);
-                    controller.selectedClasseForForm.value = null;
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Ano obrigatório!';
-                    }
-                    return null;
-                  },
-                ),
- */
-                CustomDrop<Classe>(
-                  items: controller.filteredClassesForForm,
-                  value: controller.selectedClasseForForm.value,
-                  labelBuilder: (c) => '${c.name} (${c.schoolYear})',
-                  onChanged: (c) => controller.selectedClasseForForm.value = c,
-                  hint: 'Selecione a Turma',
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Turma obrigatória!';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                CustomDrop<Discipline>(
-                  items: controller.availableDisciplines,
-                  value: controller.selectedDisciplineForForm.value,
-                  labelBuilder: (d) => d.name,
-                  onChanged: (d) =>
-                      controller.selectedDisciplineForForm.value = d,
-                  hint: 'Selecione a Disciplina (Opcional)',
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<int>(
-                  decoration: const InputDecoration(
-                    labelText: 'Dia da Semana',
-                    border: OutlineInputBorder(),
-                  ),
-                  value: controller.selectedDayOfWeekForForm.value,
-                  items: _daysOfWeek.map((day) {
-                    return DropdownMenuItem(
-                      value: day['value'] as int,
-                      child: Text(day['label'] as String),
-                    );
-                  }).toList(),
-                  onChanged: (day) {
-                    controller.selectedDayOfWeekForForm.value = day!;
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Dia obrigatório!';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Obx(
-                        () => TextFormField(
-                          readOnly: true,
-                          controller: TextEditingController(
-                            text: Grade.formatTimeDisplay(
-                              controller.startTimeForForm.value,
-                            ),
-                          ),
-                          decoration: InputDecoration(
-                            labelText: 'Início',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            suffixIcon: const Icon(Icons.access_time),
-                          ),
-                          onTap: () async {
-                            final TimeOfDay? pickedTime = await showTimePicker(
-                              context: Get.context!,
-                              initialTime: controller.startTimeForForm.value,
-                            );
-                            if (pickedTime != null) {
-                              controller.startTimeForForm.value = pickedTime;
-                            }
-                          },
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Obrigatório!';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Obx(
-                        () => TextFormField(
-                          readOnly: true,
-                          controller: TextEditingController(
-                            text: Grade.formatTimeDisplay(
-                              controller.endTimeForForm.value,
-                            ),
-                          ),
-                          decoration: InputDecoration(
-                            labelText: 'Fim',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            suffixIcon: const Icon(Icons.access_time),
-                          ),
-                          onTap: () async {
-                            final TimeOfDay? pickedTime = await showTimePicker(
-                              context: Get.context!,
-                              initialTime: controller.endTimeForForm.value,
-                            );
-                            if (pickedTime != null) {
-                              controller.endTimeForForm.value = pickedTime;
-                            }
-                          },
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Obrigatório!';
-                            }
-                            final int startTimeInt = Grade.timeOfDayToInt(
-                              controller.startTimeForForm.value,
-                            );
-                            final int endTimeInt = Grade.timeOfDayToInt(
-                              controller.endTimeForForm.value,
-                            );
 
-                            if (startTimeInt == endTimeInt) {
-                              return 'Início e fim não podem ser iguais';
-                            }
-                            if (endTimeInt < startTimeInt) {
-                              return 'Fim não pode ser antes do início';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+    await controller.loadFilteredClassesForForm(
+      controller.selectedYearForForm.value,
+    );
+
+    if (controller.filteredClassesForForm.isEmpty) {
+      Get.dialog(
+        CustomDialog(
+          title: 'AVISO',
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.info_outline, color: Colors.orange.shade700, size: 60),
+              const SizedBox(height: 16),
+              const Text(
+                'Não há turmas ativas disponíveis para adicionar horários no ano selecionado.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.black87),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Por favor, adicione uma turma primeiro ou verifique o ano de filtro.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+            ],
           ),
           actions: [
             TextButton(
               onPressed: () => Get.back(),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (controller.formKey.currentState!.validate()) {
-                  Get.back();
-                  await controller.createGrade(
-                    Grade(
-                      classeId: controller.selectedClasseForForm.value!.id!,
-                      disciplineId:
-                          controller.selectedDisciplineForForm.value?.id,
-                      dayOfWeek: controller.selectedDayOfWeekForForm.value,
-                      startTimeTotalMinutes: Grade.timeOfDayToInt(
-                        controller.startTimeForForm.value,
-                      ),
-                      endTimeTotalMinutes: Grade.timeOfDayToInt(
-                        controller.endTimeForForm.value,
-                      ),
-                      gradeYear: controller.selectedYearForForm.value,
-                    ),
-                  );
-                }
-              },
-              child: const Text('Adicionar'),
+              child: const Text('Entendi'),
             ),
           ],
-        );
-      }),
-      barrierDismissible: false,
-    );
+        ),
+        barrierDismissible: false,
+      );
+    } else {
+      Get.dialog(
+        Obx(() {
+          return CustomDialog(
+            title: 'Adicionar Horário',
+            icon: Icons.add_alarm,
+            content: Form(
+              key: controller.formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomDrop<Classe>(
+                    items: controller.filteredClassesForForm,
+                    value: controller.selectedClasseForForm.value,
+                    labelBuilder: (c) => '${c.name} (${c.schoolYear})',
+                    onChanged: (c) =>
+                        controller.selectedClasseForForm.value = c,
+                    hint: 'Selecione a Turma',
+                    validator: (value) {
+                      if (value == null) {
+                        return 'Turma obrigatória!';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  CustomDrop<Discipline>(
+                    items: controller.availableDisciplines,
+                    value: controller.selectedDisciplineForForm.value,
+                    labelBuilder: (d) => d.name,
+                    onChanged: (d) =>
+                        controller.selectedDisciplineForForm.value = d,
+                    hint: 'Selecione a Disciplina (Opcional)',
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<int>(
+                    decoration: InputDecoration(
+                      labelText: 'Dia da Semana',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: Colors.purple.shade800,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    value: controller.selectedDayOfWeekForForm.value,
+                    items: _daysOfWeek.map((day) {
+                      return DropdownMenuItem(
+                        value: day['value'] as int,
+                        child: Text(day['label'] as String),
+                      );
+                    }).toList(),
+                    onChanged: (day) {
+                      controller.selectedDayOfWeekForForm.value = day!;
+                    },
+                    validator: (value) {
+                      if (value == null) {
+                        return 'Dia obrigatório!';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Obx(
+                          () => TextFormField(
+                            readOnly: true,
+                            controller: TextEditingController(
+                              text: Grade.formatTimeDisplay(
+                                controller.startTimeForForm.value,
+                              ),
+                            ),
+                            decoration: InputDecoration(
+                              labelText: 'Início',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.purple.shade800,
+                                  width: 2,
+                                ),
+                              ),
+                              suffixIcon: const Icon(Icons.access_time_filled),
+                            ),
+                            onTap: () async {
+                              final TimeOfDay?
+                              pickedTime = await showTimePicker(
+                                context: Get.context!,
+                                initialTime: controller.startTimeForForm.value,
+                                builder: (BuildContext context, Widget? child) {
+                                  return Theme(
+                                    data: ThemeData.light().copyWith(
+                                      colorScheme: ColorScheme.light(
+                                        primary: Colors.purple.shade800,
+                                        onSurface: Colors.black,
+                                      ),
+                                      buttonTheme: const ButtonThemeData(
+                                        textTheme: ButtonTextTheme.primary,
+                                      ),
+                                    ),
+                                    child: child!,
+                                  );
+                                },
+                              );
+                              if (pickedTime != null) {
+                                controller.startTimeForForm.value = pickedTime;
+                              }
+                            },
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Obrigatório!';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Obx(
+                          () => TextFormField(
+                            readOnly: true,
+                            controller: TextEditingController(
+                              text: Grade.formatTimeDisplay(
+                                controller.endTimeForForm.value,
+                              ),
+                            ),
+                            decoration: InputDecoration(
+                              labelText: 'Fim',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.purple.shade800,
+                                  width: 2,
+                                ),
+                              ),
+                              suffixIcon: const Icon(Icons.access_time_filled),
+                            ),
+                            onTap: () async {
+                              final TimeOfDay?
+                              pickedTime = await showTimePicker(
+                                context: Get.context!,
+                                initialTime: controller.endTimeForForm.value,
+                                builder: (BuildContext context, Widget? child) {
+                                  return Theme(
+                                    data: ThemeData.light().copyWith(
+                                      colorScheme: ColorScheme.light(
+                                        primary: Colors.purple.shade800,
+                                        onSurface: Colors.black,
+                                      ),
+                                      buttonTheme: const ButtonThemeData(
+                                        textTheme: ButtonTextTheme.primary,
+                                      ),
+                                    ),
+                                    child: child!,
+                                  );
+                                },
+                              );
+                              if (pickedTime != null) {
+                                controller.endTimeForForm.value = pickedTime;
+                              }
+                            },
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Obrigatório!';
+                              }
+                              final int startTimeInt = Grade.timeOfDayToInt(
+                                controller.startTimeForForm.value,
+                              );
+                              final int endTimeInt = Grade.timeOfDayToInt(
+                                controller.endTimeForForm.value,
+                              );
+
+                              if (startTimeInt == endTimeInt) {
+                                return 'Início e fim não podem ser iguais';
+                              }
+                              if (endTimeInt < startTimeInt) {
+                                return 'Fim não pode ser antes do início';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.grey.shade700,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (controller.formKey.currentState!.validate()) {
+                    Get.back();
+                    await controller.createGrade(
+                      Grade(
+                        classeId: controller.selectedClasseForForm.value!.id!,
+                        disciplineId:
+                            controller.selectedDisciplineForForm.value?.id,
+                        dayOfWeek: controller.selectedDayOfWeekForForm.value,
+                        startTimeTotalMinutes: Grade.timeOfDayToInt(
+                          controller.startTimeForForm.value,
+                        ),
+                        endTimeTotalMinutes: Grade.timeOfDayToInt(
+                          controller.endTimeForForm.value,
+                        ),
+                        gradeYear: controller.selectedYearForForm.value,
+                      ),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purple.shade800,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                ),
+                child: const Text('Adicionar'),
+              ),
+            ],
+          );
+        }),
+        barrierDismissible: false,
+      );
+    }
   }
 
   void _showEditGradeDialog(Grade grade) {
@@ -583,8 +636,7 @@ class GradesPage extends GetView<GradesController> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 CustomDrop<Classe>(
-                  items:
-                      controller.filteredClassesForForm, // MUDANÇA AQUI TAMBÉM
+                  items: controller.filteredClassesForForm,
                   value: controller.selectedClasseForForm.value,
                   labelBuilder: (c) => '${c.name} (${c.schoolYear})',
                   onChanged: (c) => controller.selectedClasseForForm.value = c,
@@ -791,3 +843,247 @@ class GradesPage extends GetView<GradesController> {
     );
   }
 }
+
+
+
+/* // Em _showAddGradeDialog e _showEditGradeDialog, dentro do CustomDialog:
+CustomDialog(
+  title: 'Adicionar Horário', // ou 'Editar Horário'
+  icon: Icons.add_alarm, // Para adicionar horário (exemplo)
+  // ou Icons.edit_calendar, // Para editar horário
+  content: Form(
+    key: controller.formKey, // ou controller.formEditKey
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // ... (seus CustomDrop e DropdownButtonFormField)
+        CustomDrop<Classe>(
+          items: controller.filteredClassesForForm,
+          value: controller.selectedClasseForForm.value,
+          labelBuilder: (c) => '${c.name} (${c.schoolYear})',
+          onChanged: (c) => controller.selectedClasseForForm.value = c,
+          hint: 'Selecione a Turma',
+          validator: (value) {
+            if (value == null) {
+              return 'Turma obrigatória!';
+            }
+            return null;
+          },
+          // Adicionar um foco/cor de destaque quando selecionado
+          decoration: InputDecoration(
+            labelText: 'Turma',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Constants.primaryColor, width: 2),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        CustomDrop<Discipline>(
+          items: controller.availableDisciplines,
+          value: controller.selectedDisciplineForForm.value,
+          labelBuilder: (d) => d.name,
+          onChanged: (d) => controller.selectedDisciplineForForm.value = d,
+          hint: 'Selecione a Disciplina (Opcional)',
+          decoration: InputDecoration(
+            labelText: 'Disciplina',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Constants.primaryColor, width: 2),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        DropdownButtonFormField<int>(
+          decoration: InputDecoration(
+            labelText: 'Dia da Semana',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Constants.primaryColor, width: 2),
+            ),
+          ),
+          value: controller.selectedDayOfWeekForForm.value,
+          items: _daysOfWeek.map((day) {
+            return DropdownMenuItem(
+              value: day['value'] as int,
+              child: Text(day['label'] as String),
+            );
+          }).toList(),
+          onChanged: (day) {
+            controller.selectedDayOfWeekForForm.value = day!;
+          },
+          validator: (value) {
+            if (value == null) {
+              return 'Dia obrigatório!';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: Obx(
+                () => TextFormField(
+                  readOnly: true,
+                  controller: TextEditingController(
+                    text: Grade.formatTimeDisplay(
+                      controller.startTimeForForm.value,
+                    ),
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'Início',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Constants.primaryColor, width: 2),
+                    ),
+                    suffixIcon: const Icon(Icons.access_time_filled), // Ícone preenchido
+                  ),
+                  onTap: () async {
+                    final TimeOfDay? pickedTime = await showTimePicker(
+                      context: Get.context!,
+                      initialTime: controller.startTimeForForm.value,
+                      builder: (BuildContext context, Widget? child) {
+                        return Theme(
+                          data: ThemeData.light().copyWith(
+                            colorScheme: ColorScheme.light(
+                              primary: Constants.primaryColor, // Cor principal no seletor de tempo
+                              onSurface: Colors.black, // Cor do texto
+                            ),
+                            buttonTheme: const ButtonThemeData(
+                              textTheme: ButtonTextTheme.primary,
+                            ),
+                          ),
+                          child: child!,
+                        );
+                      },
+                    );
+                    if (pickedTime != null) {
+                      controller.startTimeForForm.value = pickedTime;
+                    }
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Obrigatório!';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(width: 12), // Espaçamento maior
+            Expanded(
+              child: Obx(
+                () => TextFormField(
+                  readOnly: true,
+                  controller: TextEditingController(
+                    text: Grade.formatTimeDisplay(
+                      controller.endTimeForForm.value,
+                    ),
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'Fim',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Constants.primaryColor, width: 2),
+                    ),
+                    suffixIcon: const Icon(Icons.access_time_filled),
+                  ),
+                  onTap: () async {
+                    final TimeOfDay? pickedTime = await showTimePicker(
+                      context: Get.context!,
+                      initialTime: controller.endTimeForForm.value,
+                      builder: (BuildContext context, Widget? child) {
+                        return Theme(
+                          data: ThemeData.light().copyWith(
+                            colorScheme: ColorScheme.light(
+                              primary: Constants.primaryColor,
+                              onSurface: Colors.black,
+                            ),
+                            buttonTheme: const ButtonThemeData(
+                              textTheme: ButtonTextTheme.primary,
+                            ),
+                          ),
+                          child: child!,
+                        );
+                      },
+                    );
+                    if (pickedTime != null) {
+                      controller.endTimeForForm.value = pickedTime;
+                    }
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Obrigatório!';
+                    }
+                    final int startTimeInt = Grade.timeOfDayToInt(
+                      controller.startTimeForForm.value,
+                    );
+                    final int endTimeInt = Grade.timeOfDayToInt(
+                      controller.endTimeForForm.value,
+                    );
+
+                    if (startTimeInt == endTimeInt) {
+                      return 'Início e fim não podem ser iguais';
+                    }
+                    if (endTimeInt < startTimeInt) {
+                      return 'Fim não pode ser antes do início';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  ),
+  actions: [
+    TextButton(
+      onPressed: () => Get.back(),
+      style: TextButton.styleFrom(
+        foregroundColor: Colors.grey.shade700, // Cor de texto do botão
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      child: const Text('Cancelar'),
+    ),
+    ElevatedButton(
+      onPressed: () async {
+        if (controller.formKey.currentState!.validate()) { // ou formEditKey
+          Get.back();
+          await controller.createGrade( // ou updateGrade
+            Grade(
+              classeId: controller.selectedClasseForForm.value!.id!,
+              disciplineId: controller.selectedDisciplineForForm.value?.id,
+              dayOfWeek: controller.selectedDayOfWeekForForm.value,
+              startTimeTotalMinutes: Grade.timeOfDayToInt(
+                controller.startTimeForForm.value,
+              ),
+              endTimeTotalMinutes: Grade.timeOfDayToInt(
+                controller.endTimeForForm.value,
+              ),
+              gradeYear: controller.selectedYearForForm.value,
+            ),
+          );
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Constants.primaryColor, // Cor de fundo do botão
+        foregroundColor: Colors.white, // Cor do texto do botão
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      ),
+      child: const Text('Adicionar'), // ou 'Atualizar'
+    ),
+  ],
+), */

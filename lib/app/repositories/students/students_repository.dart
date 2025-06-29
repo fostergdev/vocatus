@@ -1,5 +1,3 @@
-// app/repositories/students/students_repository.dart
-
 import 'package:sqflite/sqflite.dart';
 import 'package:vocatus/app/core/utils/database_helper.dart';
 import 'package:vocatus/app/models/classe.dart';
@@ -44,10 +42,6 @@ class StudentsRepository implements IStudentsRepository {
           int studentId;
 
           if (student.id != null) {
-            // Se o ID do aluno foi fornecido, tentamos encontrá-lo.
-            // Se ele existir, usamos o ID existente. Se não, é um erro de lógica
-            // pois estamos tentando adicionar um aluno com um ID inexistente.
-            // Poderíamos adicionar uma validação mais robusta aqui se necessário.
             final existingById = await txn.query(
               'student',
               where: 'id = ?',
@@ -56,47 +50,21 @@ class StudentsRepository implements IStudentsRepository {
             if (existingById.isNotEmpty) {
               studentId = existingById.first['id'] as int;
             } else {
-              // Se o ID foi fornecido mas não existe, isso geralmente indica um erro.
-              // Para este cenário, vamos criar um novo aluno, já que o ID fornecido não é válido.
-              // Alternativamente, você poderia lançar um erro ou ter uma lógica de "upsert" mais clara.
               print('AVISO: Aluno com ID ${student.id} não encontrado. Criando novo registro para ${student.name}.');
               studentId = await txn.insert('student', {
-                "name": student.name.trim(), // Removido toLowerCase() para manter o case original
+                "name": student.name.trim(),
                 "created_at": DateTime.now().toIso8601String(),
                 "active": 1,
               });
             }
           } else {
-            // Se o ID do aluno não foi fornecido (student.id == null),
-            // SEMPRE criamos um novo aluno, mesmo que o nome seja igual a um existente.
-            // Cada adição sem ID explícito gera um novo registro de aluno.
-            // --- Lógica de busca e reuso pelo nome removida/comentada ---
-            /*
-            final existingByName = await txn.query(
-              'student',
-              where: 'name = ?',
-              whereArgs: [student.name.toLowerCase().trim()],
-            );
-            if (existingByName.isNotEmpty) {
-              studentId = existingByName.first['id'] as int;
-            } else {
-              // Se não encontrou nem por ID nem por nome, insere um novo aluno
-              studentId = await txn.insert('student', {
-                "name": student.name.toLowerCase().trim(),
-                "created_at": DateTime.now().toIso8601String(),
-                "active": 1,
-              });
-            }
-            */
-            // --- Nova lógica: sempre insere um novo se o ID não for fornecido ---
             studentId = await txn.insert('student', {
-              "name": student.name.trim(), // Removido toLowerCase() para manter o case original
+              "name": student.name.trim(),
               "created_at": DateTime.now().toIso8601String(),
               "active": 1,
             });
           }
 
-          // Ativa o aluno (caso estivesse inativo)
           await txn.update(
             'student',
             {'active': 1},
@@ -104,7 +72,6 @@ class StudentsRepository implements IStudentsRepository {
             whereArgs: [studentId],
           );
 
-          // Tenta atualizar a ligação classe_student (se já existia e estava inativa)
           int updated = await txn.update(
             'classe_student',
             {
@@ -116,13 +83,12 @@ class StudentsRepository implements IStudentsRepository {
             whereArgs: [studentId, classeId],
           );
           if (updated == 0) {
-            // Se não atualizou (não existia ou não encontrou), insere uma nova ligação
             await txn.insert('classe_student', {
               'student_id': studentId,
               'classe_id': classeId,
               'start_date': DateTime.now().toIso8601String(),
               'active': 1,
-            }, conflictAlgorithm: ConflictAlgorithm.ignore); // Usa ignore para evitar erro se por algum motivo já existir
+            }, conflictAlgorithm: ConflictAlgorithm.ignore);
           }
         }
       });

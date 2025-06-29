@@ -1,12 +1,12 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Para formatar datas
+import 'package:intl/intl.dart';
 import 'package:vocatus/app/core/constants/constants.dart';
 import 'package:vocatus/app/core/widgets/custom_popbutton.dart';
 import 'package:vocatus/app/core/widgets/custom_text_field.dart';
-import 'package:vocatus/app/models/grade.dart'; // Modelo Grade para usar formatTimeDisplay
-import 'package:vocatus/app/models/student_attendance.dart'; // Modelo StudentAttendance e enum PresenceStatus
-import './attendance_register_controller.dart'; // O controller de registro
+import 'package:vocatus/app/models/grade.dart';
+import 'package:vocatus/app/models/student_attendance.dart';
+import './attendance_register_controller.dart';
 
 class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
   const AttendanceRegisterPage({super.key});
@@ -43,48 +43,135 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.white,
+            fontSize: 20,
           ),
         ),
         centerTitle: true,
-        backgroundColor: Constants.primaryColor,
-        elevation: 4,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Constants.primaryColor.withValues(alpha: .9),
+                Constants.primaryColor,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 8,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(1.0),
-            child: ListTile(
-              title: Text(
-                '${_getDayName(selectedGrade.dayOfWeek)}: ${DateFormat('dd/MM/yyyy').format(controller.selectedDate.value)}  -  ${Grade.formatTimeDisplay(selectedGrade.startTimeOfDay)} - ${Grade.formatTimeDisplay(selectedGrade.endTimeOfDay)}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.purple,
-                ),
-              ),
-              subtitle: Text(
-                'Disciplina: ${selectedGrade.discipline?.name ?? 'Não Definida'}',
-                style: const TextStyle(fontSize: 16, color: Colors.grey),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 16.0,
+            ),
+            decoration: BoxDecoration(
+              color: Constants.primaryColor.withValues(
+                alpha: .05,
+              ), // Fundo suave
+              border: Border(
+                bottom: BorderSide(color: Colors.grey.shade300, width: 1.0),
               ),
             ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${_getDayName(selectedGrade.dayOfWeek)}, ${DateFormat('dd/MM/yyyy').format(controller.selectedDate.value)}',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Constants.primaryColor,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          size: 18,
+                          color: Colors.purple.shade700,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${Grade.formatTimeDisplay(selectedGrade.startTimeOfDay)} - ${Grade.formatTimeDisplay(selectedGrade.endTimeOfDay)}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.purple.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 6),
+
+                Row(
+                  children: [
+                    Icon(
+                      Icons.menu_book,
+                      size: 18,
+                      color: Colors.grey.shade600,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      selectedGrade.discipline?.name ??
+                          'Discipina Não Definida',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
+
+          // Campo de Texto de Conteúdo da Aula - Novo Layout
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+            padding: const EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              8,
+            ), // Aumenta o padding superior
             child: CustomTextField(
-              hintText: "Conteúdo",
-              maxLines: 1,
+              hintText: "Conteúdo da Aula",
+              maxLines: 3,
               minLines: 1,
               keyboardType: TextInputType.multiline,
               controller: controller.contentController,
               decoration: InputDecoration(
-                labelText: "Conteúdo",
+                labelText: "Conteúdo da Aula",
                 alignLabelWithHint: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                filled: true, // Fundo preenchido
+                fillColor: Colors.grey.shade100, // Cor de preenchimento
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16), // Mais arredondado
+                  borderSide: BorderSide(
+                    color: Colors.grey.shade300,
+                    width: 1.0,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
+                    color: Constants.primaryColor,
+                    width: 2.0,
+                  ),
                 ),
                 hintText: "Digite o conteúdo da aula...",
                 hintStyle: TextStyle(color: Colors.grey.shade400),
@@ -92,42 +179,89 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                   vertical: 16,
                   horizontal: 16,
                 ),
-              ),
-              suffixIcon: CustomPopupMenu(
-                items: [
-                  CustomPopupMenuItem(
-                    label: 'tarefa',
-                    icon: Icons.task,
-                    onTap: () {},
-                  ),
-                  CustomPopupMenuItem(
-                    label: 'ocorrência',
-                    icon: Icons.report,
-                    onTap: () {},
-                  ),
-                ],
+                suffixIcon: CustomPopupMenu(
+                  items: [
+                    CustomPopupMenuItem(
+                      label: 'Adicionar Tarefa',
+                      icon: Icons.task,
+                      onTap: () {
+                        Get.snackbar(
+                          'Ação',
+                          'Adicionar Tarefa clicado!',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.blue.shade100,
+                          colorText: Colors.blue.shade800,
+                        );
+                      },
+                    ),
+                    CustomPopupMenuItem(
+                      label: 'Registrar Ocorrência',
+                      icon: Icons.report,
+                      onTap: () {
+                        Get.snackbar(
+                          'Ação',
+                          'Registrar Ocorrência clicado!',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.red.shade100,
+                          colorText: Colors.red.shade800,
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
+
+          // Lista de Alunos para Chamada - Novo Layout
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
                 return const Center(child: CircularProgressIndicator());
               }
               if (controller.studentAttendances.isEmpty) {
-                return const Center(
-                  child: Text(
-                    'Nenhum aluno encontrado para esta turma/chamada.',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                    textAlign: TextAlign.center,
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.person_off,
+                        color: Colors.grey.shade400,
+                        size: 80,
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Nenhum aluno encontrado para esta turma/chamada.',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Verifique a configuração da turma ou a lista de alunos.',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey.shade600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 );
               }
               return ListView.builder(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8.0,
+                  vertical: 8.0,
+                ),
                 itemCount: controller.studentAttendances.length,
                 itemBuilder: (context, index) {
                   final studentAttendance =
                       controller.studentAttendances[index];
+
                   return Card(
                     margin: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -177,13 +311,24 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
       floatingActionButton: Obx(
         () => controller.studentAttendances.isNotEmpty
             ? FloatingActionButton.small(
-                onPressed: () async {
+                onPressed: controller.isLoading.value ? null : () async {
                   await controller.saveAttendance();
                   Get.back();
                 },
                 tooltip: 'Salvar Chamada',
-                backgroundColor: Constants.primaryColor,
-                child: const Icon(Icons.save, color: Colors.white),
+                backgroundColor: controller.isLoading.value 
+                    ? Colors.grey 
+                    : Constants.primaryColor,
+                child: controller.isLoading.value
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Icon(Icons.save, color: Colors.white),
               )
             : const SizedBox.shrink(),
       ),

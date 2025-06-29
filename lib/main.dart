@@ -32,7 +32,6 @@ class VocatusApp extends StatelessWidget {
         ...StudentsRoutes.routers,
         ...GradesRoutes.routers,
         ...AttendanceRoutes.routers,
-
         ...ReportsRoutes.routers,
       ],
       debugShowCheckedModeBanner: false,

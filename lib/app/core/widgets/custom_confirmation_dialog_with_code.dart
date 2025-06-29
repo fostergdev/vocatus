@@ -31,7 +31,7 @@ class _CustomConfirmationDialogWithCodeState
   void initState() {
     super.initState();
     _generatedCode = (100 + (DateTime.now().millisecondsSinceEpoch % 900))
-        .toString(); // Gera um código de 3 dígitos
+        .toString();
   }
 
   @override
@@ -79,7 +79,7 @@ class _CustomConfirmationDialogWithCodeState
         ElevatedButton(
           onPressed: () {
             if (_formKey.currentState!.validate()) {
-              Get.back(); 
+              Get.back();
               widget.onConfirm();
             }
           },
