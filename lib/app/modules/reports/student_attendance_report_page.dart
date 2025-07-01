@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:vocatus/app/core/constants/constants.dart';
-import 'package:vocatus/app/modules/reports/reports_controller.dart';
 import 'package:intl/intl.dart';
+import 'package:vocatus/app/core/constants/constants.dart'; // Mantenha, mas já sem primaryColor
+import 'package:vocatus/app/modules/reports/reports_controller.dart';
 
 class StudentAttendanceReportPage extends GetView<ReportsController> {
   const StudentAttendanceReportPage({super.key});
@@ -13,14 +13,16 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
     final String studentName = arguments?['studentName'] ?? 'Aluno';
     final int studentId = arguments?['studentId'] ?? 0;
 
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Frequência - $studentName',
-          style: const TextStyle(
+          style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: Colors.white,
-            fontSize: 18,
+            color: colorScheme.onPrimary, // Texto da AppBar
           ),
         ),
         centerTitle: true,
@@ -28,8 +30,8 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Constants.primaryColor.withValues(alpha: .9),
-                Constants.primaryColor,
+                colorScheme.primary.withOpacity(0.9), // Usa a cor primária do tema
+                colorScheme.primary, // Usa a cor primária do tema
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -40,12 +42,12 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: colorScheme.onPrimary), // Cor dos ícones da AppBar
         actions: [
           IconButton(
-            icon: const Icon(Icons.file_download, color: Colors.white),
+            icon: Icon(Icons.file_download, color: colorScheme.onPrimary), // Cor do ícone
             onPressed: () {
-              _showExportOptions(context);
+              _showExportOptions(context, colorScheme, textTheme); // Passa theme
             },
           ),
         ],
@@ -54,10 +56,8 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
         future: controller.getStudentAttendanceDetails(studentId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(
-                color: Constants.primaryColor,
-              ),
+            return Center(
+              child: CircularProgressIndicator(color: colorScheme.primary), // Cor do tema
             );
           }
 
@@ -69,23 +69,23 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
                   Icon(
                     Icons.error_outline,
                     size: 64,
-                    color: Colors.red.shade400,
+                    color: colorScheme.error, // Cor do ícone de erro
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'Erro ao carregar relatório',
-                    style: TextStyle(
+                    style: textTheme.titleMedium?.copyWith(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Colors.red.shade600,
+                      color: colorScheme.error, // Cor do texto de erro
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     snapshot.error.toString(),
-                    style: TextStyle(
+                    style: textTheme.bodyMedium?.copyWith(
                       fontSize: 14,
-                      color: Colors.grey.shade600,
+                      color: colorScheme.onSurfaceVariant, // Cor do texto
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -104,24 +104,25 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
                   Icon(
                     Icons.assignment_outlined,
                     size: 64,
-                    color: Colors.grey.shade400,
+                    color: colorScheme.onSurfaceVariant.withOpacity(0.4), // Cor do ícone
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'Nenhum registro de presença encontrado',
-                    style: TextStyle(
+                    style: textTheme.titleMedium?.copyWith(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade600,
+                      color: colorScheme.onSurfaceVariant, // Cor do texto
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Este aluno ainda não possui registros de chamada.',
-                    style: TextStyle(
+                    style: textTheme.bodyMedium?.copyWith(
                       fontSize: 14,
-                      color: Colors.grey.shade500,
+                      color: colorScheme.onSurfaceVariant.withOpacity(0.7), // Cor do texto
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
@@ -133,9 +134,9 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSummaryCard(attendanceData),
+                _buildSummaryCard(attendanceData, colorScheme, textTheme), // Passa theme
                 const SizedBox(height: 16),
-                _buildAttendanceList(attendanceData),
+                _buildAttendanceList(attendanceData, colorScheme, textTheme), // Passa theme
               ],
             ),
           );
@@ -144,19 +145,25 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
     );
   }
 
-  Widget _buildSummaryCard(List<Map<String, dynamic>> attendanceData) {
+  Widget _buildSummaryCard(List<Map<String, dynamic>> attendanceData, ColorScheme colorScheme, TextTheme textTheme) {
     final totalClasses = attendanceData.length;
-    final totalPresent = attendanceData.where((a) => a['presence'] == 1).length;
-    final totalAbsent = attendanceData.where((a) => a['presence'] == 0).length;
-    final attendancePercentage = totalClasses > 0 
-        ? (totalPresent / totalClasses * 100).toStringAsFixed(1)
-        : '0.0';
+    // Ajustado para 'P' para presente e 'A' para ausente, conforme suas convenções
+    final totalPresent = attendanceData.where((a) => a['presence'] == 1).length; // Supondo 1 = presente
+    final totalAbsent = attendanceData.where((a) => a['presence'] == 0).length; // Supondo 0 = ausente
+    final attendancePercentage = totalClasses > 0
+        ? (totalPresent / totalClasses * 100)
+        : 0.0;
+    
+    // Mapeamento para garantir que a cor da frequência seja do tema
+    Color attendanceColor = _getAttendanceColor(attendancePercentage, colorScheme);
 
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
+      color: colorScheme.surface, // Fundo do Card
+      surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -167,20 +174,21 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Constants.primaryColor.withValues(alpha: 0.1),
+                    color: colorScheme.primary.withOpacity(0.1), // Fundo do ícone
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     Icons.summarize,
-                    color: Constants.primaryColor,
+                    color: colorScheme.primary, // Cor do ícone
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Text(
+                Text(
                   'Resumo de Frequência',
-                  style: TextStyle(
+                  style: textTheme.titleMedium?.copyWith(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface, // Cor do texto
                   ),
                 ),
               ],
@@ -193,15 +201,17 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
                     'Total de Aulas',
                     totalClasses.toString(),
                     Icons.class_,
-                    Colors.blue,
+                    colorScheme.secondary, // Cor do tema
+                    colorScheme, textTheme, // Passa theme
                   ),
                 ),
                 Expanded(
                   child: _buildSummaryItem(
                     'Frequência',
-                    '$attendancePercentage%',
+                    '${attendancePercentage.toStringAsFixed(1)}%',
                     Icons.trending_up,
-                    _getAttendanceColor(double.parse(attendancePercentage)),
+                    attendanceColor, // Cor dinâmica da frequência
+                    colorScheme, textTheme, // Passa theme
                   ),
                 ),
               ],
@@ -214,7 +224,8 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
                     'Presenças',
                     totalPresent.toString(),
                     Icons.check_circle,
-                    Colors.green,
+                    colorScheme.tertiary, // Cor para presenças (verde)
+                    colorScheme, textTheme, // Passa theme
                   ),
                 ),
                 Expanded(
@@ -222,7 +233,8 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
                     'Faltas',
                     totalAbsent.toString(),
                     Icons.cancel,
-                    Colors.red,
+                    colorScheme.error, // Cor para faltas (vermelho)
+                    colorScheme, textTheme, // Passa theme
                   ),
                 ),
               ],
@@ -233,15 +245,15 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
     );
   }
 
-  Widget _buildSummaryItem(String title, String value, IconData icon, Color color) {
+  Widget _buildSummaryItem(String title, String value, IconData icon, Color color, ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
       padding: const EdgeInsets.all(12),
       margin: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1), // Fundo suave da cor
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: color.withValues(alpha: 0.3),
+          color: color.withOpacity(0.2), // Borda suave da cor
           width: 1,
         ),
       ),
@@ -249,23 +261,23 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
         children: [
           Icon(
             icon,
-            color: color,
+            color: color, // Ícone com a cor
             size: 24,
           ),
           const SizedBox(height: 8),
           Text(
             value,
-            style: TextStyle(
+            style: textTheme.titleMedium?.copyWith(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: color,
+              color: color, // Valor com a cor
             ),
           ),
           Text(
             title,
-            style: TextStyle(
+            style: textTheme.bodySmall?.copyWith(
               fontSize: 12,
-              color: Colors.grey.shade600,
+              color: colorScheme.onSurfaceVariant, // Label com cor neutra
             ),
             textAlign: TextAlign.center,
           ),
@@ -274,22 +286,31 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
     );
   }
 
-  Widget _buildAttendanceList(List<Map<String, dynamic>> attendanceData) {
+  Color _getAttendanceColor(double attendance, ColorScheme colorScheme) {
+    if (attendance >= 90) return colorScheme.tertiary; // Verde
+    if (attendance >= 75) return colorScheme.secondary; // Laranja/Amarelo
+    return colorScheme.error; // Vermelho
+  }
+
+  Widget _buildAttendanceList(List<Map<String, dynamic>> attendanceData, ColorScheme colorScheme, TextTheme textTheme) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
+      color: colorScheme.surface, // Fundo do Card
+      surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Histórico de Presenças',
-              style: TextStyle(
+              style: textTheme.titleMedium?.copyWith(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface, // Cor do título
               ),
             ),
             const SizedBox(height: 16),
@@ -297,54 +318,58 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: attendanceData.length,
-              separatorBuilder: (context, index) => const Divider(),
+              separatorBuilder: (context, index) => Divider(color: colorScheme.outlineVariant), // Separador
               itemBuilder: (context, index) {
                 final attendance = attendanceData[index];
-                final isPresent = attendance['presence'] == 1;
+                final isPresent = attendance['presence'] == 1; // Supondo 1 = presente
                 final date = DateTime.tryParse(attendance['date'] ?? '') ?? DateTime.now();
                 final formattedDate = DateFormat('dd/MM/yyyy').format(date);
                 
+                // Mapeamento de status para cores do ColorScheme
+                Color thematicStatusColor = isPresent ? colorScheme.tertiary : colorScheme.error;
+
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
-                    backgroundColor: isPresent 
-                        ? Colors.green.withValues(alpha: 0.1)
-                        : Colors.red.withValues(alpha: 0.1),
+                    backgroundColor: thematicStatusColor.withOpacity(0.1), // Fundo do avatar
                     child: Icon(
-                      isPresent ? Icons.check : Icons.close,
-                      color: isPresent ? Colors.green : Colors.red,
+                      isPresent ? Icons.check_circle_rounded : Icons.cancel_rounded, // Ícones arredondados
+                      color: thematicStatusColor, // Cor do ícone
                     ),
                   ),
                   title: Text(
                     formattedDate,
-                    style: const TextStyle(
+                    style: textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface, // Cor do título
                     ),
                   ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Turma: ${attendance['class_name'] ?? 'Não informada'}'),
+                      Text('Turma: ${attendance['class_name'] ?? 'Não informada'}',
+                           style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
                       if (attendance['discipline_name'] != null) ...[
-                        Text('Disciplina: ${attendance['discipline_name']}'),
+                        Text('Disciplina: ${attendance['discipline_name']}',
+                             style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
                       ],
                       if (attendance['content'] != null && attendance['content'].toString().isNotEmpty) ...[
-                        Text('Conteúdo: ${attendance['content']}'),
+                        Text('Conteúdo: ${attendance['content']}',
+                             style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
                       ],
                     ],
                   ),
                   trailing: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: isPresent 
-                          ? Colors.green.withValues(alpha: 0.1)
-                          : Colors.red.withValues(alpha: 0.1),
+                      color: thematicStatusColor.withOpacity(0.1), // Fundo do chip
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: thematicStatusColor, width: 1.0), // Borda do chip
                     ),
                     child: Text(
                       attendance['attendance_status'] ?? (isPresent ? 'Presente' : 'Ausente'),
-                      style: TextStyle(
-                        color: isPresent ? Colors.green : Colors.red,
+                      style: textTheme.labelLarge?.copyWith(
+                        color: thematicStatusColor, // Cor do texto do chip
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
@@ -359,13 +384,7 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
     );
   }
 
-  Color _getAttendanceColor(double attendance) {
-    if (attendance >= 90) return Colors.green;
-    if (attendance >= 75) return Colors.orange;
-    return Colors.red;
-  }
-
-  void _showExportOptions(BuildContext context) {
+  void _showExportOptions(BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -373,6 +392,10 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
       ),
       builder: (context) => Container(
         padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: colorScheme.surface, // Fundo do bottom sheet
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -380,52 +403,59 @@ class StudentAttendanceReportPage extends GetView<ReportsController> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: colorScheme.outlineVariant, // Cor da barra de arrasto
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Exportar Relatório',
-              style: TextStyle(
+              style: textTheme.titleMedium?.copyWith(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface, // Cor do título
               ),
             ),
             const SizedBox(height: 16),
             ListTile(
-              leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
-              title: const Text('Exportar como PDF'),
+              leading: Icon(Icons.picture_as_pdf, color: colorScheme.error), // Cor do ícone
+              title: Text('Exportar como PDF', style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface)), // Cor do texto
               onTap: () {
                 Navigator.pop(context);
                 Get.snackbar(
                   'Exportar PDF',
                   'Funcionalidade em desenvolvimento',
                   snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: colorScheme.tertiaryContainer, // Fundo do Snackbar
+                  colorText: colorScheme.onTertiaryContainer, // Texto do Snackbar
                 );
               },
             ),
             ListTile(
-              leading: const Icon(Icons.table_chart, color: Colors.green),
-              title: const Text('Exportar como Excel'),
+              leading: Icon(Icons.table_chart, color: colorScheme.tertiary), // Cor do ícone
+              title: Text('Exportar como Excel', style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface)), // Cor do texto
               onTap: () {
                 Navigator.pop(context);
                 Get.snackbar(
                   'Exportar Excel',
                   'Funcionalidade em desenvolvimento',
                   snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: colorScheme.tertiaryContainer,
+                  colorText: colorScheme.onTertiaryContainer,
                 );
               },
             ),
             ListTile(
-              leading: const Icon(Icons.share, color: Colors.blue),
-              title: const Text('Compartilhar'),
+              leading: Icon(Icons.share, color: colorScheme.primary), // Cor do ícone
+              title: Text('Compartilhar', style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface)), // Cor do texto
               onTap: () {
                 Navigator.pop(context);
                 Get.snackbar(
                   'Compartilhar',
                   'Funcionalidade em desenvolvimento',
                   snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: colorScheme.tertiaryContainer,
+                  colorText: colorScheme.onTertiaryContainer,
                 );
               },
             ),

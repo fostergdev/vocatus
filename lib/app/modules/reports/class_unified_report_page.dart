@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:vocatus/app/core/constants/constants.dart';
+import 'package:vocatus/app/core/constants/constants.dart'; // Mantenha, mas sem primaryColor
 import 'package:vocatus/app/models/classe.dart';
 import './reports_controller.dart';
 
@@ -13,6 +13,8 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
   @override
   Widget build(BuildContext context) {
     final Classe classe = Get.arguments as Classe;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (classe.id != null) {
@@ -33,10 +35,9 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
         appBar: AppBar(
           title: Text(
             'Relatórios - ${classe.name}',
-            style: const TextStyle(
+            style: textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
-              color: Colors.white,
-              fontSize: 18,
+              color: colorScheme.onPrimary, // Texto da AppBar
             ),
           ),
           centerTitle: true,
@@ -44,21 +45,21 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Constants.primaryColor.withValues(alpha: 0.9),
-                  Constants.primaryColor,
+                  colorScheme.primary.withOpacity(0.9), // Usa a cor primária do tema
+                  colorScheme.primary, // Usa a cor primária do tema
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
             ),
           ),
-          iconTheme: const IconThemeData(color: Colors.white),
-          bottom: const TabBar(
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            indicatorColor: Colors.white,
+          iconTheme: IconThemeData(color: colorScheme.onPrimary), // Cor dos ícones da AppBar
+          bottom: TabBar(
+            labelColor: colorScheme.onPrimary, // Cor da label da aba selecionada
+            unselectedLabelColor: colorScheme.onPrimary.withOpacity(0.7), // Cor da label da aba não selecionada
+            indicatorColor: colorScheme.onPrimary, // Cor do indicador da aba
             indicatorWeight: 3,
-            tabs: [
+            tabs: const [
               Tab(icon: Icon(Icons.how_to_reg, size: 20), text: 'Presença'),
               Tab(
                 icon: Icon(Icons.analytics, size: 20),
@@ -73,27 +74,27 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
         ),
         body: TabBarView(
           children: [
-            _buildAttendanceTab(classe),
-            _buildClassAverageTab(classe),
-            _buildOccurrencesTab(classe),
+            _buildAttendanceTab(classe, colorScheme, textTheme), // Passa context e theme
+            _buildClassAverageTab(classe, colorScheme, textTheme), // Passa context e theme
+            _buildOccurrencesTab(classe, colorScheme, textTheme), // Passa context e theme
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAttendanceTab(Classe classe) {
+  Widget _buildAttendanceTab(Classe classe, ColorScheme colorScheme, TextTheme textTheme) {
     return Obx(() {
       if (controller.isLoadingAttendance.value) {
-        return const Center(
+        return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
+              CircularProgressIndicator(color: colorScheme.primary), // Cor do tema
+              const SizedBox(height: 16),
               Text(
                 'Carregando registros de presença...',
-                style: TextStyle(color: Colors.grey),
+                style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant), // Cor do texto
               ),
             ],
           ),
@@ -105,20 +106,20 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.how_to_reg, size: 80, color: Colors.grey.shade400),
+              Icon(Icons.how_to_reg, size: 80, color: colorScheme.onSurfaceVariant.withOpacity(0.4)), // Cor do tema
               const SizedBox(height: 16),
               Text(
                 'Nenhum registro de presença',
-                style: TextStyle(
+                style: textTheme.titleMedium?.copyWith(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade600,
+                  color: colorScheme.onSurfaceVariant, // Cor do tema
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Esta turma ainda não possui chamadas registradas.',
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+                style: textTheme.bodyMedium?.copyWith(fontSize: 14, color: colorScheme.onSurfaceVariant.withOpacity(0.7)), // Cor do tema
                 textAlign: TextAlign.center,
               ),
             ],
@@ -146,22 +147,18 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
         itemBuilder: (context, index) {
           final date = sortedDates[index];
           final records = groupedByDate[date]!;
-          return _buildDateCard(date, records);
+          return _buildDateCard(date, records, colorScheme, textTheme); // Passa colorscheme e texttheme
         },
       );
     });
   }
 
-  Widget _buildDateCard(String dateStr, List<Map<String, dynamic>> records) {
+  Widget _buildDateCard(String dateStr, List<Map<String, dynamic>> records, ColorScheme colorScheme, TextTheme textTheme) {
     final DateTime date = DateTime.parse(dateStr);
     final String formattedDate = DateFormat('dd/MM/yyyy').format(date);
 
-    final int presentCount = records
-        .where((r) => r['status'] == 'A')
-        .length;
-    final int absentCount = records
-        .where((r) => r['status'] == 'P')
-        .length;
+    final int presentCount = records.where((r) => r['status'] == 'P').length; // P = Presente
+    final int absentCount = records.where((r) => r['status'] == 'F').length; // F = Falta
     final int totalStudents = records.length;
 
     final String content = records.first['content']?.toString() ?? '';
@@ -169,22 +166,24 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
+      color: colorScheme.surface, // Fundo do Card
+      surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
       child: ExpansionTile(
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Constants.primaryColor.withValues(alpha: 0.1),
+            color: colorScheme.primary.withOpacity(0.1), // Fundo do ícone
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             Icons.calendar_today,
-            color: Constants.primaryColor,
+            color: colorScheme.primary, // Cor do ícone
             size: 20,
           ),
         ),
         title: Text(
           formattedDate,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+          style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, fontSize: 16, color: colorScheme.onSurface), // Estilo do título
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,11 +192,11 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildMiniStat('Presentes', presentCount, Colors.green),
+                _buildMiniStat('Presentes', presentCount, colorScheme.tertiary, colorScheme, textTheme), // Cores do tema
                 const SizedBox(height: 4),
-                _buildMiniStat('Ausentes', absentCount, Colors.red),
+                _buildMiniStat('Ausentes', absentCount, colorScheme.error, colorScheme, textTheme), // Cores do tema
                 const SizedBox(height: 4),
-                _buildMiniStat('Total', totalStudents, Colors.blue),
+                _buildMiniStat('Total', totalStudents, colorScheme.primary, colorScheme, textTheme), // Cores do tema
               ],
             ),
           ],
@@ -209,74 +208,77 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.05),
+                color: colorScheme.secondaryContainer, // Fundo suave para conteúdo (Material 3)
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
+                border: Border.all(color: colorScheme.secondary.withOpacity(0.2)), // Borda
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Conteúdo da Aula:',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                    style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, fontSize: 14, color: colorScheme.onSecondaryContainer), // Cor do texto
                   ),
                   const SizedBox(height: 4),
-                  Text(content, style: const TextStyle(fontSize: 14)),
+                  Text(content, style: textTheme.bodyMedium?.copyWith(fontSize: 14, color: colorScheme.onSecondaryContainer)), // Cor do texto
                 ],
               ),
             ),
           const SizedBox(height: 8),
-          ...records.map((record) => _buildStudentItem(record)),
+          ...records.map((record) => _buildStudentItem(record, colorScheme, textTheme)), // Passa colorscheme e texttheme
           const SizedBox(height: 8),
         ],
       ),
     );
   }
 
-  Widget _buildStudentItem(Map<String, dynamic> record) {
+  Widget _buildStudentItem(Map<String, dynamic> record, ColorScheme colorScheme, TextTheme textTheme) {
     final String studentName =
         record['student_name']?.toString() ?? 'Nome não informado';
     final String status = record['status']?.toString() ?? 'N';
 
-    Color statusColor = status == 'A'
-        ? Colors.green
-        : status == 'P'
-        ? Colors.red
-        : Colors.grey;
-    String statusText = status == 'A'
-        ? 'Presente'
-        : status == 'P'
-        ? 'Ausente'
-        : 'N/A';
-    IconData statusIcon = status == 'A'
-        ? Icons.check_circle
-        : status == 'P'
-        ? Icons.cancel
-        : Icons.help;
+    // Mapeamento de status para cores e ícones do ColorScheme
+    Color thematicStatusColor;
+    String statusText;
+    IconData statusIcon;
+
+    if (status == 'P') { // P = Presente
+      thematicStatusColor = colorScheme.tertiary; // Geralmente verde
+      statusText = 'Presente';
+      statusIcon = Icons.check_circle_rounded;
+    } else if (status == 'F') { // F = Falta
+      thematicStatusColor = colorScheme.error; // Vermelho
+      statusText = 'Ausente';
+      statusIcon = Icons.cancel_rounded;
+    } else { // N/A ou outros
+      thematicStatusColor = colorScheme.onSurfaceVariant;
+      statusText = 'N/A';
+      statusIcon = Icons.help_outline;
+    }
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       child: Row(
         children: [
-          Icon(statusIcon, color: statusColor, size: 20),
+          Icon(statusIcon, color: thematicStatusColor, size: 20), // Cor do ícone de status
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               studentName,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              style: textTheme.bodyMedium?.copyWith(fontSize: 14, fontWeight: FontWeight.w500, color: colorScheme.onSurface), // Cor do texto do nome do aluno
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.1),
+              color: thematicStatusColor.withOpacity(0.1), // Fundo suave da cor do status
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+              border: Border.all(color: thematicStatusColor.withOpacity(0.3)), // Borda da cor do status
             ),
             child: Text(
               statusText,
-              style: TextStyle(
-                color: statusColor,
+              style: textTheme.labelLarge?.copyWith(
+                color: thematicStatusColor, // Cor do texto do status
                 fontWeight: FontWeight.w600,
                 fontSize: 12,
               ),
@@ -287,29 +289,29 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
     );
   }
 
-  Widget _buildMiniStat(String label, int value, Color color) {
+  Widget _buildMiniStat(String label, int value, Color color, ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1), // Fundo com opacidade da cor fornecida
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        border: Border.all(color: color.withOpacity(0.2)), // Borda com opacidade da cor fornecida
       ),
       child: Row(
         children: [
           Container(
             width: 8,
             height: 8,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle), // Círculo com a cor fornecida
           ),
           const SizedBox(width: 8),
           Text(
             '$label: $value',
-            style: TextStyle(
+            style: textTheme.bodySmall?.copyWith(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: color,
+              color: color, // Cor do texto (a mesma da bolinha)
             ),
           ),
         ],
@@ -317,10 +319,10 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
     );
   }
 
-  Widget _buildClassAverageTab(Classe classe) {
+  Widget _buildClassAverageTab(Classe classe, ColorScheme colorScheme, TextTheme textTheme) {
     return Obx(() {
-      if (controller.isLoadingAttendance.value) {
-        return const Center(child: CircularProgressIndicator());
+      if (controller.isLoadingAttendance.value) { // Reutiliza isLoadingAttendance, pode precisar de um isLoading separado para médias se for complexo
+        return Center(child: CircularProgressIndicator(color: colorScheme.primary)); // Cor do tema
       }
 
       final attendanceData = controller.attendanceReportData;
@@ -330,10 +332,10 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
       final uniqueDates = attendanceData.map((a) => a['date']).toSet();
 
       final totalPresences = attendanceData
-          .where((a) => a['status'] == 'A')
+          .where((a) => a['status'] == 'P') // P = Presente
           .length;
       final totalAbsences = attendanceData
-          .where((a) => a['status'] == 'P')
+          .where((a) => a['status'] == 'F') // F = Falta
           .length;
       final totalRecords = attendanceData.length;
 
@@ -348,6 +350,8 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
           children: [
             Card(
               elevation: 4,
+              color: colorScheme.surface, // Fundo do Card
+              surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -357,15 +361,16 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
                       children: [
                         Icon(
                           Icons.analytics,
-                          color: Constants.primaryColor,
+                          color: colorScheme.primary, // Cor do ícone
                           size: 28,
                         ),
                         const SizedBox(width: 12),
-                        const Text(
+                        Text(
                           'Resumo da Turma',
-                          style: TextStyle(
+                          style: textTheme.titleMedium?.copyWith(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface, // Cor do texto
                           ),
                         ),
                       ],
@@ -378,7 +383,8 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
                             'Total de Alunos',
                             uniqueStudents.length.toString(),
                             Icons.person,
-                            Colors.blue,
+                            colorScheme.secondary, // Cor do tema
+                            colorScheme, textTheme, // Passa colorScheme e textTheme
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -387,7 +393,8 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
                             'Aulas Realizadas',
                             uniqueDates.length.toString(),
                             Icons.calendar_today,
-                            Colors.green,
+                            colorScheme.tertiary, // Cor do tema
+                            colorScheme, textTheme, // Passa colorScheme e textTheme
                           ),
                         ),
                       ],
@@ -400,6 +407,8 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
 
             Card(
               elevation: 4,
+              color: colorScheme.surface, // Fundo do Card
+              surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -407,13 +416,14 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.pie_chart, color: Colors.orange, size: 28),
+                        Icon(Icons.pie_chart, color: colorScheme.secondary, size: 28), // Cor do ícone
                         const SizedBox(width: 12),
-                        const Text(
+                        Text(
                           'Frequência Geral',
-                          style: TextStyle(
+                          style: textTheme.titleMedium?.copyWith(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface, // Cor do texto
                           ),
                         ),
                       ],
@@ -428,16 +438,16 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
                           gradient: RadialGradient(
                             colors: [
                               attendancePercentage >= 75
-                                  ? Colors.green
+                                  ? colorScheme.tertiary // Acima de 75% (verde)
                                   : attendancePercentage >= 50
-                                  ? Colors.orange
-                                  : Colors.red,
+                                  ? colorScheme.secondary // Acima de 50% (laranja/amarelo)
+                                  : colorScheme.error, // Abaixo de 50% (vermelho)
                               (attendancePercentage >= 75
-                                      ? Colors.green
+                                      ? colorScheme.tertiary
                                       : attendancePercentage >= 50
-                                      ? Colors.orange
-                                      : Colors.red)
-                                  .withValues(alpha: 0.3),
+                                      ? colorScheme.secondary
+                                      : colorScheme.error)
+                                  .withOpacity(0.3), // Tom suave
                             ],
                           ),
                         ),
@@ -447,17 +457,15 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
                             children: [
                               Text(
                                 '${attendancePercentage.toStringAsFixed(1)}%',
-                                style: const TextStyle(
-                                  fontSize: 24,
+                                style: textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: colorScheme.onPrimary, // Texto em contraste com o gradiente
                                 ),
                               ),
-                              const Text(
+                              Text(
                                 'Frequência',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onPrimary, // Texto em contraste
                                 ),
                               ),
                             ],
@@ -473,17 +481,15 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
                           children: [
                             Text(
                               totalPresences.toString(),
-                              style: const TextStyle(
-                                fontSize: 20,
+                              style: textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.green,
+                                color: colorScheme.tertiary, // Cor para Presenças (verde)
                               ),
                             ),
-                            const Text(
+                            Text(
                               'Presenças',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.green,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.tertiary, // Cor para Presenças
                               ),
                             ),
                           ],
@@ -492,15 +498,16 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
                           children: [
                             Text(
                               totalAbsences.toString(),
-                              style: const TextStyle(
-                                fontSize: 20,
+                              style: textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.red,
+                                color: colorScheme.error, // Cor para Ausências (vermelho)
                               ),
                             ),
-                            const Text(
+                            Text(
                               'Ausências',
-                              style: TextStyle(fontSize: 12, color: Colors.red),
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.error, // Cor para Ausências
+                              ),
                             ),
                           ],
                         ),
@@ -515,6 +522,8 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
             if (uniqueStudents.isNotEmpty)
               Card(
                 elevation: 4,
+                color: colorScheme.surface, // Fundo do Card
+                surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
@@ -522,13 +531,14 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.person, color: Colors.purple, size: 28),
+                          Icon(Icons.person, color: colorScheme.primary, size: 28), // Cor do ícone
                           const SizedBox(width: 12),
-                          const Text(
+                          Text(
                             'Frequência por Aluno',
-                            style: TextStyle(
+                            style: textTheme.titleMedium?.copyWith(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              color: colorScheme.onSurface, // Cor do texto
                             ),
                           ),
                         ],
@@ -539,7 +549,7 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
                           (a) => a['student_name'] == studentName,
                         );
                         final studentPresences = studentRecords
-                            .where((a) => a['status'] == 'A')
+                            .where((a) => a['status'] == 'P') // P = Presente
                             .length;
                         final studentTotal = studentRecords.length;
                         final studentPercentage = studentTotal > 0
@@ -558,20 +568,21 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
                                   Expanded(
                                     child: Text(
                                       studentName.toString(),
-                                      style: const TextStyle(
+                                      style: textTheme.bodyLarge?.copyWith(
                                         fontWeight: FontWeight.w500,
+                                        color: colorScheme.onSurface, // Cor do nome do aluno
                                       ),
                                     ),
                                   ),
                                   Text(
                                     '${studentPercentage.toStringAsFixed(1)}%',
-                                    style: TextStyle(
+                                    style: textTheme.bodyLarge?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: studentPercentage >= 75
-                                          ? Colors.green
+                                          ? colorScheme.tertiary
                                           : studentPercentage >= 50
-                                          ? Colors.orange
-                                          : Colors.red,
+                                          ? colorScheme.secondary
+                                          : colorScheme.error,
                                     ),
                                   ),
                                 ],
@@ -579,13 +590,13 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
                               const SizedBox(height: 4),
                               LinearProgressIndicator(
                                 value: studentPercentage / 100,
-                                backgroundColor: Colors.grey.shade300,
+                                backgroundColor: colorScheme.surfaceVariant, // Fundo da barra
                                 valueColor: AlwaysStoppedAnimation<Color>(
                                   studentPercentage >= 75
-                                      ? Colors.green
+                                      ? colorScheme.tertiary
                                       : studentPercentage >= 50
-                                      ? Colors.orange
-                                      : Colors.red,
+                                      ? colorScheme.secondary
+                                      : colorScheme.error,
                                 ),
                               ),
                             ],
@@ -606,34 +617,36 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
     String label,
     String value,
     IconData icon,
-    Color color,
+    Color color, // Esta é a cor "temática" passada (primary, secondary, tertiary)
+    ColorScheme colorScheme,
+    TextTheme textTheme,
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1), // Fundo suave da cor
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        border: Border.all(color: color.withOpacity(0.2)), // Borda suave da cor
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 28),
+          Icon(icon, color: color, size: 28), // Ícone com a cor
           const SizedBox(height: 8),
           Text(
             value,
-            style: TextStyle(
+            style: textTheme.headlineSmall?.copyWith(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: color,
+              color: color, // Valor com a cor
             ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(
+            style: textTheme.bodyMedium?.copyWith(
               fontSize: 12,
-              color: color,
+              color: color, // Label com a cor
               fontWeight: FontWeight.w500,
             ),
             textAlign: TextAlign.center,
@@ -643,21 +656,21 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
     );
   }
 
-  Widget _buildOccurrencesTab(Classe classe) {
+  Widget _buildOccurrencesTab(Classe classe, ColorScheme colorScheme, TextTheme textTheme) {
     return Obx(() {
       log('🔍 Building occurrences tab. Data count: ${controller.occurrencesData.length}', 
           name: 'ClassUnifiedReportPage');
       
       if (controller.isLoadingOccurrences.value) {
-        return const Center(
+        return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
+              CircularProgressIndicator(color: colorScheme.primary), // Cor do tema
+              const SizedBox(height: 16),
               Text(
                 'Carregando ocorrências...',
-                style: TextStyle(color: Colors.grey),
+                style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant), // Cor do tema
               ),
             ],
           ),
@@ -670,20 +683,20 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.report_problem, size: 80, color: Colors.grey.shade400),
+              Icon(Icons.report_problem, size: 80, color: colorScheme.onSurfaceVariant.withOpacity(0.4)), // Cor do tema
               const SizedBox(height: 16),
               Text(
                 'Nenhuma ocorrência registrada',
-                style: TextStyle(
+                style: textTheme.titleMedium?.copyWith(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade600,
+                  color: colorScheme.onSurfaceVariant, // Cor do tema
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Esta turma ainda não possui ocorrências registradas.',
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+                style: textTheme.bodyMedium?.copyWith(fontSize: 14, color: colorScheme.onSurfaceVariant.withOpacity(0.7)), // Cor do tema
                 textAlign: TextAlign.center,
               ),
             ],
@@ -717,7 +730,7 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
         itemBuilder: (context, index) {
           final date = sortedDates[index];
           final occurrences = groupedByDate[date]!;
-          return _buildOccurrenceDateCard(date, occurrences);
+          return _buildOccurrenceDateCard(date, occurrences, colorScheme, textTheme); // Passa colorscheme e texttheme
         },
       );
     });
@@ -726,6 +739,8 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
   Widget _buildOccurrenceDateCard(
     String dateStr,
     List<Map<String, dynamic>> occurrences,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
   ) {
     final DateTime date = DateTime.parse(dateStr);
     final String formattedDate = DateFormat('dd/MM/yyyy').format(date);
@@ -733,6 +748,8 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
+      color: colorScheme.surface, // Fundo do Card
+      surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -740,32 +757,32 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Constants.primaryColor.withValues(alpha: 0.1),
+            color: colorScheme.primary.withOpacity(0.1), // Fundo do ícone
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             Icons.calendar_today,
-            color: Constants.primaryColor,
+            color: colorScheme.primary, // Cor do ícone
             size: 20,
           ),
         ),
         title: Text(
           formattedDate,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+          style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, fontSize: 16, color: colorScheme.onSurface), // Estilo do título
         ),
         subtitle: Text(
           '${occurrences.length} ocorrência${occurrences.length != 1 ? 's' : ''}',
-          style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+          style: textTheme.bodyMedium?.copyWith(fontSize: 14, color: colorScheme.onSurfaceVariant), // Estilo do subtítulo
         ),
         children: [
-          ...occurrences.map((occurrence) => _buildOccurrenceItem(occurrence)),
+          ...occurrences.map((occurrence) => _buildOccurrenceItem(occurrence, colorScheme, textTheme)), // Passa colorscheme e texttheme
           const SizedBox(height: 8),
         ],
       ),
     );
   }
 
-  Widget _buildOccurrenceItem(Map<String, dynamic> occurrence) {
+  Widget _buildOccurrenceItem(Map<String, dynamic> occurrence, ColorScheme colorScheme, TextTheme textTheme) {
     final String studentName =
         occurrence['student_name']?.toString() ?? 'Turma Toda';
     final String description = occurrence['description']?.toString() ?? '';
@@ -775,34 +792,35 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
     Color typeColor;
     IconData typeIcon;
 
+    // Mapeamento de tipo para cores do ColorScheme
     switch (type.toUpperCase()) {
-      case 'DISCIPLINAR':
+      case 'DISCIPLINAR': // Comportamento
       case 'COMPORTAMENTO':
-        typeColor = Colors.red;
+        typeColor = colorScheme.error; // Vermelho para problemas disciplinares/comportamentais
         typeIcon = Icons.psychology;
         break;
-      case 'PEDAGOGICA':
-        typeColor = Colors.blue;
+      case 'PEDAGOGICA': // Exemplo de um novo tipo
+        typeColor = colorScheme.tertiary; // Verde/azul para pedagógica
         typeIcon = Icons.school;
         break;
       case 'SAUDE':
-        typeColor = Colors.green;
+        typeColor = colorScheme.secondary; // Laranja/amarelo para saúde
         typeIcon = Icons.local_hospital;
         break;
       case 'ATRASO':
-        typeColor = Colors.orange;
+        typeColor = colorScheme.onSurfaceVariant; // Neutro para atraso
         typeIcon = Icons.access_time;
         break;
       case 'MATERIAL':
-        typeColor = Colors.purple;
+        typeColor = colorScheme.primary; // Primária para material
         typeIcon = Icons.inventory;
         break;
-      default:
+      default: // Geral ou tipos não mapeados
         if (isGeneral) {
-          typeColor = Colors.blue;
+          typeColor = colorScheme.primary; // Primária para geral
           typeIcon = Icons.info;
         } else {
-          typeColor = Colors.orange;
+          typeColor = colorScheme.onSurfaceVariant; // Neutro para outros de aluno
           typeIcon = Icons.person;
         }
     }
@@ -810,10 +828,12 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12, left: 16, right: 16),
       elevation: 2,
+      color: colorScheme.surfaceContainerLow, // Fundo do Card interno
+      surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: typeColor.withValues(alpha: 0.3),
+          color: typeColor.withOpacity(0.3), // Borda com cor do tipo de ocorrência
           width: 1,
         ),
       ),
@@ -827,13 +847,13 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: typeColor.withValues(alpha: 0.1),
+                    color: typeColor.withOpacity(0.1), // Fundo do ícone
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     typeIcon,
                     size: 20,
-                    color: typeColor,
+                    color: typeColor, // Cor do ícone do tipo de ocorrência
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -843,16 +863,16 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
                     children: [
                       Text(
                         type.capitalize!,
-                        style: const TextStyle(
+                        style: textTheme.titleSmall?.copyWith( // Estilo do título do tipo
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurface, // Cor do texto do tipo
                         ),
                       ),
                       Text(
                         isGeneral ? 'Ocorrência Geral da Turma' : studentName,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isGeneral ? Colors.blue[600] : Colors.grey[600],
+                        style: textTheme.bodySmall?.copyWith( // Estilo do texto de aluno/geral
+                          color: isGeneral ? colorScheme.primary : colorScheme.onSurfaceVariant, // Cor para geral ou aluno
                           fontWeight: isGeneral ? FontWeight.w500 : FontWeight.normal,
                         ),
                       ),
@@ -864,25 +884,21 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
             const SizedBox(height: 12),
             Text(
               description,
-              style: TextStyle(
+              style: textTheme.bodyMedium?.copyWith(
                 fontSize: 14,
-                color: Colors.grey[700],
+                color: colorScheme.onSurfaceVariant, // Cor da descrição
               ),
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                Icon(
-                  Icons.calendar_today,
-                  size: 16,
-                  color: Colors.grey[600],
-                ),
+                Icon(Icons.calendar_today, size: 16, color: colorScheme.onSurfaceVariant), // Cor do ícone de calendário
                 const SizedBox(width: 4),
                 Text(
                   DateFormat('dd/MM/yyyy').format(DateTime.parse(occurrence['date'].toString())),
-                  style: TextStyle(
+                  style: textTheme.bodySmall?.copyWith(
                     fontSize: 14,
-                    color: Colors.grey[600],
+                    color: colorScheme.onSurfaceVariant, // Cor da data
                   ),
                 ),
               ],

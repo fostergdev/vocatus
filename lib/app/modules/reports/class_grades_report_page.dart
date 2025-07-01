@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:vocatus/app/core/constants/constants.dart';
+import 'package:vocatus/app/core/constants/constants.dart'; // Keep, but remember no primaryColor here
 import 'package:vocatus/app/modules/reports/reports_controller.dart';
 
 class ClassGradesReportPage extends GetView<ReportsController> {
@@ -15,19 +15,25 @@ class ClassGradesReportPage extends GetView<ReportsController> {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Notas - $className',
-          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          style: textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onPrimary, // AppBar title color
+          ),
         ),
         centerTitle: true,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Constants.primaryColor.withValues(alpha: .9),
-                Constants.primaryColor,
+                colorScheme.primary.withOpacity(0.9), // Uses theme's primary color
+                colorScheme.primary, // Uses theme's primary color
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -38,7 +44,7 @@ class ClassGradesReportPage extends GetView<ReportsController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: colorScheme.onPrimary), // AppBar icon color
       ),
       body: Center(
         child: Column(
@@ -47,15 +53,15 @@ class ClassGradesReportPage extends GetView<ReportsController> {
             Icon(
               Icons.assignment_outlined,
               size: 80,
-              color: Colors.blue.shade300,
+              color: colorScheme.primary.withOpacity(0.5), // Icon color, subtly linked to primary
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'Relatório de Notas da Turma',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: textTheme.titleMedium?.copyWith(
                 fontSize: 18,
-                color: Colors.grey,
+                color: colorScheme.onSurfaceVariant, // Text color
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -63,19 +69,18 @@ class ClassGradesReportPage extends GetView<ReportsController> {
             Text(
               'Esta funcionalidade está em desenvolvimento.\nEm breve você poderá visualizar o desempenho acadêmico da turma.',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: textTheme.bodyLarge?.copyWith(
                 fontSize: 16,
-                color: Colors.grey.shade600,
+                color: colorScheme.onSurfaceVariant.withOpacity(0.8), // Text color
               ),
             ),
             const SizedBox(height: 30),
             ElevatedButton.icon(
               onPressed: () => Get.back(),
-              icon: const Icon(Icons.arrow_back),
-              label: const Text('Voltar'),
+              icon: Icon(Icons.arrow_back, color: colorScheme.onPrimary), // Icon color
+              label: Text('Voltar', style: TextStyle(color: colorScheme.onPrimary)), // Text color
               style: ElevatedButton.styleFrom(
-                backgroundColor: Constants.primaryColor,
-                foregroundColor: Colors.white,
+                backgroundColor: colorScheme.primary, // Button background color
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
             ),

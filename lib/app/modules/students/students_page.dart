@@ -3,7 +3,7 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:validatorless/validatorless.dart';
-import 'package:vocatus/app/core/constants/constants.dart';
+// import 'package:vocatus/app/core/constants/constants.dart'; // No longer needed if all colors are dynamic
 import 'package:vocatus/app/core/widgets/custom_drop.dart';
 import 'package:vocatus/app/core/widgets/custom_error_dialog.dart';
 import 'package:vocatus/app/core/widgets/custom_popbutton.dart';
@@ -19,13 +19,19 @@ class StudentsPage extends GetView<StudentsController> {
 
   @override
   Widget build(BuildContext context) {
+    // Get the current color scheme and text theme from the ThemeData
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Alunos de ${controller.currentClasse.name}',
-          style: const TextStyle(
+          style: textTheme.titleLarge?.copyWith(
+            // Use textTheme for consistency
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: colorScheme
+                .onPrimary, // Dynamic color: text on primary background
           ),
         ),
         centerTitle: true,
@@ -33,8 +39,8 @@ class StudentsPage extends GetView<StudentsController> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Constants.primaryColor.withValues(alpha: .9),
-                Constants.primaryColor,
+                colorScheme.primary.withOpacity(0.9), // Dynamic primary color
+                colorScheme.primary, // Dynamic primary color
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -45,12 +51,14 @@ class StudentsPage extends GetView<StudentsController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(
+          color: colorScheme.onPrimary,
+        ), // Dynamic color: icons on primary background
         actions: [
           IconButton(
-            icon: Icon(Icons.file_copy),
+            icon: const Icon(Icons.file_copy),
             tooltip: 'Importar alunos de outra turma',
-            color: Colors.white,
+            color: colorScheme.onPrimary, // Dynamic color
             onPressed: () async {
               controller.resetImportFilters();
               await controller.loadAvailableYears();
@@ -61,56 +69,38 @@ class StudentsPage extends GetView<StudentsController> {
           ),
         ],
       ),
-
-      /* AppBar(
-        title: Text(
-          selectedGrade.classe?.name ?? 'Turma',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            fontSize: 20,
-          ),
-        ),
-        centerTitle: true,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Constants.primaryColor.withValues(alpha: .9),
-                Constants.primaryColor,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        elevation: 8,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
-      ), */
       body: Column(
         children: [
-          Text(
-            controller.currentClasse.name,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.purple,
+          Padding(
+            padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
+            child: Text(
+              controller.currentClasse.name,
+              style: textTheme.headlineMedium?.copyWith(
+                // Use textTheme for consistency
+                fontWeight: FontWeight.bold,
+                color: colorScheme.primary, // Use primary color for prominence
+              ),
             ),
           ),
           const SizedBox(height: 16),
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
-                return const Center(child: CircularProgressIndicator());
+                return Center(
+                  child: CircularProgressIndicator(color: colorScheme.primary),
+                ); // Dynamic color
               }
               if (controller.students.isEmpty) {
-                return const Center(
+                return Center(
                   child: Text(
                     'Nenhum aluno encontrado',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                    style: textTheme.bodyLarge?.copyWith(
+                      // Use textTheme
+                      fontSize: 18,
+                      color: colorScheme.onSurface.withOpacity(
+                        0.6,
+                      ), // Dynamic color
+                    ),
                   ),
                 );
               }
@@ -118,7 +108,6 @@ class StudentsPage extends GetView<StudentsController> {
                 itemCount: controller.students.length,
                 itemBuilder: (context, index) {
                   final student = controller.students[index];
-
                   final isStudentGloballyActive = student.active ?? true;
 
                   return Card(
@@ -131,20 +120,26 @@ class StudentsPage extends GetView<StudentsController> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    color:
+                        colorScheme.surface, // Dynamic color: card background
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: Colors.purple.shade100,
+                        backgroundColor: colorScheme
+                            .primaryContainer, // Dynamic: a light tint of primary
                         child: Icon(
                           Icons.person,
-                          color: Colors.purple.shade800,
+                          color: colorScheme
+                              .onPrimaryContainer, // Dynamic: icon color on primary container
                         ),
                       ),
                       title: Text(
                         student.name,
-                        style: const TextStyle(
+                        style: textTheme.titleSmall?.copyWith(
+                          // Use textTheme
                           fontWeight: FontWeight.w600,
                           fontSize: 17,
-                          color: Constants.primaryColor,
+                          color:
+                              colorScheme.onSurface, // Dynamic color for title
                         ),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
@@ -154,6 +149,7 @@ class StudentsPage extends GetView<StudentsController> {
                           CustomPopupMenuItem(
                             label: 'Transferir',
                             icon: Icons.swap_horiz,
+
                             onTap: () => _showConfirmationDialog(
                               context: context,
                               title: 'Confirmar Transferência',
@@ -161,13 +157,17 @@ class StudentsPage extends GetView<StudentsController> {
                                   'Você irá transferir o aluno "${student.name}" para outra turma. Ele será removido desta turma e adicionado à nova. Deseja continuar?',
                               onConfirm: () async {
                                 await controller.loadClassesForTransfer();
-                                _showTransferStudentDialog(student);
+                                _showTransferStudentDialog(
+                                  context,
+                                  student,
+                                ); // Pass context
                               },
                             ),
                           ),
                           CustomPopupMenuItem(
                             label: 'Duplicar',
                             icon: Icons.copy,
+
                             onTap: () => _showConfirmationDialog(
                               context: context,
                               title: 'Confirmar Duplicação',
@@ -175,7 +175,10 @@ class StudentsPage extends GetView<StudentsController> {
                                   'Você irá duplicar o aluno "${student.name}" para outra turma. Ele permanecerá nesta turma e será adicionado à nova. Deseja continuar?',
                               onConfirm: () async {
                                 await controller.loadClassesForTransfer();
-                                _showCopyStudentDialog(student);
+                                _showCopyStudentDialog(
+                                  context,
+                                  student,
+                                ); // Pass context
                               },
                             ),
                           ),
@@ -186,22 +189,35 @@ class StudentsPage extends GetView<StudentsController> {
                             icon: isStudentGloballyActive
                                 ? Icons.archive
                                 : Icons.do_not_disturb_alt,
+
                             onTap: () {
                               if (isStudentGloballyActive) {
                                 // Se o aluno está ativo globalmente, permite arquivar
-                                _showArchiveStudentDialog(student);
+                                _showArchiveStudentDialog(
+                                  context,
+                                  student,
+                                ); // Pass context
                               } else {
                                 // Se o aluno já está arquivado globalmente, exibe um aviso
                                 Get.dialog(
                                   CustomDialog(
                                     title: 'Ação não permitida',
-                                    content: const Text(
+                                    content: Text(
+                                      // Use Text widget, style it dynamically
                                       'Este aluno já está arquivado globalmente. Não é possível arquivá-lo novamente ou reativá-lo por aqui.',
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
                                     ),
                                     actions: [
                                       TextButton(
                                         onPressed: () => Get.back(),
-                                        child: const Text('Fechar'),
+                                        child: Text(
+                                          'Fechar',
+                                          style: TextStyle(
+                                            color: colorScheme.primary,
+                                          ),
+                                        ), // Dynamic
                                       ),
                                     ],
                                   ),
@@ -228,7 +244,10 @@ class StudentsPage extends GetView<StudentsController> {
                 minLines: 1,
                 maxLines: 5,
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.add),
+                  icon: Icon(
+                    Icons.add,
+                    color: colorScheme.primary,
+                  ), // Dynamic color
                   onPressed: () async {
                     if (controller.formKey.currentState!.validate()) {
                       await controller.addStudent();
@@ -251,20 +270,36 @@ class StudentsPage extends GetView<StudentsController> {
     required String message,
     required VoidCallback onConfirm,
   }) async {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     Get.dialog(
       CustomDialog(
         title: title,
-        content: Text(message),
+
+        content: Text(
+          message,
+          style: textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ), // Dynamic
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text('Cancelar'),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(color: colorScheme.primary),
+            ), // Dynamic
           ),
           ElevatedButton(
             onPressed: () {
               Get.back(); // Fechar o diálogo de confirmação ANTES de executar onConfirm
               onConfirm();
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.primary, // Dynamic
+              foregroundColor: colorScheme.onPrimary, // Dynamic
+            ),
             child: const Text('Continuar'),
           ),
         ],
@@ -274,10 +309,15 @@ class StudentsPage extends GetView<StudentsController> {
   }
 
   void _showImportStudentsDialog(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     Get.dialog(
       Obx(() {
         if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(
+            child: CircularProgressIndicator(color: colorScheme.primary),
+          ); // Dynamic
         }
         return Dialog(
           insetPadding: const EdgeInsets.all(20),
@@ -292,30 +332,44 @@ class StudentsPage extends GetView<StudentsController> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         'Importar Alunos',
-                        style: TextStyle(
+                        style: textTheme.titleMedium?.copyWith(
+                          // Dynamic
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface, // Dynamic
                         ),
                       ),
-                      Icon(Icons.file_download, size: 24),
+                      Icon(
+                        Icons.file_download,
+                        size: 24,
+                        color: colorScheme.primary,
+                      ), // Dynamic
                     ],
                   ),
                   const SizedBox(height: 20),
                   DropdownButtonFormField<int>(
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Ano Letivo',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
+                      labelStyle: TextStyle(
+                        color: colorScheme.onSurfaceVariant,
+                      ), // Dynamic
                     ),
                     value: controller.selectedYear.value,
                     items: controller.availableYears.map((year) {
                       return DropdownMenuItem(
                         value: year,
-                        child: Text(year.toString()),
+                        child: Text(
+                          year.toString(),
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurface,
+                          ),
+                        ), // Dynamic
                       );
                     }).toList(),
                     onChanged: (year) {
@@ -323,20 +377,38 @@ class StudentsPage extends GetView<StudentsController> {
                       controller.loadAvailableClasses();
                     },
                     hint: controller.availableYears.isEmpty
-                        ? const Text('Nenhum ano disponível')
-                        : const Text('Selecione o ano'),
+                        ? Text(
+                            'Nenhum ano disponível',
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ) // Dynamic
+                        : Text(
+                            'Selecione o ano',
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ), // Dynamic
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<Classe>(
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Turma de Origem',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
+                      labelStyle: TextStyle(
+                        color: colorScheme.onSurfaceVariant,
+                      ), // Dynamic
                     ),
                     value: controller.selectedClasseToImport.value,
                     items: controller.availableClasses.map((classe) {
                       return DropdownMenuItem(
                         value: classe,
-                        child: Text(classe.name),
+                        child: Text(
+                          classe.name,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurface,
+                          ),
+                        ), // Dynamic
                       );
                     }).toList(),
                     onChanged: (classe) {
@@ -344,16 +416,37 @@ class StudentsPage extends GetView<StudentsController> {
                       controller.loadStudentsFromSelectedClasse();
                     },
                     hint: controller.availableClasses.isEmpty
-                        ? const Text('Nenhuma turma disponível')
-                        : const Text('Selecione a turma de origem'),
+                        ? Text(
+                            'Nenhuma turma disponível',
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ) // Dynamic
+                        : Text(
+                            'Selecione a turma de origem',
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ), // Dynamic
                   ),
                   const SizedBox(height: 20),
                   if (controller.isLoading.value)
-                    const Center(child: CircularProgressIndicator())
+                    Center(
+                      child: CircularProgressIndicator(
+                        color: colorScheme.primary,
+                      ),
+                    ) // Dynamic
                   else if (controller.selectedClasseToImport.value != null &&
                       controller.studentsFromSelectedClasse.isEmpty)
-                    const Expanded(
-                      child: Center(child: Text('Nenhum aluno nesta turma.')),
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          'Nenhum aluno nesta turma.',
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ), // Dynamic
                     )
                   else if (controller.selectedClasseToImport.value == null)
                     const SizedBox.shrink()
@@ -373,7 +466,10 @@ class StudentsPage extends GetView<StudentsController> {
                                   .contains(student),
                               title: Text(
                                 student.name,
-                                style: const TextStyle(fontSize: 16),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontSize: 16,
+                                  color: colorScheme.onSurface,
+                                ), // Dynamic
                               ),
                               onChanged: (selected) {
                                 controller.toggleStudentToImport(
@@ -381,10 +477,15 @@ class StudentsPage extends GetView<StudentsController> {
                                   selected ?? false,
                                 );
                               },
+                              activeColor: colorScheme.primary, // Dynamic
+                              checkColor: colorScheme.onPrimary, // Dynamic
                             ),
                           );
                         },
-                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        separatorBuilder: (_, __) => Divider(
+                          height: 1,
+                          color: colorScheme.outlineVariant,
+                        ), // Dynamic
                       ),
                     ),
                   const SizedBox(height: 20),
@@ -394,6 +495,7 @@ class StudentsPage extends GetView<StudentsController> {
                       TextButton(
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
+                          foregroundColor: colorScheme.primary, // Dynamic
                         ),
                         onPressed: () => Get.back(),
                         child: const Text('CANCELAR'),
@@ -402,6 +504,8 @@ class StudentsPage extends GetView<StudentsController> {
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
+                          backgroundColor: colorScheme.primary, // Dynamic
+                          foregroundColor: colorScheme.onPrimary, // Dynamic
                         ),
                         onPressed: () async {
                           await controller
@@ -421,17 +525,30 @@ class StudentsPage extends GetView<StudentsController> {
     );
   }
 
-  void _showTransferStudentDialog(Student student) {
+  void _showTransferStudentDialog(BuildContext context, Student student) {
+    // Added context
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     Get.dialog(
       Obx(() {
         if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(
+            child: CircularProgressIndicator(color: colorScheme.primary),
+          ); // Dynamic
         }
         return CustomDialog(
           title: 'Transferir Aluno',
+
           icon: Icons.swap_horiz,
+
           content: controller.classesForTransfer.isEmpty
-              ? const Text('Nenhuma outra turma disponível para transferência.')
+              ? Text(
+                  'Nenhuma outra turma disponível para transferência.',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ) // Dynamic
               : CustomDrop<Classe>(
                   items: controller.classesForTransfer,
                   value: controller.selectedClasseForTransfer.value,
@@ -443,12 +560,19 @@ class StudentsPage extends GetView<StudentsController> {
           actions: [
             TextButton(
               onPressed: () => Get.back(),
-              child: const Text('Cancelar'),
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: colorScheme.primary),
+              ), // Dynamic
             ),
             ElevatedButton(
               onPressed: () async {
                 await controller.moveStudentAcrossClasses(student);
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.primary, // Dynamic
+                foregroundColor: colorScheme.onPrimary, // Dynamic
+              ),
               child: const Text('Transferir'),
             ),
           ],
@@ -458,17 +582,30 @@ class StudentsPage extends GetView<StudentsController> {
     );
   }
 
-  void _showCopyStudentDialog(Student student) {
+  void _showCopyStudentDialog(BuildContext context, Student student) {
+    // Added context
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     Get.dialog(
       Obx(() {
         if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(
+            child: CircularProgressIndicator(color: colorScheme.primary),
+          ); // Dynamic
         }
         return CustomDialog(
           title: 'Duplicar Aluno',
+
           icon: Icons.copy,
+
           content: controller.classesForTransfer.isEmpty
-              ? const Text('Nenhuma outra turma disponível para duplicar.')
+              ? Text(
+                  'Nenhuma outra turma disponível para duplicar.',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ) // Dynamic
               : CustomDrop<Classe>(
                   items: controller.classesForTransfer,
                   value: controller.selectedClasseForTransfer.value,
@@ -480,7 +617,10 @@ class StudentsPage extends GetView<StudentsController> {
           actions: [
             TextButton(
               onPressed: () => Get.back(),
-              child: const Text('Cancelar'),
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: colorScheme.primary),
+              ), // Dynamic
             ),
             ElevatedButton(
               onPressed: () async {
@@ -500,6 +640,10 @@ class StudentsPage extends GetView<StudentsController> {
                 );
                 Get.back();
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.primary, // Dynamic
+                foregroundColor: colorScheme.onPrimary, // Dynamic
+              ),
               child: const Text('Duplicar'),
             ),
           ],
@@ -509,7 +653,11 @@ class StudentsPage extends GetView<StudentsController> {
     );
   }
 
-  void _showArchiveStudentDialog(Student student) {
+  void _showArchiveStudentDialog(BuildContext context, Student student) {
+    // Added context
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     final message =
         'Tem certeza que deseja ARQUIVAR o aluno "${student.name}" desta turma (${controller.currentClasse.name})?\n\n'
         'A matrícula deste aluno nesta turma será inativada.\n\n'
@@ -519,8 +667,11 @@ class StudentsPage extends GetView<StudentsController> {
     Get.dialog(
       CustomConfirmationDialogWithCode(
         title: 'Arquivar Aluno',
+
         message: message,
+
         confirmButtonText: 'Arquivar',
+
         onConfirm: () async {
           await controller.archiveStudentFromCurrentClasse(student);
         },

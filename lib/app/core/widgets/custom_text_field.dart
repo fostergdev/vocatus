@@ -8,11 +8,11 @@ class CustomTextField extends StatefulWidget {
   final bool isPassword;
   final TextInputType? keyboardType;
   final MaskTextInputFormatter? maskFormatter;
-  final Widget? suffixIcon; // Seu parâmetro para o ícone customizado
+  final Widget? suffixIcon;
   final int? maxLines;
   final int? minLines;
   final TextStyle? hintStyle;
-  final InputDecoration? decoration; // Seu parâmetro para o decoration customizado
+  final InputDecoration? decoration;
   final ValueChanged<String>? onChanged;
   final bool autofocus;
 
@@ -48,14 +48,16 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
+    // Acesse o ColorScheme do tema atual
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     // 1. Determina qual ícone de sufixo deve ser usado:
-    //    - Se for um campo de senha, usa o ícone de visibilidade.
-    //    - Caso contrário, usa o ícone customizado que foi passado (widget.suffixIcon).
     Widget? effectiveSuffixIcon;
     if (widget.isPassword) {
       effectiveSuffixIcon = IconButton(
         icon: Icon(
           _showPassword ? Icons.visibility : Icons.visibility_off,
+          color: colorScheme.onSurfaceVariant, // Cor do ícone de visibilidade
         ),
         onPressed: _togglePasswordVisibility,
       );
@@ -63,17 +65,49 @@ class _CustomTextFieldState extends State<CustomTextField> {
       effectiveSuffixIcon = widget.suffixIcon;
     }
 
-    // 2. Cria a decoração final:
-    //    - Começa com a decoração que foi passada (widget.decoration) ou uma InputDecoration vazia.
-    //    - Usa o método .copyWith() para MERGEAR as propriedades, garantindo que:
-    //      - O hintText e hintStyle do seu CustomTextField tenham prioridade,
-    //        ou usem os da decoração passada se não forem definidos aqui.
-    //      - O suffixIcon seja SEMPRE o effectiveSuffixIcon que determinamos acima.
-    InputDecoration finalDecoration = (widget.decoration ?? const InputDecoration()).copyWith(
+    // 2. Cria a decoração base com as cores do tema
+    InputDecoration baseDecoration = InputDecoration(
+      filled: true, // Campo preenchido para melhor visualização do fundo
+      fillColor: colorScheme.surfaceVariant, // Cor de fundo do campo
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: colorScheme.outline, width: 1.0),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: colorScheme.outline, width: 1.0),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: colorScheme.primary, width: 2.0), // Borda focada com a cor primária
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: colorScheme.error, width: 1.0),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: colorScheme.error, width: 2.0),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      // Cores para hintText e labelText
+      hintStyle: widget.hintStyle ?? TextStyle(color: colorScheme.onSurfaceVariant),
+      labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+      // Cores para o texto de erro e help text
+      errorStyle: TextStyle(color: colorScheme.error),
+      helperStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+      // Cor do prefixIcon e suffixIcon
+      prefixIconColor: colorScheme.onSurfaceVariant,
+      suffixIconColor: colorScheme.onSurfaceVariant,
+    );
+
+    // 3. Mescla a decoração base com a decoração customizada passada pelo usuário
+    //    e aplica o hintText e suffixIcon
+    InputDecoration finalDecoration = baseDecoration.copyWith(
       hintText: widget.hintText ?? widget.decoration?.hintText,
       hintStyle: widget.hintStyle ?? widget.decoration?.hintStyle,
       suffixIcon: effectiveSuffixIcon,
-    );
+    ).applyDefaults(Theme.of(context).inputDecorationTheme); // Aplica defaults do tema
 
     return TextFormField(
       onChanged: widget.onChanged,
@@ -88,6 +122,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
       minLines: widget.minLines,
       autofocus: widget.autofocus,
       decoration: finalDecoration, // Usa a decoração final mesclada
+      style: TextStyle(
+        color: colorScheme.onSurface, // Cor do texto digitado no campo
+      ),
+      cursorColor: colorScheme.primary, // Cor do cursor
     );
   }
 }

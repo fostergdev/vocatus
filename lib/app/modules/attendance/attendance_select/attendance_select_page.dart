@@ -1,28 +1,24 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:vocatus/app/core/constants/constants.dart';
+import 'package:vocatus/app/core/constants/constants.dart'; // Mantenha, mas ajuste seu conteúdo
 import 'package:vocatus/app/models/grade.dart';
 import './attendance_select_controller.dart';
 
 class AttendanceSelectPage extends GetView<AttendanceSelectController> {
   const AttendanceSelectPage({super.key});
 
-
-
-  // Define a ordem dos dias a serem exibidos (Segunda a Sexta)
   final List<int> _displayDayOrder = const [1, 2, 3, 4, 5];
 
   @override
   Widget build(BuildContext context) {
-    // Calcula a largura da coluna de dia dinamicamente
-    final double screenWidth = MediaQuery.of(context).size.width;
-    // Define a largura da coluna para os cards de aula dentro das abas
-    double columnWidth = screenWidth * 0.9; // Ocupa a maior parte da tela
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
 
-    // Define larguras mínimas e máximas para a coluna dos cards
+    final double screenWidth = MediaQuery.of(context).size.width;
+    double columnWidth = screenWidth * 0.9;
     const double minColumnWidth = 280.0;
-    const double maxColumnWidth = 400.0; // Limite para tablets/desktops
+    const double maxColumnWidth = 400.0;
 
     if (columnWidth < minColumnWidth) {
       columnWidth = minColumnWidth;
@@ -35,19 +31,23 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
         title: Obx(
           () => Text(
             '${controller.selectedFilterYear}',
-            style: const TextStyle(
+            style: textTheme.titleLarge?.copyWith( // Usar titleLarge do tema
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: colorScheme.onPrimary, // Texto da AppBar (contrasta com primary)
             ),
           ),
         ),
         centerTitle: true,
+        // O `backgroundColor` da AppBar já está definido no `main.dart`
+        // para usar `settingsController.primaryColor.value`.
+        // A flexibilidade aqui é boa, mas o gradiente pode sobrepor a cor dinâmica.
+        // Se quiser manter o gradiente, certifique-se de que ele use `colorScheme.primary`.
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Constants.primaryColor.withValues(alpha: .9),
-                Constants.primaryColor,
+                colorScheme.primary.withOpacity(0.9), // Usa a cor primária do tema
+                colorScheme.primary, // Usa a cor primária do tema
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -58,12 +58,13 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        // Ícones da AppBar
+        iconTheme: IconThemeData(color: colorScheme.onPrimary), // Cor dos ícones da AppBar
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.calendar_today, // Ícone de calendário
-              color: Colors.white,
+            icon: Icon(
+              Icons.calendar_today,
+              color: colorScheme.onPrimary, // Cor do ícone do calendário
               size: 24,
             ),
             onPressed: () async {
@@ -72,6 +73,20 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                 initialDate: controller.selectedPickerDate.value,
                 firstDate: DateTime(2000),
                 lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                // Customizações de cores do DatePicker
+                builder: (context, child) {
+                  return Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme: colorScheme, // Usa o colorScheme do app
+                      textButtonTheme: TextButtonThemeData(
+                        style: TextButton.styleFrom(
+                          foregroundColor: colorScheme.primary, // Cor dos botões de texto (ex: Cancelar, OK)
+                        ),
+                      ),
+                    ),
+                    child: child!,
+                  );
+                },
               );
               if (pickedDate != null) {
                 controller.updateSelectedDate(pickedDate);
@@ -82,13 +97,10 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
       ),
       body: Column(
         children: [
-          // A seção de Padding que continha os botões de navegação e o seletor de data foi removida daqui.
-          
-          // Seção de Abas para os Dias da Semana
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
-                return const Center(child: CircularProgressIndicator());
+                return Center(child: CircularProgressIndicator(color: colorScheme.primary)); // Indicador com cor primária
               }
 
               final bool hasGradesForAnyDisplayedDay = _displayDayOrder.any(
@@ -102,15 +114,14 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                     children: [
                       Icon(
                         Icons.sentiment_dissatisfied,
-                        color: Colors.grey.shade400,
+                        color: colorScheme.onSurfaceVariant, // Cor do ícone
                         size: 80,
                       ),
                       const SizedBox(height: 20),
                       Text(
                         'Nenhum horário agendado para esta semana no ano ${controller.selectedFilterYear}.',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          color: Colors.grey,
+                        style: textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant, // Cor do texto
                           fontWeight: FontWeight.w500,
                         ),
                         textAlign: TextAlign.center,
@@ -118,9 +129,8 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                       const SizedBox(height: 10),
                       Text(
                         'Tente selecionar um ano diferente ou uma semana com aulas.',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey.shade600,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant.withOpacity(0.8), // Cor do texto
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -129,7 +139,6 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                 );
               }
 
-              // Cria a lista de abas (os dias da semana)
               final List<Tab> dayTabs = _displayDayOrder.map((dayOfWeek) {
                 final DateTime dayDate = controller.currentWeekStartDate.value.add(Duration(days: dayOfWeek - 1));
                 return Tab(
@@ -138,18 +147,17 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                     children: [
                       Text(
                         Constants.getDayName(dayOfWeek),
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                        style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       Text(
                         DateFormat('dd/MM').format(dayDate),
-                        style: const TextStyle(fontSize: 10),
+                        style: textTheme.bodySmall, // Estilo de texto menor
                       ),
                     ],
                   ),
                 );
               }).toList();
 
-              // Determina o índice inicial da aba (ex: hoje)
               int initialIndex = 0;
               final today = DateTime.now();
               for (int i = 0; i < _displayDayOrder.length; i++) {
@@ -169,15 +177,15 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                   children: [
                     // TabBar para os dias da semana
                     Container(
-                      color: Colors.grey.shade100, // Cor de fundo para o TabBar
+                      color: colorScheme.surfaceVariant, // Cor de fundo para o TabBar
                       child: TabBar(
-                        isScrollable: true, // Permite rolar as abas se houver muitos dias
-                        labelColor: Constants.primaryColor,
-                        unselectedLabelColor: Colors.grey.shade600,
+                        isScrollable: true,
+                        labelColor: colorScheme.primary, // Cor da aba selecionada
+                        unselectedLabelColor: colorScheme.onSurfaceVariant, // Cor da aba não selecionada
                         indicatorSize: TabBarIndicatorSize.tab,
                         indicator: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
-                          color: Constants.primaryColor.withValues(alpha: .1), // Indicador de aba selecionada
+                          color: colorScheme.primary.withOpacity(0.1), // Indicador de aba selecionada
                         ),
                         tabs: dayTabs,
                       ),
@@ -189,7 +197,7 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                         children: _displayDayOrder.map((dayOfWeek) {
                           final gradesForDay = controller.availableGrades[dayOfWeek.toString()] ?? [];
                           final DateTime dayDate = controller.currentWeekStartDate.value.add(Duration(days: dayOfWeek - 1));
-                          return _buildDayColumn(dayOfWeek, gradesForDay, dayDate, columnWidth);
+                          return _buildDayColumn(dayOfWeek, gradesForDay, dayDate, columnWidth, colorScheme, textTheme);
                         }).toList(),
                       ),
                     ),
@@ -207,18 +215,20 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
     int dayOfWeek,
     List<Grade> gradesForDay,
     DateTime date,
-    double columnWidth, // Largura recebida para o card
+    double columnWidth,
+    ColorScheme colorScheme, // Passe o ColorScheme
+    TextTheme textTheme, // Passe o TextTheme
   ) {
-    return Center( // Centraliza a coluna dentro da aba
+    return Center(
       child: Container(
-        width: columnWidth, // Usa a largura dinâmica calculada
+        width: columnWidth,
         margin: const EdgeInsets.all(10.0),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colorScheme.surface, // Fundo do card do dia
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: .25),
+              color: colorScheme.shadow.withOpacity(0.2), // Sombra do card
               blurRadius: 8,
               spreadRadius: 3,
             ),
@@ -232,21 +242,20 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                 children: [
                   Text(
                     Constants.getDayName(dayOfWeek),
-                    style: TextStyle(
-                      fontSize: 18,
+                    style: textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Constants.primaryColor,
+                      color: colorScheme.primary, // Cor do nome do dia
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     DateFormat('dd/MM').format(date),
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                    style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant), // Cor da data
                   ),
                 ],
               ),
             ),
-            const Divider(height: 1, color: Colors.grey),
+            Divider(height: 1, color: colorScheme.outlineVariant), // Cor do Divider
             Expanded(
               child: gradesForDay.isEmpty
                   ? Center(
@@ -255,15 +264,14 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                         children: [
                           Icon(
                             Icons.event_busy,
-                            color: Colors.grey.shade400,
+                            color: colorScheme.onSurfaceVariant.withOpacity(0.6), // Cor do ícone
                             size: 40,
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Sem aulas',
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 14,
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant.withOpacity(0.7), // Cor do texto
                               fontStyle: FontStyle.italic,
                             ),
                           ),
@@ -276,7 +284,7 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                         final grade = gradesForDay[index];
                         final bool hasAttendance =
                             controller.gradeAttendanceStatus[grade.id!] ?? false;
-                        return _buildGradeCard(grade, date, hasAttendance);
+                        return _buildGradeCard(grade, date, hasAttendance, colorScheme, textTheme);
                       },
                     ),
             ),
@@ -286,11 +294,23 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
     );
   }
 
-  Widget _buildGradeCard(Grade grade, DateTime date, bool hasAttendance) {
+  Widget _buildGradeCard(
+    Grade grade,
+    DateTime date,
+    bool hasAttendance,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    // Definindo as cores específicas para status
+    final Color statusDoneColor = Colors.green; // Verde para "feita"
+    final Color statusPendingColor = Colors.orange; // Laranja para "pendente"
+    
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       elevation: 6,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceVariant,
+      surfaceTintColor: colorScheme.primaryContainer,
       child: InkWell(
         onTap: () {
           Get.toNamed(
@@ -306,12 +326,11 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
             children: [
               Text(
                 grade.classe?.name ?? 'N/A',
-                style: TextStyle(
+                style: textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  fontSize: 15,
                   color: hasAttendance
-                      ? Colors.green.shade700
-                      : Colors.red.shade700,
+                      ? statusDoneColor // Verde para "feita" 
+                      : statusPendingColor, // Laranja para "pendente"
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -321,15 +340,14 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                   Icon(
                     Icons.access_time,
                     size: 16,
-                    color: Colors.purple.shade600,
+                    color: colorScheme.secondary,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     '${Grade.formatTimeDisplay(grade.startTimeOfDay)} - ${Grade.formatTimeDisplay(grade.endTimeOfDay)}',
-                    style: TextStyle(
-                      fontSize: 13,
+                    style: textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: Colors.purple.shade600,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -338,14 +356,13 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(Icons.subject, size: 14, color: Colors.grey.shade600),
+                    Icon(Icons.subject, size: 14, color: colorScheme.onSurfaceVariant),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         grade.discipline!.name,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade700,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -362,16 +379,15 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                       hasAttendance
                           ? Icons.check_circle_rounded
                           : Icons.pending_rounded,
-                      color: hasAttendance ? Colors.green : Colors.orange,
+                      color: hasAttendance ? statusDoneColor : statusPendingColor, // Verde/Laranja
                       size: 20,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       hasAttendance ? 'feita' : 'pendente',
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: hasAttendance ? Colors.green : Colors.orange,
+                        color: hasAttendance ? statusDoneColor : statusPendingColor, // Verde/Laranja
                       ),
                     ),
                   ],

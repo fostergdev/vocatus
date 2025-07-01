@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:vocatus/app/core/constants/constants.dart';
+// import 'package:vocatus/app/core/constants/constants.dart'; // No longer needed if all colors are dynamic
 import 'package:vocatus/app/core/widgets/custom_popbutton.dart';
 import 'package:vocatus/app/modules/students/students_reports_controller.dart';
 import 'package:vocatus/app/core/widgets/custom_dialog.dart';
@@ -10,19 +10,28 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
 
   @override
   Widget build(BuildContext context) {
+    // Get the current color scheme and text theme from the ThemeData
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Relatórios de Alunos',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          style: textTheme.titleLarge?.copyWith(
+            // Use textTheme for consistency
+            fontWeight: FontWeight.bold,
+            color: colorScheme
+                .onPrimary, // Dynamic color: text on primary background
+          ),
         ),
         centerTitle: true,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Constants.primaryColor.withValues(alpha: .9),
-                Constants.primaryColor,
+                colorScheme.primary.withOpacity(0.9), // Dynamic primary color
+                colorScheme.primary, // Dynamic primary color
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -33,57 +42,61 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(
+          color: colorScheme.onPrimary,
+        ), // Dynamic color: icons on primary background
         actions: [
           Obx(() {
             final years = controller.availableYears;
-            
-            if (years.isEmpty) {
-              return IconButton(
-                icon: const Icon(Icons.calendar_today, color: Colors.white),
-                onPressed: () {
-                  Get.dialog(
-                    CustomDialog(
-                      title: 'Sem Anos Disponíveis',
-                      icon: Icons.info_outline,
-                      content: const Text(
-                        'Não há anos com relatórios de alunos para filtro.',
-                        textAlign: TextAlign.center,
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Get.back(),
-                          child: const Text('OK'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
+
+            // Se não tiver anos ou tiver apenas um, não mostra o botão
+            if (years.isEmpty || years.length == 1) {
+              return const SizedBox
+                  .shrink(); // Widget invisível - não exibe nada
             }
-            
-            return Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: CustomPopupMenu(
-                  textAlign: TextAlign.center,
-                  iconColor: Colors.white,
-                  icon: Icons.calendar_today,
+
+            // Se tiver dois ou mais anos, mostra o ícone de calendário
+            return IconButton(
+              icon: Icon(
+                Icons.calendar_today,
+                color: colorScheme.onPrimary,
+                size: 24,
+              ),
+              onPressed: () {
+                // Exibe o menu de seleção de ano
+                final RenderBox button = context.findRenderObject() as RenderBox;
+                final RenderBox overlay =
+                    Overlay.of(context).context.findRenderObject() as RenderBox;
+                final RelativeRect position = RelativeRect.fromRect(
+                  Rect.fromPoints(
+                    button.localToGlobal(Offset.zero, ancestor: overlay),
+                    button.localToGlobal(button.size.bottomRight(Offset.zero),
+                        ancestor: overlay),
+                  ),
+                  Offset.zero & overlay.size,
+                );
+
+                showMenu(
+                  context: context,
+                  position: position,
                   items: [
                     for (var year in years)
-                      CustomPopupMenuItem(
-                        label: year.toString(),
+                      PopupMenuItem(
+                        value: year,
+                        child: Text(
+                          year.toString(),
+                          style: TextStyle(
+                            color: colorScheme.onSurface,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                         onTap: () {
                           controller.onYearSelected(year);
                         },
                       ),
                   ],
-                ),
-              ),
+                );
+              },
             );
           }),
         ],
@@ -91,38 +104,46 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
       body: Column(
         children: [
           // Current year indicator
-          Obx(() => Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Constants.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: Constants.primaryColor.withValues(alpha: 0.3),
+          Obx(
+            () => Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              margin: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: colorScheme
+                    .primaryContainer, // Dynamic: a light tint of primary
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: colorScheme.primary.withOpacity(
+                    0.3,
+                  ), // Dynamic primary color
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.calendar_month,
+                    color: colorScheme
+                        .onPrimaryContainer, // Dynamic: icon color on primary container
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Ano Letivo: ${controller.selectedFilterYear.value}',
+                    style: textTheme.titleSmall?.copyWith(
+                      // Use textTheme
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme
+                          .onPrimaryContainer, // Dynamic: text color on primary container
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.calendar_month,
-                  color: Constants.primaryColor,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Ano Letivo: ${controller.selectedFilterYear.value}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Constants.primaryColor,
-                  ),
-                ),
-              ],
-            ),
-          )),
-          
+          ),
+
           // Search field
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -132,31 +153,41 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
                 onChanged: controller.onStudentSearchTextChanged,
                 decoration: InputDecoration(
                   hintText: 'Buscar alunos por nome ou turma...',
-                  hintStyle: TextStyle(color: Colors.grey.shade600),
+                  hintStyle: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ), // Dynamic
                   filled: true,
-                  fillColor: Colors.grey[100],
+                  fillColor: colorScheme
+                      .surfaceVariant, // Dynamic: a light background for input
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide.none,
+                    borderSide: BorderSide
+                        .none, // Border is handled by enabledBorder/focusedBorder
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide: BorderSide(
-                      color: Colors.grey.shade300,
+                      color: colorScheme.outline, // Dynamic outline color
                       width: 1.0,
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide: BorderSide(
-                      color: Constants.primaryColor,
+                      color: colorScheme.primary, // Dynamic primary color
                       width: 2.0,
                     ),
                   ),
-                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: colorScheme.onSurfaceVariant,
+                  ), // Dynamic
                   suffixIcon: controller.studentSearchText.value.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.grey),
+                          icon: Icon(
+                            Icons.clear,
+                            color: colorScheme.onSurfaceVariant,
+                          ), // Dynamic
                           onPressed: () {
                             controller.studentSearchText.value = '';
                             controller.studentSearchController.clear();
@@ -168,49 +199,50 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
                     horizontal: 16.0,
                   ),
                 ),
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontSize: 16,
-                ),
+                style: textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurface,
+                ), // Dynamic
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Students list
-          Expanded(
-            child: _buildStudentsList(),
-          ),
+          Expanded(child: _buildStudentsList(context)), // Pass context
         ],
       ),
     );
   }
 
-  Widget _buildStudentsList() {
+  Widget _buildStudentsList(BuildContext context) {
+    // Added BuildContext
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     return Obx(() {
       final data = controller.filteredReportStudents;
-      
+
       if (controller.isLoadingStudents.value) {
         return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const CircularProgressIndicator(
-                color: Constants.primaryColor,
-              ),
+              CircularProgressIndicator(
+                color: colorScheme.primary,
+              ), // Dynamic color
               const SizedBox(height: 16),
               Text(
                 'Carregando alunos...',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey.shade600,
-                ),
+                style: textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ), // Dynamic
               ),
             ],
           ),
         );
-      } else if (data.isEmpty && controller.studentSearchText.value.isNotEmpty) {
+      } else if (data.isEmpty &&
+          controller.studentSearchText.value.isNotEmpty) {
         return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -218,15 +250,16 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
               Icon(
                 Icons.search_off,
                 size: 80,
-                color: Colors.grey.shade300,
-              ),
+                color: colorScheme.outline,
+              ), // Dynamic color
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'Nenhum aluno encontrado com este termo de busca.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: textTheme.titleMedium?.copyWith(
+                  // Dynamic
                   fontSize: 18,
-                  color: Colors.grey,
+                  color: colorScheme.onSurface.withOpacity(0.6), // Dynamic
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -241,15 +274,16 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
               Icon(
                 Icons.person_outline,
                 size: 80,
-                color: Colors.grey.shade300,
-              ),
+                color: colorScheme.outline,
+              ), // Dynamic color
               const SizedBox(height: 20),
               Text(
                 'Nenhum aluno encontrado para o ano ${controller.selectedFilterYear.value}.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: textTheme.titleMedium?.copyWith(
+                  // Dynamic
                   fontSize: 18,
-                  color: Colors.grey,
+                  color: colorScheme.onSurface.withOpacity(0.6), // Dynamic
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -257,33 +291,39 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
               Text(
                 'Verifique outro ano ou adicione alunos às turmas.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey.shade600,
-                ),
+                style: textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ), // Dynamic
               ),
             ],
           ),
         );
       }
-      
+
       return ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: data.length,
         itemBuilder: (context, index) {
           final student = data[index];
           final bool isActive = student['active'] == 1;
-          
+
           return Card(
             margin: const EdgeInsets.only(bottom: 12),
             elevation: 2,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
               side: BorderSide(
-                color: isActive ? Constants.primaryColor.withValues(alpha: 0.3) : Colors.grey.withValues(alpha: 0.3),
+                color: isActive
+                    ? colorScheme.primary.withOpacity(
+                        0.3,
+                      ) // Dynamic primary color
+                    : colorScheme.outline.withOpacity(
+                        0.3,
+                      ), // Dynamic outline color
                 width: 1,
               ),
             ),
+            color: colorScheme.surface, // Dynamic: card background
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
               onTap: () {
@@ -296,16 +336,21 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
                     // Avatar
                     CircleAvatar(
                       radius: 30,
-                      backgroundColor: isActive ? Constants.primaryColor.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1),
+                      backgroundColor: isActive
+                          ? colorScheme
+                                .primaryContainer // Dynamic: light tint of primary
+                          : colorScheme.surfaceVariant, // Dynamic: for inactive
                       child: Icon(
                         Icons.person,
-                        color: isActive ? Constants.primaryColor : Colors.grey,
+                        color: isActive
+                            ? colorScheme.onPrimaryContainer
+                            : colorScheme.onSurfaceVariant, // Dynamic
                         size: 30,
                       ),
                     ),
-                    
+
                     const SizedBox(width: 16),
-                    
+
                     // Student info
                     Expanded(
                       child: Column(
@@ -313,32 +358,48 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
                         children: [
                           Text(
                             student['name'],
-                            style: TextStyle(
+                            style: textTheme.titleSmall?.copyWith(
+                              // Dynamic
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
-                              color: isActive ? Colors.black87 : Colors.grey,
+                              color: isActive
+                                  ? colorScheme.onSurface
+                                  : colorScheme.onSurfaceVariant, // Dynamic
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Turma: ${student['class_name'] ?? 'Não informada'}',
-                            style: TextStyle(
-                              color: isActive ? Colors.grey.shade600 : Colors.grey.shade500,
+                            style: textTheme.bodySmall?.copyWith(
+                              // Dynamic
+                              color: isActive
+                                  ? colorScheme.onSurfaceVariant
+                                  : colorScheme.onSurfaceVariant.withOpacity(
+                                      0.7,
+                                    ), // Dynamic
                               fontSize: 14,
                             ),
                           ),
                           const SizedBox(height: 8),
-                          
+
                           // Statistics row
                           Row(
                             children: [
                               // Attendance
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: Colors.green.shade50,
+                                  color: Colors
+                                      .green
+                                      .shade50, // Specific color, consider defining in theme if frequent
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.green.shade200),
+                                  border: Border.all(
+                                    color:
+                                        Colors.green.shade200, // Specific color
+                                  ),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -346,13 +407,18 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
                                     Icon(
                                       Icons.checklist,
                                       size: 14,
-                                      color: Colors.green.shade600,
+                                      color: Colors
+                                          .green
+                                          .shade600, // Specific color
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
                                       '${student['attendance_percentage'] ?? '0.0'}%',
-                                      style: TextStyle(
-                                        color: Colors.green.shade600,
+                                      style: textTheme.labelSmall?.copyWith(
+                                        // Dynamic
+                                        color: Colors
+                                            .green
+                                            .shade600, // Specific color
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -360,16 +426,24 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
                                   ],
                                 ),
                               ),
-                              
+
                               const SizedBox(width: 12),
-                              
+
                               // Occurrences
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: Colors.orange.shade50,
+                                  color:
+                                      Colors.orange.shade50, // Specific color
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.orange.shade200),
+                                  border: Border.all(
+                                    color: Colors
+                                        .orange
+                                        .shade200, // Specific color
+                                  ),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -377,13 +451,18 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
                                     Icon(
                                       Icons.report_problem,
                                       size: 14,
-                                      color: Colors.orange.shade600,
+                                      color: Colors
+                                          .orange
+                                          .shade600, // Specific color
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
                                       '${student['total_occurrences'] ?? 0}',
-                                      style: TextStyle(
-                                        color: Colors.orange.shade600,
+                                      style: textTheme.labelSmall?.copyWith(
+                                        // Dynamic
+                                        color: Colors
+                                            .orange
+                                            .shade600, // Specific color
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -393,20 +472,26 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
                               ),
                             ],
                           ),
-                          
+
                           // Inactive badge
                           if (!isActive) ...[
                             const SizedBox(height: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
-                                color: Colors.orange.shade100,
+                                color: colorScheme
+                                    .errorContainer, // Dynamic: A light background for errors/warnings
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
                                 'INATIVO',
-                                style: TextStyle(
-                                  color: Colors.orange.shade700,
+                                style: textTheme.labelSmall?.copyWith(
+                                  // Dynamic
+                                  color: colorScheme
+                                      .onErrorContainer, // Dynamic: text color on error container
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -416,20 +501,21 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
                         ],
                       ),
                     ),
-                    
+
                     // Arrow icon
                     Icon(
                       Icons.arrow_forward_ios,
                       size: 16,
-                      color: Colors.grey.shade400,
+                      color: colorScheme.onSurfaceVariant.withOpacity(
+                        0.6,
+                      ), // Dynamic
                     ),
                   ],
                 ),
               ),
-            ),
-          );
-        },
-      );
+            ));
+          },
+        );
     });
   }
 }

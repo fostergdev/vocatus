@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:vocatus/app/core/constants/constants.dart';
+import 'package:flutter/material.dart';
 import 'package:vocatus/app/core/widgets/custom_drop.dart';
 import 'package:vocatus/app/models/classe.dart';
 import './occurrence_select_controller.dart';
@@ -10,14 +9,16 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Selecionar Turma - Ocorrências',
-          style: TextStyle(
+          style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: Colors.white,
-            fontSize: 20,
+            color: colorScheme.onPrimary, // Texto da AppBar
           ),
         ),
         centerTitle: true,
@@ -25,8 +26,8 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Constants.primaryColor.withValues(alpha: .9),
-                Constants.primaryColor,
+                colorScheme.primary.withOpacity(0.9), // Usa a cor primária do tema
+                colorScheme.primary, // Usa a cor primária do tema
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -37,14 +38,18 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: colorScheme.onPrimary), // Cor dos ícones da AppBar
       ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.purple.shade50, Colors.white],
+            // Cores do gradiente de fundo, usando o colorScheme
+            colors: [
+              colorScheme.primary.withOpacity(0.05), // Um tom bem claro da cor primária
+              colorScheme.background, // A cor de fundo principal do tema
+            ],
           ),
         ),
         child: Padding(
@@ -55,38 +60,41 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
               // Dropdown de turmas
               Obx(() {
                 if (controller.isLoading.value) {
-                  return const Center(
+                  return Center(
                     child: Padding(
-                      padding: EdgeInsets.all(20.0),
-                      child: CircularProgressIndicator(),
+                      padding: const EdgeInsets.all(20.0),
+                      child: CircularProgressIndicator(color: colorScheme.primary), // Cor do tema
                     ),
                   );
                 }
 
                 if (controller.availableClasses.isEmpty) {
                   return Card(
-                    color: Colors.orange.shade50,
+                    color: colorScheme.errorContainer, // Fundo suave para aviso/erro
+                    surfaceTintColor: colorScheme.onErrorContainer, // Tinta de elevação
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
                         children: [
                           Icon(
                             Icons.warning_amber,
-                            color: Colors.orange.shade600,
+                            color: colorScheme.error, // Cor do ícone de aviso/erro
                             size: 32,
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Nenhuma turma ativa encontrada',
-                            style: TextStyle(
+                            style: textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w600,
-                              color: Colors.orange.shade800,
+                              color: colorScheme.onErrorContainer, // Cor do texto
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Certifique-se de que existem turmas cadastradas e ativas.',
-                            style: TextStyle(color: Colors.orange.shade700),
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onErrorContainer.withOpacity(0.8), // Cor do texto
+                            ),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -103,6 +111,7 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
                   onChanged: (classe) =>
                       controller.selectedClasse.value = classe,
                   hint: 'Selecione uma turma',
+                  // CustomDrop já está configurado para usar o tema
                 );
               }),
 
@@ -112,33 +121,37 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
               Expanded(
                 child: Obx(() {
                   if (controller.isLoading.value) {
-                    return const Center(child: CircularProgressIndicator());
+                    return Center(child: CircularProgressIndicator(color: colorScheme.primary)); // Cor do tema
                   }
 
                   if (controller.selectedClasse.value == null) {
-                    return const Center(
+                    return Center(
                       child: Text(
                         'Selecione uma turma para visualizar as chamadas disponíveis',
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                        style: textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onSurfaceVariant, // Cor do texto
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     );
                   }
 
                   if (controller.availableAttendances.isEmpty) {
-                    return const Center(
+                    return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
                             Icons.assignment_outlined,
                             size: 64,
-                            color: Colors.grey,
+                            color: colorScheme.onSurfaceVariant.withOpacity(0.4), // Cor do ícone
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           Text(
                             'Nenhuma chamada encontrada para esta turma',
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                            style: textTheme.titleMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant, // Cor do texto
+                            ),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -153,34 +166,41 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
                       return Card(
                         margin: const EdgeInsets.only(bottom: 12),
                         elevation: 2,
+                        color: colorScheme.surface, // Fundo do Card
+                        surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
                         child: ListTile(
                           leading: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Constants.primaryColor.withValues(
-                                alpha: 0.1,
-                              ),
+                              color: colorScheme.primary.withOpacity(0.1), // Fundo do ícone
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
                               Icons.assignment,
-                              color: Constants.primaryColor,
+                              color: colorScheme.primary, // Cor do ícone
                             ),
                           ),
                           title: Text(
                             'Chamada - ${controller.formatDate(attendance.date)}',
-                            style: const TextStyle(fontWeight: FontWeight.w600),
+                            style: textTheme.titleSmall?.copyWith( // Estilo do título
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.onSurface, // Cor do texto do título
+                            ),
                           ),
                           subtitle: Text(
                             attendance.content?.isNotEmpty == true
                                 ? attendance.content!
                                 : 'Sem conteúdo registrado',
+                            style: textTheme.bodyMedium?.copyWith( // Estilo do subtítulo
+                              color: colorScheme.onSurfaceVariant, // Cor do texto do subtítulo
+                            ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          trailing: const Icon(
+                          trailing: Icon(
                             Icons.arrow_forward_ios,
                             size: 16,
+                            color: colorScheme.onSurfaceVariant.withOpacity(0.4), // Cor da seta
                           ),
                           onTap: () =>
                               controller.navigateToOccurrences(attendance),

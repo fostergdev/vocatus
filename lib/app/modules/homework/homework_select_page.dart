@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:vocatus/app/core/constants/constants.dart';
 import 'package:vocatus/app/core/widgets/custom_text_field.dart';
 import 'package:vocatus/app/core/widgets/custom_drop.dart';
 import 'package:vocatus/app/models/classe.dart';
@@ -11,14 +10,16 @@ class HomeworkSelectPage extends GetView<HomeworkSelectController> {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Selecionar Turma - Tarefas',
-          style: TextStyle(
+          style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: Colors.white,
-            fontSize: 20,
+            color: colorScheme.onPrimary, // Texto da AppBar
           ),
         ),
         centerTitle: true,
@@ -26,8 +27,8 @@ class HomeworkSelectPage extends GetView<HomeworkSelectController> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Constants.primaryColor.withValues(alpha: .9),
-                Constants.primaryColor,
+                colorScheme.primary.withOpacity(0.9), // Usa a cor primária do tema
+                colorScheme.primary, // Usa a cor primária do tema
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -38,21 +39,21 @@ class HomeworkSelectPage extends GetView<HomeworkSelectController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: colorScheme.onPrimary), // Cor dos ícones da AppBar
       ),
       body: Column(
         children: [
-          _buildHeader(),
-          _buildFilters(),
+          _buildHeader(colorScheme, textTheme), // Passa colorScheme e textTheme
+          _buildFilters(colorScheme, textTheme), // Passa colorScheme e textTheme
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
-                return const Center(child: CircularProgressIndicator());
+                return Center(child: CircularProgressIndicator(color: colorScheme.primary)); // Cor do tema
               }
               if (controller.filteredClasses.isEmpty) {
-                return _buildEmptyState();
+                return _buildEmptyState(colorScheme, textTheme); // Passa colorScheme e textTheme
               }
-              return _buildClassesList();
+              return _buildClassesList(colorScheme, textTheme); // Passa colorScheme e textTheme
             }),
           ),
         ],
@@ -60,25 +61,23 @@ class HomeworkSelectPage extends GetView<HomeworkSelectController> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Selecione uma turma para gerenciar suas tarefas',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
+            style: textTheme.bodyLarge?.copyWith(
+              color: colorScheme.onSurfaceVariant, // Cor do texto
             ),
           ),
           const SizedBox(height: 8),
           Obx(() => Text(
             '${controller.filteredClasses.length} turma(s) disponível(eis)',
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
+            style: textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant, // Cor do texto de contagem
             ),
           )),
         ],
@@ -86,7 +85,7 @@ class HomeworkSelectPage extends GetView<HomeworkSelectController> {
     );
   }
 
-  Widget _buildFilters() {
+  Widget _buildFilters(ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -98,6 +97,7 @@ class HomeworkSelectPage extends GetView<HomeworkSelectController> {
                   controller: controller.searchController,
                   hintText: 'Buscar turma...',
                   onChanged: (value) => controller.searchClasses(value),
+                  // CustomTextField já cuida das cores de tema internamente
                 ),
               ),
               const SizedBox(width: 16),
@@ -109,6 +109,7 @@ class HomeworkSelectPage extends GetView<HomeworkSelectController> {
                   labelBuilder: (year) => controller.getYearDisplayText(year),
                   onChanged: (year) => controller.changeYear(year!),
                   hint: 'Ano',
+                  // CustomDrop já cuida das cores de tema internamente
                 )),
               ),
             ],
@@ -119,7 +120,7 @@ class HomeworkSelectPage extends GetView<HomeworkSelectController> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(ColorScheme colorScheme, TextTheme textTheme) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -127,23 +128,21 @@ class HomeworkSelectPage extends GetView<HomeworkSelectController> {
           Icon(
             Icons.group_outlined,
             size: 64,
-            color: Colors.grey[400],
+            color: colorScheme.onSurfaceVariant.withOpacity(0.4), // Cor do ícone
           ),
           const SizedBox(height: 16),
           Text(
             'Nenhuma turma encontrada',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[600],
+            style: textTheme.titleMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant, // Cor do texto
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Tente ajustar os filtros ou criar uma nova turma',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
+            style: textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant.withOpacity(0.7), // Cor do texto
             ),
           ),
         ],
@@ -151,24 +150,27 @@ class HomeworkSelectPage extends GetView<HomeworkSelectController> {
     );
   }
 
-  Widget _buildClassesList() {
+  Widget _buildClassesList(ColorScheme colorScheme, TextTheme textTheme) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: controller.filteredClasses.length,
       itemBuilder: (context, index) {
         final classe = controller.filteredClasses[index];
-        return _buildClasseCard(classe);
+        return _buildClasseCard(classe, colorScheme, textTheme); // Passa colorScheme e textTheme
       },
     );
   }
 
-  Widget _buildClasseCard(Classe classe) {
+  Widget _buildClasseCard(Classe classe, ColorScheme colorScheme, TextTheme textTheme) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
+      color: colorScheme.surface, // Fundo do Card
+      surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
+      shadowColor: colorScheme.shadow.withOpacity(0.1), // Sombra
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () => controller.selectClasse(classe),
@@ -180,12 +182,12 @@ class HomeworkSelectPage extends GetView<HomeworkSelectController> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Constants.primaryColor.withValues(alpha: 0.1),
+                  color: colorScheme.primary.withOpacity(0.1), // Fundo do ícone
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   Icons.group,
-                  color: Constants.primaryColor,
+                  color: colorScheme.primary, // Cor do ícone
                   size: 24,
                 ),
               ),
@@ -196,18 +198,19 @@ class HomeworkSelectPage extends GetView<HomeworkSelectController> {
                   children: [
                     Text(
                       classe.name,
-                      style: const TextStyle(
+                      style: textTheme.titleMedium?.copyWith(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface, // Cor do nome da turma
                       ),
                     ),
                     if (classe.description != null && classe.description!.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
                         classe.description!,
-                        style: TextStyle(
+                        style: textTheme.bodyMedium?.copyWith(
                           fontSize: 14,
-                          color: Colors.grey[600],
+                          color: colorScheme.onSurfaceVariant, // Cor da descrição
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -219,14 +222,14 @@ class HomeworkSelectPage extends GetView<HomeworkSelectController> {
                         Icon(
                           Icons.calendar_today,
                           size: 14,
-                          color: Colors.grey[600],
+                          color: colorScheme.onSurfaceVariant, // Cor do ícone de calendário
                         ),
                         const SizedBox(width: 4),
                         Text(
                           'Ano: ${classe.schoolYear}',
-                          style: TextStyle(
+                          style: textTheme.bodySmall?.copyWith(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: colorScheme.onSurfaceVariant, // Cor do texto do ano
                           ),
                         ),
                       ],
@@ -237,7 +240,7 @@ class HomeworkSelectPage extends GetView<HomeworkSelectController> {
               Icon(
                 Icons.arrow_forward_ios,
                 size: 16,
-                color: Colors.grey[400],
+                color: colorScheme.onSurfaceVariant.withOpacity(0.4), // Cor da seta
               ),
             ],
           ),

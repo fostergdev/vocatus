@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:vocatus/app/core/constants/constants.dart';
-import 'package:vocatus/app/core/widgets/custom_popbutton.dart';
+import 'package:vocatus/app/core/widgets/custom_popbutton.dart'; // Mantenha se ainda usar, mas não foi fornecido o código
 import 'package:vocatus/app/core/widgets/custom_text_field.dart';
 import 'package:vocatus/app/models/grade.dart';
 import 'package:vocatus/app/models/student_attendance.dart';
@@ -11,20 +11,20 @@ import './attendance_register_controller.dart';
 class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
   const AttendanceRegisterPage({super.key});
 
-
-
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     final Grade selectedGrade = controller.grade;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
           selectedGrade.classe?.name ?? 'Turma',
-          style: const TextStyle(
+          style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: Colors.white,
-            fontSize: 20,
+            color: colorScheme.onPrimary, // Texto da AppBar
           ),
         ),
         centerTitle: true,
@@ -32,8 +32,8 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Constants.primaryColor.withValues(alpha: .9),
-                Constants.primaryColor,
+                colorScheme.primary.withOpacity(0.9), // Usa a cor primária do tema
+                colorScheme.primary, // Usa a cor primária do tema
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -44,7 +44,7 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: colorScheme.onPrimary), // Cor dos ícones da AppBar
       ),
       body: Column(
         children: [
@@ -55,11 +55,9 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
               vertical: 16.0,
             ),
             decoration: BoxDecoration(
-              color: Constants.primaryColor.withValues(
-                alpha: .05,
-              ), // Fundo suave
+              color: colorScheme.primaryContainer, // Fundo suave (Material 3)
               border: Border(
-                bottom: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                bottom: BorderSide(color: colorScheme.outlineVariant, width: 1.0), // Borda inferior
               ),
             ),
             child: Column(
@@ -70,10 +68,9 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                   children: [
                     Text(
                       '${Constants.getDayName(selectedGrade.dayOfWeek)}, ${DateFormat('dd/MM/yyyy').format(controller.selectedDate.value)}',
-                      style: TextStyle(
-                        fontSize: 15,
+                      style: textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: Constants.primaryColor,
+                        color: colorScheme.primary, // Cor do texto de data
                       ),
                     ),
                     Row(
@@ -81,14 +78,13 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                         Icon(
                           Icons.access_time,
                           size: 18,
-                          color: Colors.purple.shade700,
+                          color: colorScheme.secondary, // Cor do ícone de tempo
                         ),
                         const SizedBox(width: 6),
                         Text(
                           '${Grade.formatTimeDisplay(selectedGrade.startTimeOfDay)} - ${Grade.formatTimeDisplay(selectedGrade.endTimeOfDay)}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.purple.shade700,
+                          style: textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.onSurfaceVariant, // Cor do texto de horário
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -104,15 +100,13 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                     Icon(
                       Icons.menu_book,
                       size: 18,
-                      color: Colors.grey.shade600,
+                      color: colorScheme.onSurfaceVariant, // Cor do ícone de disciplina
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      selectedGrade.discipline?.name ??
-                          'Discipina Não Definida',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade700,
+                      selectedGrade.discipline?.name ?? 'Discipina Não Definida',
+                      style: textTheme.bodyLarge?.copyWith(
+                        color: colorScheme.onSurface, // Cor do texto de disciplina
                       ),
                     ),
                   ],
@@ -121,52 +115,49 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
             ),
           ),
 
-          // Campo de Texto de Conteúdo da Aula - Novo Layout
+          // Campo de Texto de Conteúdo da Aula
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              16,
-              16,
-              16,
-              8,
-            ), // Aumenta o padding superior
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: CustomTextField(
               hintText: "Conteúdo da Aula",
               maxLines: 3,
               minLines: 1,
               keyboardType: TextInputType.multiline,
               controller: controller.contentController,
+              // O `decoration` do CustomTextField já pega as cores do tema
+              // mas podemos sobrescrever aqui se quisermos algo específico
               decoration: InputDecoration(
                 labelText: "Conteúdo da Aula",
                 alignLabelWithHint: true,
-                filled: true, // Fundo preenchido
-                fillColor: Colors.grey.shade100, // Cor de preenchimento
+                filled: true,
+                fillColor: colorScheme.surfaceVariant, // Fundo preenchido
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16), // Mais arredondado
+                  borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide(
-                    color: Colors.grey.shade300,
+                    color: colorScheme.outline,
                     width: 1.0,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide(
-                    color: Constants.primaryColor,
+                    color: colorScheme.primary, // Borda focada com a cor primária
                     width: 2.0,
                   ),
                 ),
                 hintText: "Digite o conteúdo da aula...",
-                hintStyle: TextStyle(color: Colors.grey.shade400),
+                hintStyle: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
                 contentPadding: const EdgeInsets.symmetric(
                   vertical: 16,
                   horizontal: 16,
                 ),
+                // O suffixIcon já está usando o CustomPopupMenu customizado por você.
                 suffixIcon: CustomPopupMenu(
                   items: [
                     CustomPopupMenuItem(
                       label: 'Adicionar Tarefa',
                       icon: Icons.task,
                       onTap: () {
-                        // Navegar para o módulo de homework da turma atual
                         if (controller.grade.classe != null) {
                           Get.toNamed(
                             '/homework/home',
@@ -177,8 +168,8 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                             'Erro',
                             'Não foi possível acessar as tarefas. Turma não encontrada.',
                             snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: Colors.red.shade100,
-                            colorText: Colors.red.shade800,
+                            backgroundColor: colorScheme.errorContainer, // Cor do tema
+                            colorText: colorScheme.onErrorContainer, // Cor do tema
                           );
                         }
                       },
@@ -187,14 +178,11 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                       label: 'Registrar Ocorrência',
                       icon: Icons.report,
                       onTap: () async {
-                        // Primeiro salva a chamada se houver dados
                         if (controller.studentAttendances.isNotEmpty) {
                           await controller.saveAttendance();
                         }
                         
-                        // Verifica se há uma chamada salva para navegar
                         if (controller.currentAttendanceId.value != null) {
-                          // Cria um objeto Attendance para passar como argumento
                           final attendance = controller.createAttendanceObject();
                           Get.toNamed('/occurrence', arguments: attendance);
                         } else {
@@ -202,8 +190,8 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                             'Atenção',
                             'É necessário salvar a chamada antes de registrar ocorrências.',
                             snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: Colors.orange.shade100,
-                            colorText: Colors.orange.shade800,
+                            backgroundColor: colorScheme.tertiaryContainer, // Cor do tema
+                            colorText: colorScheme.onTertiaryContainer, // Cor do tema
                           );
                         }
                       },
@@ -214,11 +202,11 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
             ),
           ),
 
-          // Lista de Alunos para Chamada - Novo Layout
+          // Lista de Alunos para Chamada
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
-                return const Center(child: CircularProgressIndicator());
+                return Center(child: CircularProgressIndicator(color: colorScheme.primary)); // Cor do tema
               }
               if (controller.studentAttendances.isEmpty) {
                 return Center(
@@ -227,15 +215,14 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                     children: [
                       Icon(
                         Icons.person_off,
-                        color: Colors.grey.shade400,
+                        color: colorScheme.onSurfaceVariant, // Cor do ícone
                         size: 80,
                       ),
                       const SizedBox(height: 20),
                       Text(
                         'Nenhum aluno encontrado para esta turma/chamada.',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          color: Colors.grey,
+                        style: textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant, // Cor do texto
                           fontWeight: FontWeight.w500,
                         ),
                         textAlign: TextAlign.center,
@@ -243,9 +230,8 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                       const SizedBox(height: 10),
                       Text(
                         'Verifique a configuração da turma ou a lista de alunos.',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey.shade600,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant.withOpacity(0.8), // Cor do texto
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -269,25 +255,24 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                       vertical: 8,
                     ),
                     elevation: 2,
+                    color: colorScheme.surface, // Fundo do Card
+                    surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
                     child: CheckboxListTile(
                       title: Text(
                         studentAttendance.student?.name ?? 'Aluno desconhecido',
-                        style: const TextStyle(
+                        style: textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.w500,
-                          fontSize: 16,
+                          color: colorScheme.onSurface, // Cor do texto do nome do aluno
                         ),
                       ),
                       subtitle: Text(
                         studentAttendance.presence == PresenceStatus.present
                             ? 'Presente'
                             : 'Ausente',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color:
-                              studentAttendance.presence ==
-                                  PresenceStatus.present
-                              ? Colors.green
-                              : Colors.red,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: studentAttendance.presence == PresenceStatus.present
+                              ? colorScheme.tertiary // Cor para presente (verde)
+                              : colorScheme.error, // Cor para ausente (vermelho)
                         ),
                       ),
                       value:
@@ -301,6 +286,9 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                         );
                       },
                       controlAffinity: ListTileControlAffinity.trailing,
+                      activeColor: colorScheme.primary, // Cor do Checkbox quando ativo
+                      checkColor: colorScheme.onPrimary, // Cor do ícone de check
+                      tileColor: colorScheme.surface, // Cor do tile (fundo)
                     ),
                   );
                 },
@@ -318,18 +306,18 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                 },
                 tooltip: 'Salvar Chamada',
                 backgroundColor: controller.isLoading.value 
-                    ? Colors.grey 
-                    : Constants.primaryColor,
+                    ? colorScheme.surfaceVariant 
+                    : colorScheme.primary, // Fundo do FAB
                 child: controller.isLoading.value
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onPrimary), // Cor da animação
                         ),
                       )
-                    : const Icon(Icons.save, color: Colors.white),
+                    : Icon(Icons.save, color: colorScheme.onPrimary), // Ícone do FAB
               )
             : const SizedBox.shrink(),
       ),
