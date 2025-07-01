@@ -1,15 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:vocatus/app/models/student.dart';
 import 'package:vocatus/app/models/attendance.dart';
 
-enum PresenceStatus {
-  present,
-  absent,
-  justified,
-  unknown, // Mantenha este se ele for um valor possível vindo do banco. Se não, remova.
-}
+enum PresenceStatus { present, absent, justified }
 
-@immutable
 class StudentAttendance {
   final int attendanceId;
   final int studentId;
@@ -34,7 +27,10 @@ class StudentAttendance {
       attendanceId: map['attendance_id'] as int,
       studentId: map['student_id'] as int,
       presence: PresenceStatus.values[map['presence'] as int],
-      createdAt: map['created_at'] != null && (map['created_at'] is String) && (map['created_at'] as String).isNotEmpty
+      createdAt:
+          map['created_at'] != null &&
+              (map['created_at'] is String) &&
+              (map['created_at'] as String).isNotEmpty
           ? DateTime.parse(map['created_at'] as String)
           : null,
       active: map['active'] == 1,
@@ -46,7 +42,8 @@ class StudentAttendance {
       'attendance_id': attendanceId,
       'student_id': studentId,
       'presence': presence.index,
-      'created_at': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
+      'created_at':
+          createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
       'active': (active ?? true) ? 1 : 0,
     };
   }

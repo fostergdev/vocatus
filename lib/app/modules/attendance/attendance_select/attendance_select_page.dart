@@ -8,26 +8,7 @@ import './attendance_select_controller.dart';
 class AttendanceSelectPage extends GetView<AttendanceSelectController> {
   const AttendanceSelectPage({super.key});
 
-  String _getDayName(int dayOfWeek) {
-    switch (dayOfWeek) {
-      case 1:
-        return 'SEG';
-      case 2:
-        return 'TER';
-      case 3:
-        return 'QUA';
-      case 4:
-        return 'QUI';
-      case 5:
-        return 'SEX';
-      case 6:
-        return 'SÁB';
-      case 0: // Sunday is 0 in Dart's DateTime.weekday
-        return 'DOM';
-      default:
-        return 'Desconhecido';
-    }
-  }
+
 
   // Define a ordem dos dias a serem exibidos (Segunda a Sexta)
   final List<int> _displayDayOrder = const [1, 2, 3, 4, 5];
@@ -156,7 +137,7 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        _getDayName(dayOfWeek),
+                        Constants.getDayName(dayOfWeek),
                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                       Text(
@@ -250,7 +231,7 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
               child: Column(
                 children: [
                   Text(
-                    _getDayName(dayOfWeek),
+                    Constants.getDayName(dayOfWeek),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

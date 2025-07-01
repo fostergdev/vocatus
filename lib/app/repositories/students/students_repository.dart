@@ -1,5 +1,6 @@
+import 'dart:developer';
 import 'package:sqflite/sqflite.dart';
-import 'package:vocatus/app/core/utils/database_helper.dart';
+import 'package:vocatus/app/core/utils/database/database_helper.dart';
 import 'package:vocatus/app/models/classe.dart';
 import 'package:vocatus/app/models/student.dart';
 import 'package:vocatus/app/repositories/students/i_students_repository.dart';
@@ -50,7 +51,7 @@ class StudentsRepository implements IStudentsRepository {
             if (existingById.isNotEmpty) {
               studentId = existingById.first['id'] as int;
             } else {
-              print('AVISO: Aluno com ID ${student.id} não encontrado. Criando novo registro para ${student.name}.');
+              log('AVISO: Aluno com ID ${student.id} não encontrado. Criando novo registro para ${student.name}.', name: 'StudentsRepository');
               studentId = await txn.insert('student', {
                 "name": student.name.trim(),
                 "created_at": DateTime.now().toIso8601String(),

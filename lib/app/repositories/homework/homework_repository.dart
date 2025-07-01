@@ -1,5 +1,5 @@
 import 'package:sqflite/sqflite.dart';
-import 'package:vocatus/app/core/utils/database_helper.dart';
+import 'package:vocatus/app/core/utils/database/database_helper.dart';
 import 'package:vocatus/app/models/homework.dart';
 import 'package:vocatus/app/models/discipline.dart';
 import 'package:vocatus/app/repositories/homework/i_homework_repository.dart';

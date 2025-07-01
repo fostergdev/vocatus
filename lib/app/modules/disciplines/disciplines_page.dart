@@ -98,15 +98,6 @@ class DisciplinesPage extends GetView<DisciplinesController> {
                 },
               ),
             ),
-            SizedBox(
-              height: 70,
-              child: Center(
-                child: Text(
-                  'Total de Disciplinas: ${controller.disciplines.length}',
-                  style: const TextStyle(fontSize: 16, color: Colors.grey),
-                ),
-              ),
-            ),
           ],
         );
       }),

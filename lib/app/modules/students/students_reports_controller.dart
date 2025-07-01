@@ -1,7 +1,8 @@
 // students_reports_controller.dart
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:vocatus/app/core/utils/database_helper.dart';
+import 'package:vocatus/app/core/utils/database/database_helper.dart';
 import 'package:vocatus/app/repositories/reports/reports_repository.dart';
 
 class StudentsReportsController extends GetxController {
@@ -43,13 +44,13 @@ class StudentsReportsController extends GetxController {
   }
 
   Future<void> loadYearsAndStudents() async {
-    print('🔍 StudentsReportsController: Carregando anos e estudantes...');
+    log('🔍 StudentsReportsController: Carregando anos e estudantes...', name: 'StudentsReportsController');
     
     final yearsMap = await _reportsRepository.getMinMaxYearsByTable();
     final studentYears = yearsMap['students'] ?? yearsMap['classes'] ?? [];
     
     availableYears.value = studentYears;
-    print('📅 StudentsReportsController: Anos disponíveis: $studentYears');
+    log('📅 StudentsReportsController: Anos disponíveis: $studentYears', name: 'StudentsReportsController');
     
     // Sempre iniciar no ano vigente se disponível, senão no mais recente
     final currentYear = DateTime.now().year;
@@ -59,14 +60,14 @@ class StudentsReportsController extends GetxController {
       selectedFilterYear.value = studentYears.reduce((a, b) => a > b ? a : b); // Ano mais recente
     }
     
-    print('🎯 StudentsReportsController: Ano selecionado: ${selectedFilterYear.value}');
+    log('🎯 StudentsReportsController: Ano selecionado: ${selectedFilterYear.value}', name: 'StudentsReportsController');
     
     await readStudents(year: selectedFilterYear.value);
     filterStudents();
   }
 
   void onYearSelected(int year) {
-    print('📅 StudentsReportsController: Ano selecionado: $year');
+    log('📅 StudentsReportsController: Ano selecionado: $year', name: 'StudentsReportsController');
     selectedFilterYear.value = year;
     studentSearchText.value = '';
     studentSearchController.clear();
@@ -74,12 +75,12 @@ class StudentsReportsController extends GetxController {
   }
 
   Future<void> readStudents({required int year}) async {
-    print('👥 StudentsReportsController: Carregando estudantes do ano $year...');
+    log('👥 StudentsReportsController: Carregando estudantes do ano $year...', name: 'StudentsReportsController');
     isLoadingStudents.value = true;
     
     try {
       final studentsData = await _reportsRepository.getStudentsWithReportsData(year);
-      print('📊 StudentsReportsController: ${studentsData.length} estudante(s) encontrado(s)');
+      log('📊 StudentsReportsController: ${studentsData.length} estudante(s) encontrado(s)', name: 'StudentsReportsController');
       
       reportStudents.clear();
       
@@ -108,12 +109,12 @@ class StudentsReportsController extends GetxController {
         };
         
         reportStudents.add(studentReport);
-        print('✅ StudentsReportsController: ${studentData['name']} - ${studentData['class_name']} - ${attendancePercentage}%');
+        log('✅ StudentsReportsController: ${studentData['name']} - ${studentData['class_name']} - $attendancePercentage%', name: 'StudentsReportsController');
       }
       
       filterStudents();
     } catch (e) {
-      print('❌ StudentsReportsController: Erro ao carregar estudantes: $e');
+      log('❌ StudentsReportsController: Erro ao carregar estudantes: $e', name: 'StudentsReportsController');
       Get.snackbar(
         'Erro',
         'Não foi possível carregar os relatórios de alunos: ${e.toString()}',

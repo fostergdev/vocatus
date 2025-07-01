@@ -1,5 +1,5 @@
 import 'package:sqflite/sqflite.dart';
-import 'package:vocatus/app/core/utils/database_helper.dart';
+import 'package:vocatus/app/core/utils/database/database_helper.dart';
 import 'package:vocatus/app/models/occurrence.dart';
 import 'package:vocatus/app/models/student.dart';
 import 'package:vocatus/app/models/attendance.dart';

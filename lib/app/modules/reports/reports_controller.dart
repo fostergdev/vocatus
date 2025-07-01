@@ -1,7 +1,8 @@
 // reports_controller.dart
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:vocatus/app/core/utils/database_helper.dart';
+import 'package:vocatus/app/core/utils/database/database_helper.dart';
 import 'package:vocatus/app/repositories/reports/reports_repository.dart';
 import 'package:vocatus/app/models/classe.dart';
 import 'package:vocatus/app/models/grade.dart';
@@ -18,6 +19,9 @@ class ReportsController extends GetxController {
 
   final RxList<Classe> reportClasses = <Classe>[].obs;
   final RxList<Classe> filteredReportClasses = <Classe>[].obs;
+
+  final RxBool isLoadingOccurrences = false.obs;
+   final RxList<Map<String, dynamic>> occurrencesData = <Map<String, dynamic>>[].obs;
   
   // Student-related observables
   final RxList<Map<String, dynamic>> reportStudents = <Map<String, dynamic>>[].obs;
@@ -62,15 +66,15 @@ class ReportsController extends GetxController {
   }
 
   Future<void> loadYearsAndClasses() async {
-    print('🚀 ReportsController.loadYearsAndClasses - Iniciando...');
+    log('🚀 ReportsController.loadYearsAndClasses - Iniciando...', name: 'ReportsController');
     final yearsMap = await _reportsRepository.getMinMaxYearsByTable();
-    print('📅 Anos disponíveis: $yearsMap');
+    log('📅 Anos disponíveis: $yearsMap', name: 'ReportsController');
     
     yearsByTab[0] = yearsMap['classes'] ?? [];
     yearsByTab[1] = yearsMap['students'] ?? yearsMap['classes'] ?? []; // Use same years for students initially
 
     final currentYear = DateTime.now().year;
-    print('📆 Ano atual: $currentYear');
+    log('📆 Ano atual: $currentYear', name: 'ReportsController');
     
     final initialYears = yearsByTab[0] ?? [];
     
@@ -79,18 +83,18 @@ class ReportsController extends GetxController {
       selectedFilterYear.value = initialYears.contains(currentYear) 
           ? currentYear 
           : initialYears.reduce((a, b) => a > b ? a : b); // Pegar o ano mais recente
-      print('🎯 Ano selecionado: ${selectedFilterYear.value}');
+      log('🎯 Ano selecionado: ${selectedFilterYear.value}', name: 'ReportsController');
       await readClasses(year: selectedFilterYear.value);
       await readStudents(year: selectedFilterYear.value);
     } else {
       selectedFilterYear.value = currentYear;
-      print('⚠️ Nenhum ano encontrado, usando ano atual: ${selectedFilterYear.value}');
+      log('⚠️ Nenhum ano encontrado, usando ano atual: ${selectedFilterYear.value}', name: 'ReportsController');
       await readClasses(year: selectedFilterYear.value);
       await readStudents(year: selectedFilterYear.value);
     }
     filterClasses();
     filterStudents();
-    print('✅ ReportsController.loadYearsAndClasses - Concluído');
+    log('✅ ReportsController.loadYearsAndClasses - Concluído', name: 'ReportsController');
   }
 
   void onYearSelected(int tabIndex, int year) {
@@ -176,11 +180,11 @@ class ReportsController extends GetxController {
   }
 
   Future<void> readStudents({required int year}) async {
-    print('🔍 ReportsController.readStudents - Carregando alunos para o ano: $year');
+    log('🔍 ReportsController.readStudents - Carregando alunos para o ano: $year', name: 'ReportsController');
     isLoadingStudents.value = true;
     try {
       final studentsData = await _reportsRepository.getStudentsWithReportsData(year);
-      print('📊 ReportsController.readStudents - Dados recebidos: ${studentsData.length} alunos');
+      log('📊 ReportsController.readStudents - Dados recebidos: ${studentsData.length} alunos', name: 'ReportsController');
       
       reportStudents.clear();
       
@@ -209,13 +213,13 @@ class ReportsController extends GetxController {
         };
         
         reportStudents.add(studentReport);
-        print('👤 Aluno adicionado: ${studentData['name']} (Turma: ${studentData['class_name']})');
+        log('👤 Aluno adicionado: ${studentData['name']} (Turma: ${studentData['class_name']})', name: 'ReportsController');
       }
       
-      print('📝 Total de alunos processados: ${reportStudents.length}');
+      log('📝 Total de alunos processados: ${reportStudents.length}', name: 'ReportsController');
       filterStudents();
     } catch (e) {
-      print('❌ Erro ao carregar alunos: ${e.toString()}');
+      log('❌ Erro ao carregar alunos: ${e.toString()}', name: 'ReportsController');
       Get.snackbar(
         'Erro',
         'Não foi possível carregar os relatórios de alunos: ${e.toString()}',
@@ -262,24 +266,17 @@ class ReportsController extends GetxController {
     studentSearchText.value = text;
   }
 
-  Future<void> loadAttendanceReport(int classId) async {
+ Future<void> loadAttendanceReport(int classId) async {
+  try {
     isLoadingAttendance.value = true;
-    try {
-      final data = await _reportsRepository.getAttendanceReportByClassId(classId);
-      attendanceReportData.value = data;
-    } catch (e) {
-      Get.snackbar(
-        'Erro',
-        'Não foi possível carregar o relatório de chamadas: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
-      );
-      attendanceReportData.clear();
-    } finally {
-      isLoadingAttendance.value = false;
-    }
+    final data = await _reportsRepository.getAttendanceReportByClassId(classId);
+    attendanceReportData.assignAll(data);
+  } catch (e) {
+    log('Erro ao carregar relatório de presença: $e', name: 'ReportsController');
+  } finally {
+    isLoadingAttendance.value = false;
   }
+}
 
   // Class report methods
   void openAttendanceReport(Classe classe) {
@@ -399,4 +396,50 @@ class ReportsController extends GetxController {
   void openStudentUnifiedReport(Map<String, dynamic> student) {
     Get.toNamed('/reports/student-unified-report', arguments: student);
   }
+
+  Future<void> loadOccurrencesReport(int classeId) async {
+  try {
+    log('⏳ Iniciando carregamento de ocorrências para turma $classeId', name: 'ReportsController');
+    isLoadingOccurrences.value = true;
+    occurrencesData.clear();
+    
+    // Usar o repository para buscar as ocorrências
+    final result = await _reportsRepository.getOccurrencesReportByClassId(classeId);
+    
+    log('📊 Ocorrências recebidas: ${result.length}', name: 'ReportsController');
+    if (result.isNotEmpty) {
+      log('📋 Primeira ocorrência: ${result.first}', name: 'ReportsController');
+    } else {
+      log('⚠️ Nenhuma ocorrência encontrada para esta turma', name: 'ReportsController');
+    }
+    
+    // Process dates for consistent formatting
+    final processedResult = result.map((item) {
+      // Parse and standardize date format
+      try {
+        if (item['date'] != null && item['date'].toString().isNotEmpty) {
+          final DateTime date = DateTime.parse(item['date'].toString());
+          item['date'] = date.toIso8601String().split('T')[0];
+        }
+      } catch (e) {
+        log('⚠️ Erro ao processar data: ${item['date']} - $e', name: 'ReportsController');
+      }
+      return item;
+    }).toList();
+    
+    occurrencesData.addAll(processedResult);
+    log('✅ Ocorrências carregadas e processadas: ${occurrencesData.length}', name: 'ReportsController');
+  } catch (e) {
+    log('❌ Erro ao carregar ocorrências: $e', name: 'ReportsController');
+    Get.snackbar(
+      'Erro',
+      'Não foi possível carregar as ocorrências: ${e.toString()}',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Get.theme.colorScheme.error,
+      colorText: Get.theme.colorScheme.onError,
+    );
+  } finally {
+    isLoadingOccurrences.value = false;
+  }
+}
 }

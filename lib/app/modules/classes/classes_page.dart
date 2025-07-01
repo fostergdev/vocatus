@@ -242,13 +242,13 @@ class ClassesPage extends GetView<ClassesController> {
                         ),
                       CustomPopupMenuItem(
                         label: 'Relatórios',
-                        icon: Icons.assessment_outlined,
-                        onTap: () async {
+                        icon: Icons.assessment,
+                        onTap: () {
                           developer.log(
-                            'Abrindo relatórios da turma ${classe.name}',
+                            'Abrindo relatório unificado da turma ${classe.name}',
                             name: 'ClassesPage',
                           );
-                          await _showClassReportsDialog(classe);
+                          Get.toNamed('/reports/class-unified', arguments: classe);
                         },
                       ),
                       CustomPopupMenuItem(
@@ -550,42 +550,43 @@ class ClassesPage extends GetView<ClassesController> {
               ),
             ),
             child: const Text('Cancelar'),
-          ),              ElevatedButton(
-                onPressed: () async {
-                  if (controller.formEditKey.currentState!.validate()) {
-                    try {
-                      final currentYear = DateTime.now().year;
-                      developer.log(
-                        'Salvando edição da turma: ${controller.classeEditNameEC.text} ($currentYear)',
-                        name: 'ClassesPage',
-                      );
-                      await controller.updateClasse(
-                        Classe(
-                          id: classe.id,
-                          name: controller.classeEditNameEC.text,
-                          description: controller.classeDescriptionEC.text.isEmpty
-                              ? null
-                              : controller.classeDescriptionEC.text,
-                          schoolYear: currentYear,
-                          createdAt: classe.createdAt,
-                          active: classe.active,
-                        ),
-                      );
-                      controller.selectedYear.value = currentYear;
-                      Get.back();
-                    } catch (e) {
-                      developer.log(
-                        'Erro ao editar turma: $e',
-                        name: 'ClassesPage',
-                        error: e,
-                      );
-                      Get.dialog(
-                        CustomErrorDialog(title: 'Erro', message: e.toString()),
-                        barrierDismissible: false,
-                      );
-                    }
-                  }
-                },
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (controller.formEditKey.currentState!.validate()) {
+                try {
+                  final currentYear = DateTime.now().year;
+                  developer.log(
+                    'Salvando edição da turma: ${controller.classeEditNameEC.text} ($currentYear)',
+                    name: 'ClassesPage',
+                  );
+                  await controller.updateClasse(
+                    Classe(
+                      id: classe.id,
+                      name: controller.classeEditNameEC.text,
+                      description: controller.classeDescriptionEC.text.isEmpty
+                          ? null
+                          : controller.classeDescriptionEC.text,
+                      schoolYear: currentYear,
+                      createdAt: classe.createdAt,
+                      active: classe.active,
+                    ),
+                  );
+                  controller.selectedYear.value = currentYear;
+                  Get.back();
+                } catch (e) {
+                  developer.log(
+                    'Erro ao editar turma: $e',
+                    name: 'ClassesPage',
+                    error: e,
+                  );
+                  Get.dialog(
+                    CustomErrorDialog(title: 'Erro', message: e.toString()),
+                    barrierDismissible: false,
+                  );
+                }
+              }
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Constants.primaryColor,
               foregroundColor: Colors.white,
@@ -645,104 +646,4 @@ class ClassesPage extends GetView<ClassesController> {
     );
   }
 
-  Future<void> _showClassReportsDialog(Classe classe) async {
-    await Get.dialog(
-      CustomDialog(
-        title: 'Relatórios da Turma',
-        icon: Icons.assessment_outlined,
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.checklist,
-                  color: Colors.green.shade600,
-                ),
-              ),
-              title: const Text(
-                'Relatório de Presença',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: const Text('Visualizar frequência da turma'),
-              onTap: () {
-                Get.back();
-                // Navegar para relatório de presença usando o controller do reports
-                Get.toNamed('/reports/attendance-report', arguments: {
-                  'classId': classe.id,
-                  'className': classe.name,
-                });
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.assignment,
-                  color: Colors.blue.shade600,
-                ),
-              ),
-              title: const Text(
-                'Relatório de Notas',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: const Text('Visualizar desempenho da turma'),
-              onTap: () {
-                Get.back();
-                // Placeholder para relatório de notas
-                Get.toNamed('/reports/grades-report', arguments: {
-                  'classId': classe.id,
-                  'className': classe.name,
-                });
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.orange.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.report_problem,
-                  color: Colors.orange.shade600,
-                ),
-              ),
-              title: const Text(
-                'Relatório de Ocorrências',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: const Text('Visualizar ocorrências da turma'),
-              onTap: () {
-                Get.back();
-                // Navegar para relatório de ocorrências
-                Get.toNamed('/reports/occurrences-report', arguments: {
-                  'classId': classe.id,
-                  'className': classe.name,
-                });
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Fechar'),
-          ),
-        ],
-      ),
-      barrierDismissible: true,
-    );
-  }
 }

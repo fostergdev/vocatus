@@ -1,5 +1,7 @@
 // app/repositories/reports/reports_repository.dart
-import 'package:vocatus/app/core/utils/database_helper.dart';
+import 'dart:developer';
+
+import 'package:vocatus/app/core/utils/database/database_helper.dart';
 import 'package:vocatus/app/repositories/reports/i_reports_repository.dart';
 
 class ReportsRepository implements IReportsRepository {
@@ -97,17 +99,17 @@ class ReportsRepository implements IReportsRepository {
         COALESCE(a.date, '') AS date,
         COALESCE(a.content, '') AS content,
         CASE
-          WHEN sa.presence = 1 THEN 'P'
-          WHEN sa.presence = 0 THEN 'A'
-          ELSE 'N'
+          WHEN sa.presence = 1 THEN 'P'  -- 1 = Presente (checkbox marcado)
+          WHEN sa.presence = 0 THEN 'A'  -- 0 = Ausente (checkbox desmarcado)
+          ELSE 'N'                       -- Não informado  
         END AS status
       FROM student s
-      LEFT JOIN student_attendance sa ON s.id = sa.student_id
-      LEFT JOIN attendance a ON sa.attendance_id = a.id
       INNER JOIN classe_student cs ON s.id = cs.student_id
+      INNER JOIN attendance a ON cs.classe_id = a.classe_id
+      LEFT JOIN student_attendance sa ON s.id = sa.student_id AND a.id = sa.attendance_id
       WHERE cs.classe_id = ? AND cs.active = 1 AND s.active = 1
         AND a.date IS NOT NULL
-      ORDER BY s.name, a.date;
+      ORDER BY a.date DESC, s.name COLLATE NOCASE
     ''',
       [classId],
     );
@@ -243,5 +245,71 @@ class ReportsRepository implements IReportsRepository {
       [classId],
     );
     return result;
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getOccurrencesReportByClassId(int classId) async {
+    final db = await _dbHelper.database;
+    log('🔍 Executando consulta de ocorrências para turma $classId', name: 'ReportsRepository');
+    
+    try {
+      // First get all attendances for this class
+      final attendances = await db.query(
+        'attendance',
+        columns: ['id'],
+        where: 'classe_id = ? AND active = 1',
+        whereArgs: [classId],
+      );
+      
+      if (attendances.isEmpty) {
+        log('⚠️ Nenhuma chamada encontrada para esta turma', name: 'ReportsRepository');
+        return [];
+      }
+      
+      // Extract the attendance IDs
+      final attendanceIds = attendances.map((a) => a['id'] as int).toList();
+      
+      // Form the placeholders for the SQL IN clause
+      final placeholders = List.filled(attendanceIds.length, '?').join(',');
+      
+      // Query occurrences that belong to these attendances
+      final List<Map<String, dynamic>> result = await db.rawQuery(
+        '''
+        SELECT
+          o.id,
+          o.occurrence_date as date,
+          o.description,
+          o.occurrence_type as type,
+          CASE WHEN o.student_id IS NULL THEN 1 ELSE 0 END as is_general,
+          s.name AS student_name,
+          a.date AS attendance_date,
+          c.name AS class_name
+        FROM occurrence o
+        LEFT JOIN student s ON o.student_id = s.id
+        INNER JOIN attendance a ON o.attendance_id = a.id
+        INNER JOIN classe c ON a.classe_id = c.id
+        WHERE o.attendance_id IN ($placeholders) AND o.active = 1
+        ORDER BY o.occurrence_date DESC
+        ''',
+        [...attendanceIds],
+      );
+      
+      log('📊 Resultado da consulta: ${result.length} ocorrências encontradas', name: 'ReportsRepository');
+      
+      // Standardize the result format
+      return result.map((record) => {
+        'id': record['id'],
+        'date': record['date'] ?? record['attendance_date'] ?? DateTime.now().toIso8601String(),
+        'description': record['description'] ?? 'Sem descrição',
+        'type': record['type'] ?? 'GERAL',
+        'is_general': record['is_general'] ?? 0,
+        'student_name': record['student_name'] ?? 'Turma Toda',
+        'attendance_date': record['attendance_date'],
+        'class_name': record['class_name'],
+      }).toList();
+    } catch (e) {
+      log('❌ Erro na consulta SQL: $e', name: 'ReportsRepository');
+      return [];
+    }
   }
 }

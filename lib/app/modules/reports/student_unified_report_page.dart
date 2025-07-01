@@ -11,7 +11,7 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
     final student = Get.arguments as Map<String, dynamic>;
     
     return DefaultTabController(
-      length: 3,
+      length: 2,
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -50,16 +50,11 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
                 icon: Icon(Icons.report_problem),
                 text: 'Ocorrências',
               ),
-              Tab(
-                icon: Icon(Icons.assignment),
-                text: 'Notas',
-              ),
             ],
           ),
         ),
         body: Column(
           children: [
-            // Student summary card
             Container(
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(16),
@@ -134,27 +129,16 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
                           color: Colors.orange,
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildSummaryItem(
-                          icon: Icons.assignment,
-                          title: 'Média Geral',
-                          value: '${student['average_grade'] ?? '0.0'}',
-                          color: Colors.blue,
-                        ),
-                      ),
                     ],
                   ),
                 ],
               ),
             ),
-            // Tabs content
             Expanded(
               child: TabBarView(
                 children: [
                   _buildAttendanceTab(student),
                   _buildOccurrencesTab(student),
-                  _buildGradesTab(student),
                 ],
               ),
             ),
@@ -445,40 +429,6 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
           );
         });
       },
-    );
-  }
-
-  Widget _buildGradesTab(Map<String, dynamic> student) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.assignment_outlined,
-            size: 80,
-            color: Colors.grey.shade300,
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'Histórico de notas em desenvolvimento.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Esta funcionalidade será implementada em breve.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey.shade600,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -1,23 +1,45 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:vocatus/app/core/widgets/custom_square_button.dart';
-import './home_controller.dart';
+import './home_controller.dart'; // Mantenha este import se tiver um HomeController
 
 class HomePage extends GetView<HomeController> {
+  // Se não tiver HomeController, pode ser StatelessWidget
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Acesse o ColorScheme do tema atual
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+
+    // Defina as cores do gradiente com base no ColorScheme
+    // Para o tema claro, será um roxo claro para branco/fundo
+    // Para o tema escuro, pode ser um cinza escuro para preto, ou um roxo escuro para cinza escuro
+    List<Color> gradientColors;
+    if (Theme.of(context).brightness == Brightness.dark) {
+      gradientColors = [
+        colorScheme.surfaceContainerHighest, // Uma cor de superfície mais escura
+        colorScheme
+            .surface, // Cor de fundo do tema escuro (geralmente preto ou cinza bem escuro)
+      ];
+    } else {
+      gradientColors = [
+        colorScheme.primary.withValues(alpha: 
+          0.05,
+        ), // Um tom muito claro da cor primária
+        colorScheme
+            .surface, // Cor de fundo do tema claro (geralmente branco ou cinza claro)
+      ];
+    }
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Colors.purple.shade50,
-              Colors.white,
-            ],
+            colors: gradientColors, // Use as cores dinâmicas
           ),
         ),
         child: Padding(
@@ -26,100 +48,64 @@ class HomePage extends GetView<HomeController> {
             crossAxisCount: 2,
             mainAxisSpacing: 20,
             crossAxisSpacing: 20,
-            childAspectRatio: 1.0,
-            children: List.generate(8, (index) {
-              return CustomSquareButton(
-                text: _getButtonText(index),
-                icon: _getButtonIcon(index),
-                onPressed: () => _onButtonPressed(context, index),
-                elevation: 4.0,
-              );
-            }),
+            childAspectRatio: 1.2,
+            children: [
+              _buildMenuButton(
+                'Chamada',
+                Icons.how_to_reg,
+                () => Get.toNamed('/attendance/select'),
+                context, // Passe o contexto para o CustomSquareButton
+              ),
+              _buildMenuButton(
+                'Turmas',
+                Icons.school,
+                () => Get.toNamed('/classes/home'),
+                context,
+              ),
+              _buildMenuButton(
+                'Alunos',
+                Icons.person,
+                () => Get.toNamed('/students/reports'),
+                context,
+              ),
+              _buildMenuButton(
+                'Horário',
+                Icons.schedule,
+                () => Get.toNamed('/grade/home'),
+                context,
+              ),
+              _buildMenuButton(
+                'Disciplinas',
+                Icons.book,
+                () => Get.toNamed('/disciplines/home'),
+                context,
+              ),
+              _buildMenuButton(
+                'Configurações',
+                Icons.settings,
+                () => Get.toNamed('/settings'),
+                context,
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  String _getButtonText(int index) {
-    switch (index) {
-      case 0:
-        return 'Chamada';
-      case 1:
-        return 'Turmas';
-      case 2:
-        return 'Tarefas';
-      case 3:
-        return 'Horário';
-      case 4:
-        return 'Disciplinas';
-      case 5:
-        return 'Ocorrências';
-      case 6:
-        return 'Alunos';
-      case 7:
-        return 'Configurações';
- /*      case 6:
-        return 'Histórico'; */
-      default:
-        return '';
-    }
-  }
-
-  IconData _getButtonIcon(int index) {
-    switch (index) {
-      case 0:
-        return Icons.check_circle_outline;
-      case 1:
-        return Icons.group;
-      case 2:
-        return Icons.assignment_outlined;
-      case 3:
-        return Icons.schedule;
-      case 4:
-        return Icons.library_books;
-      case 5:
-        return Icons.report;
-      case 6:
-        return Icons.person;
-      case 7:
-        return Icons.settings;
- /*      case 6:
-        return Icons.history; */
-      default:
-        return Icons.help;
-    }
-  }
-
-  void _onButtonPressed(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        Navigator.pushNamed(context, '/attendance/select');
-        break;
-      case 1:
-        Navigator.pushNamed(context, '/classes/home');
-        break;
-      case 2:
-        Navigator.pushNamed(context, '/homework/select');
-        break;
-      case 3:
-        Navigator.pushNamed(context, '/grade/home');
-        break;
-      case 4:
-        Navigator.pushNamed(context, '/disciplines/home');
-        break;
-      case 5:
-        Navigator.pushNamed(context, '/occurrence/select');
-        break;
-      case 6:
-        Navigator.pushNamed(context, '/students/reports');
-        break;
-      case 7:
-        Navigator.pushNamed(context, '/settings/home');
-        break;
-    /*   case 6:
-        Navigator.pushNamed(context, '/history/home');
-        break; */
-    }
+  // Modifique _buildMenuButton para aceitar context e usar cores do tema
+  Widget _buildMenuButton(
+    String text,
+    IconData icon,
+    VoidCallback onPressed,
+    BuildContext context,
+  ) {
+  
+    return CustomSquareButton(
+      text: text,
+      icon: icon,
+      onPressed: onPressed,
+      elevation: 8.0,
+    );
   }
 }

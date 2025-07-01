@@ -3,7 +3,7 @@
 import 'dart:developer'; // Importar o package developer para usar log
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:vocatus/app/core/utils/database_helper.dart';
+import 'package:vocatus/app/core/utils/database/database_helper.dart';
 import 'package:vocatus/app/models/classe.dart';
 import 'package:vocatus/app/repositories/classes/classes_repository.dart';
 import 'package:vocatus/app/core/widgets/custom_error_dialog.dart';

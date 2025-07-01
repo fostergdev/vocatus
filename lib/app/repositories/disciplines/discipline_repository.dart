@@ -1,5 +1,5 @@
 import 'package:sqflite/sqflite.dart'; // Importa o pacote sqflite para manipulação do banco de dados SQLite
-import 'package:vocatus/app/core/utils/database_helper.dart'; // Importa o helper do banco de dados
+import 'package:vocatus/app/core/utils/database/database_helper.dart'; // Importa o helper do banco de dados
 import 'package:vocatus/app/models/discipline.dart'; // Importa o modelo de Disciplina
 import 'package:vocatus/app/repositories/disciplines/i_discipline_repository.dart'; // Importa a interface do repositório de disciplinas
 

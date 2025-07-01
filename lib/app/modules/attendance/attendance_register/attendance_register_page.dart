@@ -11,26 +11,7 @@ import './attendance_register_controller.dart';
 class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
   const AttendanceRegisterPage({super.key});
 
-  String _getDayName(int dayOfWeek) {
-    switch (dayOfWeek) {
-      case 1:
-        return 'SEG';
-      case 2:
-        return 'TER';
-      case 3:
-        return 'QUA';
-      case 4:
-        return 'QUI';
-      case 5:
-        return 'SEX';
-      case 6:
-        return 'SÁB';
-      case 0:
-        return 'DOM';
-      default:
-        return 'Desconhecido';
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +69,7 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${_getDayName(selectedGrade.dayOfWeek)}, ${DateFormat('dd/MM/yyyy').format(controller.selectedDate.value)}',
+                      '${Constants.getDayName(selectedGrade.dayOfWeek)}, ${DateFormat('dd/MM/yyyy').format(controller.selectedDate.value)}',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,

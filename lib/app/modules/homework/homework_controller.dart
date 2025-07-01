@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:vocatus/app/core/utils/database_helper.dart';
+import 'package:vocatus/app/core/utils/database/database_helper.dart';
 import 'package:vocatus/app/models/homework.dart';
 import 'package:vocatus/app/models/discipline.dart';
 import 'package:vocatus/app/models/classe.dart';

@@ -13,26 +13,6 @@ import 'package:vocatus/app/modules/grade/grade_controller.dart';
 class GradesPage extends GetView<GradesController> {
   const GradesPage({super.key});
 
-  String _getDayName(int dayOfWeek) {
-    switch (dayOfWeek) {
-      case 1:
-        return 'Segunda-feira';
-      case 2:
-        return 'Terça-feira';
-      case 3:
-        return 'Quarta-feira';
-      case 4:
-        return 'Quinta-feira';
-      case 5:
-        return 'Sexta-feira';
-      case 6:
-        return 'Sábado';
-      case 0:
-        return 'Domingo';
-      default:
-        return 'Desconhecido';
-    }
-  }
 
   final List<Map<String, dynamic>> _daysOfWeek = const [
     {'value': 1, 'label': 'Segunda-feira'},
@@ -174,7 +154,7 @@ class GradesPage extends GetView<GradesController> {
         title: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            _getDayName(dayOfWeek),
+            Constants.getDayName(dayOfWeek),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -217,15 +197,15 @@ class GradesPage extends GetView<GradesController> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.purple.withOpacity(0.08),
+            color: Colors.purple.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
         ],
         border: Border.all(
           color: isActive
-              ? Constants.primaryColor.withOpacity(0.2)
-              : Colors.grey.withOpacity(0.2),
+              ? Constants.primaryColor.withValues(alpha: 0.2)
+              : Colors.grey.withValues(alpha: 0.2),
           width: 0.8,
         ),
       ),
@@ -236,7 +216,7 @@ class GradesPage extends GetView<GradesController> {
         ),
         leading: CircleAvatar(
           backgroundColor: isActive
-              ? Constants.primaryColor.withOpacity(0.1)
+              ? Constants.primaryColor.withValues(alpha: 0.1)
               : Colors.grey.shade100,
           child: Icon(Icons.school_outlined, color: iconColor, size: 24),
         ),
@@ -826,7 +806,7 @@ class GradesPage extends GetView<GradesController> {
     }
 
     final message =
-        'Tem certeza que deseja INATIVAR o horário das ${Grade.formatTimeDisplay(grade.startTimeOfDay)} - ${Grade.formatTimeDisplay(grade.endTimeOfDay)} (${_getDayName(grade.dayOfWeek)}) da turma "${grade.classe?.name ?? 'N/A'}"?\n\n'
+        'Tem certeza que deseja INATIVAR o horário das ${Grade.formatTimeDisplay(grade.startTimeOfDay)} - ${Grade.formatTimeDisplay(grade.endTimeOfDay)} (${Constants.getDayName(grade.dayOfWeek)}) da turma "${grade.classe?.name ?? 'N/A'}"?\n\n'
         'ATENÇÃO: Esta ação é irreversível. Não será possível reativar este horário depois.\n\n'
         'Você ainda poderá acessar os dados deste horário para consulta/histórico, mas não poderá reativá-lo.';
 

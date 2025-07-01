@@ -336,62 +336,67 @@ class OccurrencePage extends GetView<OccurrenceController> {
   }
 
   void _showOccurrenceFormDialog(BuildContext context, String title, bool isEdit, [Occurrence? occurrence]) {
+    // Definir a data da ocorrência para a data da chamada atual se não estiver editando
+    if (!isEdit) {
+      controller.selectedDate.value = controller.currentAttendance.date;
+    }
+    
     Get.dialog(
       CustomDialog(
         title: title,
         icon: isEdit ? Icons.edit : Icons.add,
-        content: Form(
-          key: controller.formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Switch para ocorrência geral
-              Obx(() => SwitchListTile(
-                title: const Text('Ocorrência Geral da Sala'),
-                subtitle: const Text('Marque se a ocorrência se refere à toda a turma'),
-                value: controller.isGeneralOccurrence.value,
-                onChanged: (value) {
-                  controller.isGeneralOccurrence.value = value;
-                  if (value) {
-                    controller.selectedStudent.value = null;
-                  }
-                },
-                activeColor: Constants.primaryColor,
-              )),
-              const SizedBox(height: 16),
-              
-              // Seleção de aluno (apenas se não for ocorrência geral)
-              Obx(() => controller.isGeneralOccurrence.value
-                  ? const SizedBox.shrink()
-                  : Column(
-                      children: [
-                        CustomDrop<Student>(
-                          items: controller.availableStudents,
-                          value: controller.selectedStudent.value,
-                          labelBuilder: (student) => student.name,
-                          onChanged: (student) => controller.selectedStudent.value = student,
-                          hint: 'Selecione o Aluno',
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                    )),
-              
-              // Tipo de ocorrência
-              Obx(() => CustomDrop<OccurrenceType>(
-                items: OccurrenceType.values,
-                value: controller.selectedType.value,
-                labelBuilder: (type) => controller.getOccurrenceTypeDisplayName(type),
-                onChanged: (type) => controller.selectedType.value = type,
-                hint: 'Selecione o Tipo de Ocorrência',
-              )),
-              const SizedBox(height: 16),
-              
-              // Data da ocorrência
-              Obx(() => InkWell(
-                onTap: () => _selectOccurrenceDate(context),
-                child: Container(
+        content: SingleChildScrollView(
+          child: Form(
+            key: controller.formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Switch para ocorrência geral
+                Obx(() => SwitchListTile(
+                  title: const Text('Ocorrência Geral da Sala'),
+                  subtitle: const Text('Marque se a ocorrência se refere à toda a turma'),
+                  value: controller.isGeneralOccurrence.value,
+                  onChanged: (value) {
+                    controller.isGeneralOccurrence.value = value;
+                    if (value) {
+                      controller.selectedStudent.value = null;
+                    }
+                  },
+                  activeColor: Constants.primaryColor,
+                )),
+                const SizedBox(height: 16),
+                
+                // Seleção de aluno (apenas se não for ocorrência geral)
+                Obx(() => controller.isGeneralOccurrence.value
+                    ? const SizedBox.shrink()
+                    : Column(
+                        children: [
+                          CustomDrop<Student>(
+                            items: controller.availableStudents,
+                            value: controller.selectedStudent.value,
+                            labelBuilder: (student) => student.name,
+                            onChanged: (student) => controller.selectedStudent.value = student,
+                            hint: 'Selecione o Aluno',
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      )),
+                
+                // Tipo de ocorrência
+                Obx(() => CustomDrop<OccurrenceType>(
+                  items: OccurrenceType.values,
+                  value: controller.selectedType.value,
+                  labelBuilder: (type) => controller.getOccurrenceTypeDisplayName(type),
+                  onChanged: (type) => controller.selectedType.value = type,
+                  hint: 'Selecione o Tipo de Ocorrência',
+                )),
+                const SizedBox(height: 16),
+                
+                // Data da ocorrência (somente visualização)
+                Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                   decoration: BoxDecoration(
+                    color: Colors.grey[200],
                     border: Border.all(color: Colors.grey),
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -400,29 +405,23 @@ class OccurrencePage extends GetView<OccurrenceController> {
                       const Icon(Icons.calendar_today),
                       const SizedBox(width: 12),
                       Text(
-                        controller.selectedDate.value != null
-                            ? 'Data: ${controller.selectedDate.value!.day}/${controller.selectedDate.value!.month}/${controller.selectedDate.value!.year}'
-                            : 'Selecionar Data da Ocorrência',
-                        style: TextStyle(
-                          color: controller.selectedDate.value != null
-                              ? Colors.black
-                              : Colors.grey[600],
-                        ),
+                        'Data: ${controller.currentAttendance.date.day}/${controller.currentAttendance.date.month}/${controller.currentAttendance.date.year}',
+                        style: TextStyle(color: Colors.grey[700]),
                       ),
                     ],
                   ),
                 ),
-              )),
-              const SizedBox(height: 16),
-              
-              // Descrição
-              CustomTextField(
-                controller: controller.descriptionEC,
-                hintText: 'Descreva a ocorrência...',
-                maxLines: 4,
-                validator: Validatorless.required('Descrição é obrigatória'),
-              ),
-            ],
+                const SizedBox(height: 16),
+                
+                // Descrição
+                CustomTextField(
+                  controller: controller.descriptionEC,
+                  hintText: 'Descreva a ocorrência...',
+                  maxLines: 4,
+                  validator: Validatorless.required('Descrição é obrigatória'),
+                ),
+              ],
+            ),
           ),
         ),
         actions: [
@@ -435,10 +434,12 @@ class OccurrencePage extends GetView<OccurrenceController> {
           ),
           ElevatedButton(
             onPressed: () async {
-              if (isEdit && occurrence != null) {
-                await controller.updateOccurrence(occurrence);
-              } else {
-                await controller.createOccurrence();
+              if (controller.formKey.currentState!.validate()) {
+                if (isEdit && occurrence != null) {
+                  await controller.updateOccurrence(occurrence);
+                } else {
+                  await controller.createOccurrence();
+                }
               }
             },
             style: ElevatedButton.styleFrom(
@@ -452,17 +453,6 @@ class OccurrencePage extends GetView<OccurrenceController> {
     );
   }
 
-  void _selectOccurrenceDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: controller.selectedDate.value ?? DateTime.now(),
-      firstDate: DateTime.now().subtract(const Duration(days: 30)),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null) {
-      controller.selectedDate.value = picked;
-    }
-  }
 
   void _showDeleteConfirmationDialog(BuildContext context, Occurrence occurrence) {
     Get.dialog(

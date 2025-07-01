@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
 
 class Constants {
   Constants._();
@@ -9,45 +8,26 @@ class Constants {
     return text[0].toUpperCase() + text.substring(1);
   }
 
+  static const bool isDevelopmentMode = true;
+
   static String getDayName(int dayOfWeek) {
     switch (dayOfWeek) {
       case 1:
-        return "Segunda-feira";
+        return "SEG";
       case 2:
-        return "Terça-feira";
+        return "TER";
       case 3:
-        return "Quarta-feira";
+        return "QUA";
       case 4:
-        return "Quinta-feira";
+        return "QUI";
       case 5:
-        return "Sexta-feira";
+        return "SEX";
       case 6:
-        return "Sábado";
+        return "SAB";
       case 7:
-        return "Domingo";
+        return "DOM";
       default:
-        return "Dia inválido";
-    }
-  }
-
-  static Future<void> insertDefaultDisciplines(Database db) async {
-    final defaultDisciplines = [
-      'matemática',
-      'português',
-      'história',
-      'geografia',
-      'física',
-      'química',
-      'biologia',
-      'inglês',
-      'artes',
-      'educação física',
-    ];
-
-    for (var discipline in defaultDisciplines) {
-      await db.insert('discipline', {
-        'name': discipline.toLowerCase(),
-      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+        return "N/A";
     }
   }
 

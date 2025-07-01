@@ -1,7 +1,6 @@
 import 'dart:developer'; // Importar para usar log
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:vocatus/app/core/utils/database_helper.dart';
+import 'package:vocatus/app/core/utils/database/database_helper.dart';
 import 'package:vocatus/app/core/widgets/custom_error_dialog.dart';
 import 'package:vocatus/app/models/grade.dart';
 import 'package:vocatus/app/repositories/attendance/attendance_select/attendance_select_repository.dart';

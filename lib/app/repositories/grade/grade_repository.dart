@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:sqflite/sqflite.dart';
-import 'package:vocatus/app/core/utils/database_helper.dart';
+import 'package:vocatus/app/core/utils/database/database_helper.dart';
 import 'package:vocatus/app/models/grade.dart';
 import 'package:vocatus/app/models/discipline.dart';
 import 'package:vocatus/app/models/classe.dart';

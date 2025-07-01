@@ -4,6 +4,7 @@ import 'package:vocatus/app/modules/reports/reports_page.dart';
 import 'package:vocatus/app/modules/reports/attendance_report_page.dart';
 import 'package:vocatus/app/modules/reports/class_occurrences_report_page.dart';
 import 'package:vocatus/app/modules/reports/class_grades_report_page.dart';
+import 'package:vocatus/app/modules/reports/class_unified_report_page.dart';
 
 
 class ReportsRoutes {
@@ -45,6 +46,11 @@ class ReportsRoutes {
           className: args['className'] as String,
         );
       },
+      binding: ReportsBindings(),
+    ),
+    GetPage(
+      name: '/reports/class-unified',
+      page: () => const ClassUnifiedReportPage(),
       binding: ReportsBindings(),
     ),
   ];

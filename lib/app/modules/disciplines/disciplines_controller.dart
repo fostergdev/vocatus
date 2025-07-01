@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart'; // Importa widgets do Flutter
 import 'package:get/get.dart'; // Importa o GetX para gerenciamento de estado
-import 'package:vocatus/app/core/utils/database_helper.dart'; // Importa o helper do banco de dados
+import 'package:vocatus/app/core/utils/database/database_helper.dart'; // Importa o helper do banco de dados
 import 'package:vocatus/app/models/discipline.dart'; // Importa o modelo de Disciplina
 import 'package:vocatus/app/repositories/disciplines/discipline_repository.dart'; // Importa o repositório de disciplinas
 
