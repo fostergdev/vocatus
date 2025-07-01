@@ -16,24 +16,31 @@ class CustomSquareButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Acesse o ColorScheme do tema atual
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     return InkWell(
       onTap: onPressed,
       borderRadius: BorderRadius.circular(12),
-      splashColor: Colors.deepPurple.withValues(alpha: .3),
-      highlightColor: Colors.deepPurple.withValues(alpha: .2),
+      // Use a cor primária do tema para os efeitos de splash e highlight
+      splashColor: colorScheme.primary.withValues(alpha: .2), // Um tom mais suave da cor primária
+      highlightColor: colorScheme.primary.withValues(alpha: .1), // Um tom ainda mais suave
       child: Container(
         width: double.infinity,
         height: 120,
         decoration: BoxDecoration(
-          color: Colors.white,
+          // Cor de fundo do botão: use surface ou background do tema
+          color: colorScheme.surface, // Geralmente branco no tema claro, cinza escuro no escuro
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.grey.withValues(alpha: .3),
+            // Cor da borda: use outline ou um tom de cinza do tema
+            color: colorScheme.outlineVariant, // Uma cor de borda do Material 3
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: .4),
+              // Cor da sombra: use a cor da sombra do tema
+              color: colorScheme.shadow.withValues(alpha: 0.2), // Uma sombra mais sutil
               blurRadius: elevation ?? 4.0,
               offset: Offset(0, (elevation ?? 4.0) / 2),
             ),
@@ -45,15 +52,17 @@ class CustomSquareButton extends StatelessWidget {
             Icon(
               icon,
               size: 30,
-              color: Colors.deepPurple,
+              // Cor do ícone: use a cor primária do tema
+              color: colorScheme.primary,
             ),
             const SizedBox(height: 10),
             Text(
               text,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: Colors.deepPurple,
+                // Cor do texto: use onSurface (texto em cima da superfície)
+                color: colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
               ),
             ),

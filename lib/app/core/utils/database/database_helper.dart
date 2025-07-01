@@ -3,7 +3,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:vocatus/app/core/constants/constants.dart';
 import 'package:vocatus/app/core/utils/database/database_schema.dart';
-import 'package:vocatus/app/core/utils/database/database_seed.dart'; // <-- NOVO IMPORT
+import 'package:vocatus/app/core/utils/database/database_seed.dart';
 
 class DatabaseHelper {
   static Database? _database;
@@ -60,10 +60,9 @@ class DatabaseHelper {
         );
         try {
           await db.execute('PRAGMA foreign_keys = ON;');
-          await DatabaseSchema.createTables(db); // Cria as tabelas sempre
+          await DatabaseSchema.createTables(db);
 
-          // SOMENTE EXECUTA O SEED SE ESTIVER EM MODO DE DESENVOLVIMENTO
-          if (Constants.isDevelopmentMode) { // <-- VERIFICAÇÃO AQUI
+          if (Constants.isDevelopmentMode) {
             log(
               'DatabaseHelper.onCreate - Modo de desenvolvimento detectado. Inserindo dados iniciais (seeding).',
               name: 'DatabaseHelper',
@@ -96,8 +95,6 @@ class DatabaseHelper {
           name: 'DatabaseHelper',
         );
         try {
-          // Para este exemplo, vamos manter a estratégia de recriar tudo no upgrade.
-          // Em um app de produção, você faria migrações incrementais.
           log(
             'DatabaseHelper.onUpgrade - Deletando todas as tabelas para recriação.',
             name: 'DatabaseHelper',
@@ -106,8 +103,7 @@ class DatabaseHelper {
           await db.execute('PRAGMA foreign_keys = ON;');
           await DatabaseSchema.createTables(db);
 
-          // SOMENTE EXECUTA O SEED SE ESTIVER EM MODO DE DESENVOLVIMENTO NO UPGRADE
-          if (Constants.isDevelopmentMode) { // <-- VERIFICAÇÃO AQUI TAMBÉM
+          if (Constants.isDevelopmentMode) {
             log(
               'DatabaseHelper.onUpgrade - Modo de desenvolvimento detectado. Repopulando dados (seeding).',
               name: 'DatabaseHelper',

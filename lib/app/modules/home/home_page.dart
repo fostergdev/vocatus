@@ -10,8 +10,10 @@ class HomePage extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     // Acesse o ColorScheme do tema atual
+    print(
+      'HomePage reconstruindo. Cor primária do tema: ${Theme.of(context).colorScheme.primary}',
+    );
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-
 
     // Defina as cores do gradiente com base no ColorScheme
     // Para o tema claro, será um roxo claro para branco/fundo
@@ -19,15 +21,16 @@ class HomePage extends GetView<HomeController> {
     List<Color> gradientColors;
     if (Theme.of(context).brightness == Brightness.dark) {
       gradientColors = [
-        colorScheme.surfaceContainerHighest, // Uma cor de superfície mais escura
+        colorScheme
+            .surfaceContainerHighest, // Uma cor de superfície mais escura
         colorScheme
             .surface, // Cor de fundo do tema escuro (geralmente preto ou cinza bem escuro)
       ];
     } else {
       gradientColors = [
         colorScheme.primary.withValues(alpha: 
-          0.05,
-        ), // Um tom muito claro da cor primária
+          0.05, // Um tom muito claro da cor primária
+        ),
         colorScheme
             .surface, // Cor de fundo do tema claro (geralmente branco ou cinza claro)
       ];
@@ -100,7 +103,6 @@ class HomePage extends GetView<HomeController> {
     VoidCallback onPressed,
     BuildContext context,
   ) {
-  
     return CustomSquareButton(
       text: text,
       icon: icon,
