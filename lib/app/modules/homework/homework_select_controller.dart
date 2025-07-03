@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:vocatus/app/core/utils/database/database_helper.dart';
 import 'package:vocatus/app/models/classe.dart';
 import 'package:vocatus/app/repositories/classes/classes_repository.dart';
-import 'dart:developer';
 
 class HomeworkSelectController extends GetxController {
   final ClasseRepository _classeRepository = ClasseRepository(
@@ -18,14 +17,12 @@ class HomeworkSelectController extends GetxController {
 
   @override
   void onInit() {
-    log('HomeworkSelectController.onInit - Inicializando controller de seleção de turmas para homework', name: 'HomeworkSelectController');
     loadClasses();
     super.onInit();
   }
 
   @override
   void onClose() {
-    log('HomeworkSelectController.onClose - Limpando recursos do controller', name: 'HomeworkSelectController');
     searchController.dispose();
     super.onClose();
   }
@@ -33,7 +30,6 @@ class HomeworkSelectController extends GetxController {
   Future<void> loadClasses() async {
     try {
       isLoading.value = true;
-      log('HomeworkSelectController.loadClasses - Carregando turmas ativas para seleção', name: 'HomeworkSelectController');
       
       final result = await _classeRepository.readClasses(
         year: selectedYear.value,
@@ -42,10 +38,7 @@ class HomeworkSelectController extends GetxController {
       
       classes.value = result;
       _applySearchFilter();
-      
-      log('HomeworkSelectController.loadClasses - ${result.length} turmas carregadas com sucesso', name: 'HomeworkSelectController');
     } catch (e) {
-      log('HomeworkSelectController.loadClasses - Erro ao carregar turmas: $e', name: 'HomeworkSelectController');
       Get.snackbar(
         'Erro',
         'Erro ao carregar turmas: $e',
@@ -76,7 +69,6 @@ class HomeworkSelectController extends GetxController {
   }
 
   void selectClasse(Classe classe) {
-    log('HomeworkSelectController.selectClasse - Navegando para homework da turma: ${classe.name}', name: 'HomeworkSelectController');
     Get.toNamed('/homework/home', arguments: classe);
   }
 

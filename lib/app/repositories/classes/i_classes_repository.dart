@@ -1,6 +1,7 @@
 import 'package:vocatus/app/models/classe.dart';
+import 'package:vocatus/app/models/schedule.dart';
 import 'package:vocatus/app/models/student.dart';
-import 'package:vocatus/app/models/grade.dart';
+
 
 abstract class IClasseRepository {
   Future<Classe> createClasse(Classe classe);
@@ -12,5 +13,5 @@ abstract class IClasseRepository {
     int classeId, {
     bool activeOnly = true,
   });
-  Future<List<Grade>> getClasseGrades(int classeId, {bool activeOnly = true});
+  Future<List<Schedule>> getClasseSchedules(int classeId, {bool activeOnly = true});
 }

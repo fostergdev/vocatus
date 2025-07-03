@@ -1,20 +1,20 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:vocatus/app/core/constants/constants.dart'; // Mantenha, mas sem primaryColor
+import 'package:vocatus/app/core/constants/constants.dart'; 
 import 'package:vocatus/app/core/widgets/custom_confirmation_dialog_with_code.dart';
 import 'package:vocatus/app/core/widgets/custom_drop.dart';
-// import 'package:vocatus/app/core/widgets/custom_popbutton.dart'; // Remova se não estiver usando
+
 import 'package:vocatus/app/core/widgets/custom_dialog.dart';
 import 'package:vocatus/app/core/widgets/custom_popbutton.dart';
 import 'package:vocatus/app/models/classe.dart';
 import 'package:vocatus/app/models/discipline.dart';
-import 'package:vocatus/app/models/grade.dart';
-import 'package:vocatus/app/modules/grade/grade_controller.dart';
+import 'package:vocatus/app/models/schedule.dart';
+import 'package:vocatus/app/modules/schedule/schedule_controller.dart';
 
 
 
-class GradesPage extends GetView<GradesController> {
-  const GradesPage({super.key});
+class SchedulePage extends GetView<ScheduleController> {
+  const SchedulePage({super.key});
 
   final List<Map<String, dynamic>> _daysOfWeek = const [
     {'value': 1, 'label': 'Segunda-feira'},
@@ -37,7 +37,7 @@ class GradesPage extends GetView<GradesController> {
           'Horário: ${controller.selectedFilterYear.value}',
           style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: colorScheme.onPrimary, // Texto da AppBar
+            color: colorScheme.onPrimary, 
           ),
         ),
         centerTitle: true,
@@ -45,8 +45,8 @@ class GradesPage extends GetView<GradesController> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                colorScheme.primary.withOpacity(0.9), // Usa a cor primária do tema
-                colorScheme.primary, // Usa a cor primária do tema
+                colorScheme.primary.withValues(alpha:0.9), 
+                colorScheme.primary, 
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -57,7 +57,7 @@ class GradesPage extends GetView<GradesController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: IconThemeData(color: colorScheme.onPrimary), // Cor dos ícones da AppBar
+        iconTheme: IconThemeData(color: colorScheme.onPrimary), 
         actions: const [],
       ),
       body: Column(
@@ -69,17 +69,17 @@ class GradesPage extends GetView<GradesController> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircularProgressIndicator(color: colorScheme.primary), // Indicador com cor primária
+                      CircularProgressIndicator(color: colorScheme.primary), 
                       const SizedBox(height: 16),
                       Text(
                         'Carregando horários...',
-                        style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant), // Cor do texto
+                        style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant), 
                       ),
                     ],
                   ),
                 );
               }
-              if (controller.grades.isEmpty) {
+              if (controller.schedules.isEmpty) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -87,14 +87,14 @@ class GradesPage extends GetView<GradesController> {
                       Icon(
                         Icons.calendar_today_outlined,
                         size: 80,
-                        color: colorScheme.onSurfaceVariant.withOpacity(0.3), // Cor do ícone
+                        color: colorScheme.onSurfaceVariant.withValues(alpha:0.3), 
                       ),
                       const SizedBox(height: 20),
                       Text(
                         'Nenhum horário agendado para este ano.',
                         textAlign: TextAlign.center,
                         style: textTheme.titleMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant, // Cor do texto
+                          color: colorScheme.onSurfaceVariant, 
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -102,57 +102,57 @@ class GradesPage extends GetView<GradesController> {
                       Text(
                         'Que tal adicionar um novo horário agora?',
                         textAlign: TextAlign.center,
-                        style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant), // Cor do texto
+                        style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant), 
                       ),
                     ],
                   ),
                 );
               }
-              final sortedDays = controller.grades.keys.map(int.parse).toList()
+              final sortedDays = controller.schedules.keys.map(int.parse).toList()
                 ..sort();
 
               return ListView.builder(
                 itemCount: sortedDays.length,
                 itemBuilder: (context, dayIndex) {
                   final dayOfWeek = sortedDays[dayIndex];
-                  final gradesForDay = controller.grades[dayOfWeek.toString()]!;
+                  final schedulesForDay = controller.schedules[dayOfWeek.toString()]!;
 
-                  return _buildDayCard(context, dayOfWeek, gradesForDay, colorScheme, textTheme); // Passa context e theme
+                  return _buildDayCard(context, dayOfWeek, schedulesForDay, colorScheme, textTheme); 
                 },
               );
             }),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton( // Usar FloatingActionButton normal
+      floatingActionButton: FloatingActionButton( 
         onPressed: () async {
-          _showAddGradeDialog(context, colorScheme, textTheme); // Passa context e theme
+          _showAddScheduleDialog(context, colorScheme, textTheme); 
         },
         tooltip: 'Adicionar Horário',
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), // Mais arredondado
-        backgroundColor: colorScheme.primary, // Fundo do FAB
-        foregroundColor: colorScheme.onPrimary, // Ícone/texto do FAB
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), 
+        backgroundColor: colorScheme.primary, 
+        foregroundColor: colorScheme.onPrimary, 
         elevation: 8,
-        child: const Icon(Icons.add, size: 28), // Ícone de '+' padrão
+        child: const Icon(Icons.add, size: 28), 
       ),
     );
   }
 
-  Widget _buildDayCard(BuildContext context, int dayOfWeek, List<Grade> gradesForDay, ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildDayCard(BuildContext context, int dayOfWeek, List<Schedule> schedulesForDay, ColorScheme colorScheme, TextTheme textTheme) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      // Cores do Card
+      
       color: colorScheme.surface,
       surfaceTintColor: colorScheme.primaryContainer,
-      shadowColor: colorScheme.shadow.withOpacity(0.2),
+      shadowColor: colorScheme.shadow.withValues(alpha:0.2),
       child: ExpansionTile(
-        // Cores do ExpansionTile
-        collapsedBackgroundColor: colorScheme.primaryContainer, // Fundo recolhido
-        backgroundColor: colorScheme.surface, // Fundo expandido
-        iconColor: colorScheme.primary, // Cor do ícone (seta)
-        collapsedIconColor: colorScheme.onPrimaryContainer, // Cor do ícone recolhido
+        
+        collapsedBackgroundColor: colorScheme.primaryContainer, 
+        backgroundColor: colorScheme.surface, 
+        iconColor: colorScheme.primary, 
+        collapsedIconColor: colorScheme.onPrimaryContainer, 
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -161,22 +161,22 @@ class GradesPage extends GetView<GradesController> {
             style: textTheme.titleMedium?.copyWith(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface, // Cor do título do dia
+              color: colorScheme.onSurface, 
             ),
           ),
         ),
         children: [
           Container(
             decoration: BoxDecoration(
-              color: colorScheme.surface, // Fundo da lista de itens
+              color: colorScheme.surface, 
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(16),
                 bottomRight: Radius.circular(16),
               ),
             ),
             child: Column(
-              children: gradesForDay
-                  .map((grade) => _buildScheduleItem(context, grade, colorScheme, textTheme)) // Passa context e theme
+              children: schedulesForDay
+                  .map((schedule) => _buildScheduleItem(context, schedule, colorScheme, textTheme)) 
                   .toList(),
             ),
           ),
@@ -185,28 +185,28 @@ class GradesPage extends GetView<GradesController> {
     );
   }
 
-  Widget _buildScheduleItem(BuildContext context, Grade grade, ColorScheme colorScheme, TextTheme textTheme) {
-    final isActive = grade.active ?? true;
+  Widget _buildScheduleItem(BuildContext context, Schedule schedule, ColorScheme colorScheme, TextTheme textTheme) {
+    final isActive = schedule.active ?? true;
     final textColor = isActive ? colorScheme.onSurface : colorScheme.onSurfaceVariant;
-    final subtitleColor = isActive ? colorScheme.onSurfaceVariant : colorScheme.onSurfaceVariant.withOpacity(0.7);
+    final subtitleColor = isActive ? colorScheme.onSurfaceVariant : colorScheme.onSurfaceVariant.withValues(alpha:0.7);
     final iconColor = isActive ? colorScheme.primary : colorScheme.onSurfaceVariant;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow, // Fundo do item de horário
+        color: colorScheme.surfaceContainerLow, 
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withOpacity(0.1), // Sombra
+            color: colorScheme.shadow.withValues(alpha:0.1), 
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
         ],
         border: Border.all(
           color: isActive
-              ? colorScheme.primary.withOpacity(0.2) // Borda ativa
-              : colorScheme.outlineVariant, // Borda inativa
+              ? colorScheme.primary.withValues(alpha:0.2) 
+              : colorScheme.outlineVariant, 
           width: 0.8,
         ),
       ),
@@ -217,12 +217,12 @@ class GradesPage extends GetView<GradesController> {
         ),
         leading: CircleAvatar(
           backgroundColor: isActive
-              ? colorScheme.primary.withOpacity(0.1) // Fundo do avatar ativo
-              : colorScheme.surfaceVariant, // Fundo do avatar inativo
+              ? colorScheme.primary.withValues(alpha:0.1) 
+              : colorScheme.surfaceContainerHighest, 
           child: Icon(Icons.school_outlined, color: iconColor, size: 24),
         ),
         title: Text(
-          grade.classe?.name ?? 'Turma não informada',
+          schedule.classe?.name ?? 'Turma não informada',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: textTheme.titleMedium?.copyWith(
@@ -236,7 +236,7 @@ class GradesPage extends GetView<GradesController> {
           children: [
             const SizedBox(height: 4),
             Text(
-              grade.discipline?.name ?? 'Disciplina não informada',
+              schedule.discipline?.name ?? 'Disciplina não informada',
               style: textTheme.bodyMedium?.copyWith(color: subtitleColor, fontSize: 14),
             ),
             const SizedBox(height: 8),
@@ -245,7 +245,7 @@ class GradesPage extends GetView<GradesController> {
                 Icon(Icons.schedule_outlined, size: 18, color: iconColor),
                 const SizedBox(width: 6),
                 Text(
-                  '${Grade.formatTimeDisplay(grade.startTimeOfDay)} - ${Grade.formatTimeDisplay(grade.endTimeOfDay)}',
+                  '${Schedule.formatTimeDisplay(schedule.startTimeOfDay)} - ${Schedule.formatTimeDisplay(schedule.endTimeOfDay)}',
                   style: textTheme.bodyMedium?.copyWith(
                     color: iconColor,
                     fontWeight: FontWeight.w500,
@@ -263,13 +263,13 @@ class GradesPage extends GetView<GradesController> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: colorScheme.errorContainer, // Fundo para "Inativo"
+                    color: colorScheme.errorContainer, 
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     'INATIVO',
                     style: textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onErrorContainer, // Texto para "Inativo"
+                      color: colorScheme.onErrorContainer, 
                       fontWeight: FontWeight.bold,
                       fontSize: 11,
                     ),
@@ -284,19 +284,19 @@ class GradesPage extends GetView<GradesController> {
                   CustomPopupMenuItem(
                     label: 'Editar',
                     icon: Icons.edit_outlined,
-                    onTap: () => _showEditGradeDialog(context, grade, colorScheme, textTheme), // Passa context e theme
+                    onTap: () => _showEditScheduleDialog(context, schedule, colorScheme, textTheme), 
                   ),
                   CustomPopupMenuItem(
                     label: 'Arquivar',
                     icon: Icons.archive_outlined,
-                    onTap: () => _showToggleGradeStatusDialog(context, grade, colorScheme), // Passa context e colorScheme
+                    onTap: () => _showToggleScheduleStatusDialog(context, schedule, colorScheme), 
                   ),
                 ],
               )
             : IconButton(
                 icon: Icon(
                   Icons.description_outlined,
-                  color: colorScheme.onSurfaceVariant, // Cor do ícone de relatório
+                  color: colorScheme.onSurfaceVariant, 
                 ),
                 tooltip: 'Relatório',
                 onPressed: () {
@@ -304,8 +304,8 @@ class GradesPage extends GetView<GradesController> {
                     'Relatório',
                     'Abrir relatório do horário inativo',
                     snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: colorScheme.tertiaryContainer, // Cor do tema
-                    colorText: colorScheme.onTertiaryContainer, // Cor do tema
+                    backgroundColor: colorScheme.tertiaryContainer, 
+                    colorText: colorScheme.onTertiaryContainer, 
                   );
                 },
               ),
@@ -313,9 +313,9 @@ class GradesPage extends GetView<GradesController> {
     );
   }
 
-  // --- Diálogo de Adicionar Horário ---
-  void _showAddGradeDialog(BuildContext context, ColorScheme colorScheme, TextTheme textTheme) async {
-    controller.resetAddGradeFields();
+  
+  void _showAddScheduleDialog(BuildContext context, ColorScheme colorScheme, TextTheme textTheme) async {
+    controller.resetAddScheduleFields();
 
     await controller.loadFilteredClassesForForm(
       controller.selectedYearForForm.value,
@@ -325,22 +325,22 @@ class GradesPage extends GetView<GradesController> {
       Get.dialog(
         CustomDialog(
           title: 'AVISO',
-          icon: Icons.info_outline, // Ícone de informação
+          icon: Icons.info_outline, 
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.info_outline, color: colorScheme.primary, size: 60), // Ícone com cor primária
+              Icon(Icons.info_outline, color: colorScheme.primary, size: 60), 
               const SizedBox(height: 16),
               Text(
                 'Não há turmas ativas disponíveis para adicionar horários no ano selecionado.',
                 textAlign: TextAlign.center,
-                style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface), // Cor do texto
+                style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface), 
               ),
               const SizedBox(height: 8),
               Text(
                 'Por favor, adicione uma turma primeiro ou verifique o ano de filtro.',
                 textAlign: TextAlign.center,
-                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant), // Cor do texto
+                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant), 
               ),
             ],
           ),
@@ -348,7 +348,7 @@ class GradesPage extends GetView<GradesController> {
             TextButton(
               onPressed: () => Get.back(),
               style: TextButton.styleFrom(
-                foregroundColor: colorScheme.primary, // Cor do botão
+                foregroundColor: colorScheme.primary, 
               ),
               child: const Text('Entendi'),
             ),
@@ -389,11 +389,11 @@ class GradesPage extends GetView<GradesController> {
                     hint: 'Selecione a Disciplina (Opcional)',
                   ),
                   const SizedBox(height: 16),
-                  // DropdownButtonFormField para Dia da Semana (integrado ao tema)
+                  
                   DropdownButtonFormField<int>(
                     decoration: InputDecoration(
                       labelText: 'Dia da Semana',
-                      labelStyle: TextStyle(color: colorScheme.onSurfaceVariant), // Cor da label
+                      labelStyle: TextStyle(color: colorScheme.onSurfaceVariant), 
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: colorScheme.outline, width: 1.0),
@@ -404,7 +404,7 @@ class GradesPage extends GetView<GradesController> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: colorScheme.primary, width: 2.0), // Borda focada
+                        borderSide: BorderSide(color: colorScheme.primary, width: 2.0), 
                       ),
                       errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -415,7 +415,7 @@ class GradesPage extends GetView<GradesController> {
                         borderSide: BorderSide(color: colorScheme.error, width: 2.0),
                       ),
                       filled: true,
-                      fillColor: colorScheme.surfaceVariant, // Fundo preenchido
+                      fillColor: colorScheme.surfaceContainerHighest, 
                     ),
                     value: controller.selectedDayOfWeekForForm.value,
                     items: _daysOfWeek.map((day) {
@@ -423,7 +423,7 @@ class GradesPage extends GetView<GradesController> {
                         value: day['value'] as int,
                         child: Text(
                           day['label'] as String,
-                          style: TextStyle(color: colorScheme.onSurface), // Cor do texto do item
+                          style: TextStyle(color: colorScheme.onSurface), 
                         ),
                       );
                     }).toList(),
@@ -436,9 +436,9 @@ class GradesPage extends GetView<GradesController> {
                       }
                       return null;
                     },
-                    dropdownColor: colorScheme.surfaceContainerHigh, // Cor do fundo do menu dropdown
-                    style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface), // Cor do texto no campo
-                    iconEnabledColor: colorScheme.onSurfaceVariant, // Cor da seta
+                    dropdownColor: colorScheme.surfaceContainerHigh, 
+                    style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface), 
+                    iconEnabledColor: colorScheme.onSurfaceVariant, 
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -448,7 +448,7 @@ class GradesPage extends GetView<GradesController> {
                           () => TextFormField(
                             readOnly: true,
                             controller: TextEditingController(
-                              text: Grade.formatTimeDisplay(
+                              text: Schedule.formatTimeDisplay(
                                 controller.startTimeForForm.value,
                               ),
                             ),
@@ -477,25 +477,25 @@ class GradesPage extends GetView<GradesController> {
                               ),
                               suffixIcon: Icon(Icons.access_time_filled, color: colorScheme.onSurfaceVariant),
                               filled: true,
-                              fillColor: colorScheme.surfaceVariant,
+                              fillColor: colorScheme.surfaceContainerHighest,
                             ),
                             style: TextStyle(color: colorScheme.onSurface),
                             cursorColor: colorScheme.primary,
                             onTap: () async {
                               final TimeOfDay? pickedTime = await showTimePicker(
-                                context: context, // Usar context passado, não Get.context!
+                                context: context, 
                                 initialTime: controller.startTimeForForm.value,
                                 builder: (BuildContext context, Widget? child) {
                                   return Theme(
-                                    data: Theme.of(context).copyWith( // Usar Theme.of(context).copyWith para herdar e sobrescrever
+                                    data: Theme.of(context).copyWith( 
                                       colorScheme: Theme.of(context).colorScheme.copyWith(
-                                        primary: colorScheme.primary, // Sua cor primária
-                                        onSurface: colorScheme.onSurface, // Cor do texto no picker
-                                        onPrimary: colorScheme.onPrimary, // Cor do texto em primary
+                                        primary: colorScheme.primary, 
+                                        onSurface: colorScheme.onSurface, 
+                                        onPrimary: colorScheme.onPrimary, 
                                       ),
                                       textButtonTheme: TextButtonThemeData(
                                         style: TextButton.styleFrom(
-                                          foregroundColor: colorScheme.primary, // Cor dos botões de texto
+                                          foregroundColor: colorScheme.primary, 
                                         ),
                                       ),
                                     ),
@@ -522,7 +522,7 @@ class GradesPage extends GetView<GradesController> {
                           () => TextFormField(
                             readOnly: true,
                             controller: TextEditingController(
-                              text: Grade.formatTimeDisplay(
+                              text: Schedule.formatTimeDisplay(
                                 controller.endTimeForForm.value,
                               ),
                             ),
@@ -551,13 +551,13 @@ class GradesPage extends GetView<GradesController> {
                               ),
                               suffixIcon: Icon(Icons.access_time_filled, color: colorScheme.onSurfaceVariant),
                               filled: true,
-                              fillColor: colorScheme.surfaceVariant,
+                              fillColor: colorScheme.surfaceContainerHighest,
                             ),
                             style: TextStyle(color: colorScheme.onSurface),
                             cursorColor: colorScheme.primary,
                             onTap: () async {
                               final TimeOfDay? pickedTime = await showTimePicker(
-                                context: context, // Usar context passado, não Get.context!
+                                context: context, 
                                 initialTime: controller.endTimeForForm.value,
                                 builder: (BuildContext context, Widget? child) {
                                   return Theme(
@@ -585,10 +585,10 @@ class GradesPage extends GetView<GradesController> {
                               if (value == null || value.isEmpty) {
                                 return 'Obrigatório!';
                               }
-                              final int startTimeInt = Grade.timeOfDayToInt(
+                              final int startTimeInt = Schedule.timeOfDayToInt(
                                 controller.startTimeForForm.value,
                               );
-                              final int endTimeInt = Grade.timeOfDayToInt(
+                              final int endTimeInt = Schedule.timeOfDayToInt(
                                 controller.endTimeForForm.value,
                               );
 
@@ -612,7 +612,7 @@ class GradesPage extends GetView<GradesController> {
               TextButton(
                 onPressed: () => Get.back(),
                 style: TextButton.styleFrom(
-                  foregroundColor: colorScheme.onSurfaceVariant, // Cor do texto do botão
+                  foregroundColor: colorScheme.onSurfaceVariant, 
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -623,26 +623,26 @@ class GradesPage extends GetView<GradesController> {
                 onPressed: () async {
                   if (controller.formKey.currentState!.validate()) {
                     Get.back();
-                    await controller.createGrade(
-                      Grade(
+                    await controller.createSchedule(
+                      Schedule(
                         classeId: controller.selectedClasseForForm.value!.id!,
                         disciplineId:
                             controller.selectedDisciplineForForm.value?.id,
                         dayOfWeek: controller.selectedDayOfWeekForForm.value,
-                        startTimeTotalMinutes: Grade.timeOfDayToInt(
+                        startTimeTotalMinutes: Schedule.timeOfDayToInt(
                           controller.startTimeForForm.value,
                         ),
-                        endTimeTotalMinutes: Grade.timeOfDayToInt(
+                        endTimeTotalMinutes: Schedule.timeOfDayToInt(
                           controller.endTimeForForm.value,
                         ),
-                        gradeYear: controller.selectedYearForForm.value,
+                        scheduleYear: controller.selectedYearForForm.value,
                       ),
                     );
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primary, // Fundo do botão Adicionar
-                  foregroundColor: colorScheme.onPrimary, // Texto do botão Adicionar
+                  backgroundColor: colorScheme.primary, 
+                  foregroundColor: colorScheme.onPrimary, 
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -661,9 +661,9 @@ class GradesPage extends GetView<GradesController> {
     }
   }
 
-  // --- Diálogo de Editar Horário ---
-  void _showEditGradeDialog(BuildContext context, Grade grade, ColorScheme colorScheme, TextTheme textTheme) {
-    controller.fillEditGradeFields(grade);
+  
+  void _showEditScheduleDialog(BuildContext context, Schedule schedule, ColorScheme colorScheme, TextTheme textTheme) {
+    controller.fillEditScheduleFields(schedule);
     Get.dialog(
       Obx(() {
         return CustomDialog(
@@ -722,7 +722,7 @@ class GradesPage extends GetView<GradesController> {
                       borderSide: BorderSide(color: colorScheme.error, width: 2.0),
                     ),
                     filled: true,
-                    fillColor: colorScheme.surfaceVariant,
+                    fillColor: colorScheme.surfaceContainerHighest,
                   ),
                   value: controller.selectedDayOfWeekForForm.value,
                   items: _daysOfWeek.map((day) {
@@ -755,7 +755,7 @@ class GradesPage extends GetView<GradesController> {
                         () => TextFormField(
                           readOnly: true,
                           controller: TextEditingController(
-                            text: Grade.formatTimeDisplay(
+                            text: Schedule.formatTimeDisplay(
                               controller.startTimeForForm.value,
                             ),
                           ),
@@ -784,7 +784,7 @@ class GradesPage extends GetView<GradesController> {
                             ),
                             suffixIcon: Icon(Icons.access_time_filled, color: colorScheme.onSurfaceVariant),
                             filled: true,
-                            fillColor: colorScheme.surfaceVariant,
+                            fillColor: colorScheme.surfaceContainerHighest,
                           ),
                           style: TextStyle(color: colorScheme.onSurface),
                           cursorColor: colorScheme.primary,
@@ -829,7 +829,7 @@ class GradesPage extends GetView<GradesController> {
                         () => TextFormField(
                           readOnly: true,
                           controller: TextEditingController(
-                            text: Grade.formatTimeDisplay(
+                            text: Schedule.formatTimeDisplay(
                               controller.endTimeForForm.value,
                             ),
                           ),
@@ -858,7 +858,7 @@ class GradesPage extends GetView<GradesController> {
                             ),
                             suffixIcon: Icon(Icons.access_time_filled, color: colorScheme.onSurfaceVariant),
                             filled: true,
-                            fillColor: colorScheme.surfaceVariant,
+                            fillColor: colorScheme.surfaceContainerHighest,
                           ),
                           style: TextStyle(color: colorScheme.onSurface),
                           cursorColor: colorScheme.primary,
@@ -892,10 +892,10 @@ class GradesPage extends GetView<GradesController> {
                             if (value == null || value.isEmpty) {
                               return 'Obrigatório!';
                             }
-                            final int startTimeInt = Grade.timeOfDayToInt(
+                            final int startTimeInt = Schedule.timeOfDayToInt(
                               controller.startTimeForForm.value,
                             );
-                            final int endTimeInt = Grade.timeOfDayToInt(
+                            final int endTimeInt = Schedule.timeOfDayToInt(
                               controller.endTimeForForm.value,
                             );
 
@@ -919,7 +919,7 @@ class GradesPage extends GetView<GradesController> {
             TextButton(
               onPressed: () => Get.back(),
               style: TextButton.styleFrom(
-                foregroundColor: colorScheme.onSurfaceVariant, // Cor do texto do botão
+                foregroundColor: colorScheme.onSurfaceVariant, 
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -929,16 +929,16 @@ class GradesPage extends GetView<GradesController> {
             ElevatedButton(
               onPressed: () async {
                 if (controller.formEditKey.currentState!.validate()) {
-                  await controller.updateGrade(
-                    grade.copyWith(
+                  await controller.updateSchedule(
+                    schedule.copyWith(
                       classeId: controller.selectedClasseForForm.value!.id!,
                       disciplineId:
                           controller.selectedDisciplineForForm.value?.id,
                       dayOfWeek: controller.selectedDayOfWeekForForm.value,
-                      startTimeTotalMinutes: Grade.timeOfDayToInt(
+                      startTimeTotalMinutes: Schedule.timeOfDayToInt(
                         controller.startTimeForForm.value,
                       ),
-                      endTimeTotalMinutes: Grade.timeOfDayToInt(
+                      endTimeTotalMinutes: Schedule.timeOfDayToInt(
                         controller.endTimeForForm.value,
                       ),
                     ),
@@ -947,8 +947,8 @@ class GradesPage extends GetView<GradesController> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.primary, // Fundo do botão Atualizar
-                foregroundColor: colorScheme.onPrimary, // Texto do botão Atualizar
+                backgroundColor: colorScheme.primary, 
+                foregroundColor: colorScheme.onPrimary, 
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -966,15 +966,15 @@ class GradesPage extends GetView<GradesController> {
     );
   }
 
-  // --- Diálogo de Ativar/Desativar Horário ---
-  void _showToggleGradeStatusDialog(BuildContext context, Grade grade, ColorScheme colorScheme) {
-    final isCurrentlyActive = grade.active ?? true;
+  
+  void _showToggleScheduleStatusDialog(BuildContext context, Schedule schedule, ColorScheme colorScheme) {
+    final isCurrentlyActive = schedule.active ?? true;
 
     if (!isCurrentlyActive) {
       Get.dialog(
         CustomDialog(
           title: 'Ação não permitida',
-          icon: Icons.block, // Ícone de bloqueio
+          icon: Icons.block, 
           content: Text(
             'Não é possível reativar um horário inativado.',
             style: TextStyle(color: colorScheme.onSurface),
@@ -984,7 +984,7 @@ class GradesPage extends GetView<GradesController> {
             TextButton(
               onPressed: () => Get.back(),
               style: TextButton.styleFrom(
-                foregroundColor: colorScheme.primary, // Cor do botão
+                foregroundColor: colorScheme.primary, 
               ),
               child: const Text('Fechar'),
             ),
@@ -996,7 +996,7 @@ class GradesPage extends GetView<GradesController> {
     }
 
     final message =
-        'Tem certeza que deseja INATIVAR o horário das ${Grade.formatTimeDisplay(grade.startTimeOfDay)} - ${Grade.formatTimeDisplay(grade.endTimeOfDay)} (${Constants.getDayName(grade.dayOfWeek)}) da turma "${grade.classe?.name ?? 'N/A'}"?\n\n'
+        'Tem certeza que deseja INATIVAR o horário das ${Schedule.formatTimeDisplay(schedule.startTimeOfDay)} - ${Schedule.formatTimeDisplay(schedule.endTimeOfDay)} (${Constants.getDayName(schedule.dayOfWeek)}) da turma "${schedule.classe?.name ?? 'N/A'}"?\n\n'
         'ATENÇÃO: Esta ação é irreversível. Não será possível reativar este horário depois.\n\n'
         'Você ainda poderá acessar os dados deste horário para consulta/histórico, mas não poderá reativá-lo.';
 
@@ -1006,7 +1006,7 @@ class GradesPage extends GetView<GradesController> {
         message: message,
         confirmButtonText: 'Inativar',
         onConfirm: () async {
-          await controller.toggleGradeStatus(grade);
+          await controller.toggleScheduleStatus(schedule);
         },
       ),
       barrierDismissible: false,

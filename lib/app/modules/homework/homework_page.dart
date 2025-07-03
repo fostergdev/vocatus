@@ -6,7 +6,7 @@ import 'package:vocatus/app/core/widgets/custom_popbutton.dart';
 import 'package:vocatus/app/core/widgets/custom_text_field.dart';
 import 'package:vocatus/app/core/widgets/custom_dialog.dart';
 import 'package:vocatus/app/core/widgets/custom_confirmation_dialog_with_code.dart';
-// import 'package:vocatus/app/core/widgets/custom_popbutton.dart'; // Remova se não estiver usando
+
 import 'package:vocatus/app/models/homework.dart';
 import 'package:vocatus/app/models/discipline.dart';
 import './homework_controller.dart';
@@ -25,7 +25,7 @@ class HomeworkPage extends GetView<HomeworkController> {
           'Tarefas de ${controller.currentClasse.name}',
           style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: colorScheme.onPrimary, // Texto da AppBar
+            color: colorScheme.onPrimary, 
           ),
         ),
         centerTitle: true,
@@ -33,8 +33,8 @@ class HomeworkPage extends GetView<HomeworkController> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                colorScheme.primary.withOpacity(0.9), // Usa a cor primária do tema
-                colorScheme.primary, // Usa a cor primária do tema
+                colorScheme.primary.withValues(alpha:0.9), 
+                colorScheme.primary, 
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -45,7 +45,7 @@ class HomeworkPage extends GetView<HomeworkController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: IconThemeData(color: colorScheme.onPrimary), // Cor dos ícones da AppBar
+        iconTheme: IconThemeData(color: colorScheme.onPrimary), 
         actions: [
           CustomPopupMenu(
             icon: Icons.filter_list,
@@ -91,26 +91,26 @@ class HomeworkPage extends GetView<HomeworkController> {
       ),
       body: Column(
         children: [
-          _buildHeader(colorScheme, textTheme), // Passa colorScheme e textTheme
+          _buildHeader(colorScheme, textTheme), 
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
-                return Center(child: CircularProgressIndicator(color: colorScheme.primary)); // Cor do tema
+                return Center(child: CircularProgressIndicator(color: colorScheme.primary)); 
               }
               if (controller.homeworks.isEmpty) {
-                return _buildEmptyState(colorScheme, textTheme); // Passa colorScheme e textTheme
+                return _buildEmptyState(colorScheme, textTheme); 
               }
-              return _buildHomeworkList(context, colorScheme, textTheme); // Passa context e theme
+              return _buildHomeworkList(context, colorScheme, textTheme); 
             }),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton( // Usar FloatingActionButton normal
-        onPressed: () => _showAddHomeworkDialog(context, colorScheme, textTheme), // Passa context e theme
-        backgroundColor: colorScheme.primary, // Fundo do FAB
-        foregroundColor: colorScheme.onPrimary, // Ícone/texto do FAB
+      floatingActionButton: FloatingActionButton( 
+        onPressed: () => _showAddHomeworkDialog(context, colorScheme, textTheme), 
+        backgroundColor: colorScheme.primary, 
+        foregroundColor: colorScheme.onPrimary, 
         elevation: 8,
-        child: const Icon(Icons.add, size: 28), // Ícone de '+' padrão
+        child: const Icon(Icons.add, size: 28), 
       ),
     );
   }
@@ -125,14 +125,14 @@ class HomeworkPage extends GetView<HomeworkController> {
               '${DateTime.now().year}',
               style: textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: colorScheme.primary, // Cor do ano
+                color: colorScheme.primary, 
               ),
             ),
           ),
           Obx(() => Text(
             '${controller.homeworks.length} tarefa(s)',
             style: textTheme.bodyLarge?.copyWith(
-              color: colorScheme.onSurfaceVariant, // Cor do texto de contagem
+              color: colorScheme.onSurfaceVariant, 
             ),
           )),
         ],
@@ -148,13 +148,13 @@ class HomeworkPage extends GetView<HomeworkController> {
           Icon(
             Icons.assignment_outlined,
             size: 64,
-            color: colorScheme.onSurfaceVariant.withOpacity(0.4), // Cor do ícone
+            color: colorScheme.onSurfaceVariant.withValues(alpha:0.4), 
           ),
           const SizedBox(height: 16),
           Text(
             'Nenhuma tarefa encontrada',
             style: textTheme.titleMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant, // Cor do texto
+              color: colorScheme.onSurfaceVariant, 
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -162,7 +162,7 @@ class HomeworkPage extends GetView<HomeworkController> {
           Text(
             'Toque no botão + para adicionar uma nova tarefa',
             style: textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant.withOpacity(0.7), // Cor do texto
+              color: colorScheme.onSurfaceVariant.withValues(alpha:0.7), 
             ),
           ),
         ],
@@ -176,7 +176,7 @@ class HomeworkPage extends GetView<HomeworkController> {
       itemCount: controller.homeworks.length,
       itemBuilder: (context, index) {
         final homework = controller.homeworks[index];
-        return _buildHomeworkCard(homework, context, colorScheme, textTheme); // Passa context e theme
+        return _buildHomeworkCard(homework, context, colorScheme, textTheme); 
       },
     );
   }
@@ -192,19 +192,19 @@ class HomeworkPage extends GetView<HomeworkController> {
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
           color: isOverdue
-              ? colorScheme.error.withOpacity(0.3) // Borda para atrasado
+              ? colorScheme.error.withValues(alpha: 0.3) 
               : isDueToday
-                  ? colorScheme.secondary.withOpacity(0.3) // Borda para hoje
-                  : Colors.transparent, // Borda transparente
+                  ? colorScheme.secondary.withValues(alpha: 0.3) 
+                  : Colors.transparent, 
           width: 1,
         ),
       ),
-      color: colorScheme.surface, // Fundo do Card
-      surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
-      shadowColor: colorScheme.shadow.withOpacity(0.1), // Sombra
+      color: colorScheme.surface, 
+      surfaceTintColor: colorScheme.surfaceTint, 
+      shadowColor: colorScheme.shadow.withValues(alpha: 0.1), 
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => _showHomeworkDetailsDialog(context, homework, colorScheme, textTheme), // Passa context e theme
+        onTap: () => _showHomeworkDetailsDialog(context, homework, colorScheme, textTheme), 
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -217,11 +217,11 @@ class HomeworkPage extends GetView<HomeworkController> {
                       homework.title,
                       style: textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface, // Cor do título da tarefa
+                        color: colorScheme.onSurface, 
                       ),
                     ),
                   ),
-                  _buildStatusChip(homework.status, colorScheme, textTheme), // Passa theme
+                  _buildStatusChip(homework.status, colorScheme, textTheme),
                 ],
               ),
               if (homework.discipline != null) ...[
@@ -231,13 +231,13 @@ class HomeworkPage extends GetView<HomeworkController> {
                     Icon(
                       Icons.subject,
                       size: 16,
-                      color: colorScheme.onSurfaceVariant, // Cor do ícone
+                      color: colorScheme.onSurfaceVariant, 
                     ),
                     const SizedBox(width: 4),
                     Text(
                       homework.discipline!.name,
                       style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant, // Cor do texto
+                        color: colorScheme.onSurfaceVariant, 
                       ),
                     ),
                   ],
@@ -248,7 +248,7 @@ class HomeworkPage extends GetView<HomeworkController> {
                 Text(
                   homework.description!,
                   style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant, // Cor da descrição
+                    color: colorScheme.onSurfaceVariant, 
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -264,10 +264,10 @@ class HomeworkPage extends GetView<HomeworkController> {
                         Icons.calendar_today,
                         size: 16,
                         color: isOverdue
-                            ? colorScheme.error // Cor para atrasado
+                            ? colorScheme.error 
                             : isDueToday
-                                ? colorScheme.secondary // Cor para hoje
-                                : colorScheme.onSurfaceVariant, // Cor padrão
+                                ? colorScheme.secondary 
+                                : colorScheme.onSurfaceVariant, 
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -286,15 +286,15 @@ class HomeworkPage extends GetView<HomeworkController> {
                     ],
                   ),
                   PopupMenuButton<String>(
-                    color: colorScheme.surfaceContainerHigh, // Fundo do menu
-                    onSelected: (value) => _handleHomeworkAction(value, homework, context, colorScheme, textTheme), // Passa context e theme
+                    color: colorScheme.surfaceContainerHigh, 
+                    onSelected: (value) => _handleHomeworkAction(value, homework, context, colorScheme, textTheme), 
                     itemBuilder: (context) => [
                       if (homework.status == HomeworkStatus.pending)
                         PopupMenuItem(
                           value: 'complete',
                           child: Row(
                             children: [
-                              Icon(Icons.check_circle, color: colorScheme.tertiary), // Cor para concluída (verde)
+                              Icon(Icons.check_circle, color: colorScheme.tertiary), 
                               const SizedBox(width: 8),
                               Text('Marcar como Concluída', style: TextStyle(color: colorScheme.onSurface)),
                             ],
@@ -305,7 +305,7 @@ class HomeworkPage extends GetView<HomeworkController> {
                           value: 'pending',
                           child: Row(
                             children: [
-                              Icon(Icons.pending, color: colorScheme.secondary), // Cor para pendente (laranja/amarelo)
+                              Icon(Icons.pending, color: colorScheme.secondary), 
                               const SizedBox(width: 8),
                               Text('Marcar como Pendente', style: TextStyle(color: colorScheme.onSurface)),
                             ],
@@ -316,7 +316,7 @@ class HomeworkPage extends GetView<HomeworkController> {
                           value: 'cancel',
                           child: Row(
                             children: [
-                              Icon(Icons.cancel, color: colorScheme.error), // Cor para cancelar (vermelho)
+                              Icon(Icons.cancel, color: colorScheme.error), 
                               const SizedBox(width: 8),
                               Text('Cancelar', style: TextStyle(color: colorScheme.onSurface)),
                             ],
@@ -326,7 +326,7 @@ class HomeworkPage extends GetView<HomeworkController> {
                         value: 'edit',
                         child: Row(
                           children: [
-                            Icon(Icons.edit, color: colorScheme.primary), // Cor para editar (primária)
+                            Icon(Icons.edit, color: colorScheme.primary), 
                             const SizedBox(width: 8),
                             Text('Editar', style: TextStyle(color: colorScheme.onSurface)),
                           ],
@@ -336,7 +336,7 @@ class HomeworkPage extends GetView<HomeworkController> {
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, color: colorScheme.error), // Cor para excluir (vermelho)
+                            Icon(Icons.delete, color: colorScheme.error), 
                             const SizedBox(width: 8),
                             Text('Excluir', style: TextStyle(color: colorScheme.onSurface)),
                           ],
@@ -354,38 +354,34 @@ class HomeworkPage extends GetView<HomeworkController> {
   }
 
   Widget _buildStatusChip(HomeworkStatus status, ColorScheme colorScheme, TextTheme textTheme) {
-    Color statusColor = controller.getStatusColor(status); // Esta função ainda retorna Colors.red, Colors.green etc.
-    // Mapeie as cores de status para as cores do tema
+
     Color thematicStatusColor;
     switch (status) {
       case HomeworkStatus.pending:
-        thematicStatusColor = colorScheme.secondary; // Geralmente laranja/amarelo
+        thematicStatusColor = colorScheme.secondary; 
         break;
       case HomeworkStatus.completed:
-        thematicStatusColor = colorScheme.tertiary; // Geralmente verde
+        thematicStatusColor = colorScheme.tertiary; 
         break;
       case HomeworkStatus.cancelled:
-        thematicStatusColor = colorScheme.error; // Vermelho
-        break;
-      default:
-        thematicStatusColor = colorScheme.onSurfaceVariant; // Cor neutra para outros status
+        thematicStatusColor = colorScheme.error; 
         break;
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: thematicStatusColor.withOpacity(0.1), // Fundo suave da cor do status
+        color: thematicStatusColor.withValues(alpha:0.1), 
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: thematicStatusColor.withOpacity(0.3), // Borda mais escura
+          color: thematicStatusColor.withValues(alpha:0.3), 
         ),
       ),
       child: Text(
         controller.getStatusDisplayName(status),
-        style: textTheme.labelLarge?.copyWith( // Usar labelLarge
-          fontSize: 12, // Mantendo o tamanho original
-          color: thematicStatusColor, // Cor do texto principal
+        style: textTheme.labelLarge?.copyWith( 
+          fontSize: 12, 
+          color: thematicStatusColor, 
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -428,8 +424,8 @@ class HomeworkPage extends GetView<HomeworkController> {
     bool isEdit, 
     [Homework? homework, ColorScheme? colorScheme, TextTheme? textTheme]
   ) {
-    colorScheme = colorScheme ?? Theme.of(context).colorScheme; // Garante que o colorScheme exista
-    textTheme = textTheme ?? Theme.of(context).textTheme; // Garante que o textTheme exista
+    colorScheme = colorScheme ?? Theme.of(context).colorScheme; 
+    textTheme = textTheme ?? Theme.of(context).textTheme; 
 
     Get.dialog(
       CustomDialog(
@@ -460,28 +456,28 @@ class HomeworkPage extends GetView<HomeworkController> {
                 hint: 'Selecione a Disciplina (opcional)',
               )),
               const SizedBox(height: 16),
-              // Campo de Seleção de Data de Entrega
+              
               Obx(() => InkWell(
-                onTap: () => _selectDueDate(context, colorScheme!), // Passa colorScheme
+                onTap: () => _selectDueDate(context, colorScheme!), 
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                   decoration: BoxDecoration(
-                    border: Border.all(color: colorScheme!.outline), // Borda do tema
+                    border: Border.all(color: colorScheme!.outline), 
                     borderRadius: BorderRadius.circular(8),
-                    color: colorScheme.surfaceVariant, // Fundo do campo
+                    color: colorScheme.surfaceContainerHighest, 
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.calendar_today, color: colorScheme.onSurfaceVariant), // Ícone do tema
+                      Icon(Icons.calendar_today, color: colorScheme.onSurfaceVariant), 
                       const SizedBox(width: 12),
                       Text(
                         controller.selectedDueDate.value != null
-                            ? 'Data de Entrega: ${controller.selectedDueDate.value!.day}/${controller.selectedDueDate.value!.month}/${controller.selectedDueDate.value!.year}'
-                            : 'Selecionar Data de Entrega',
+                            ? 'Entrega: ${controller.selectedDueDate.value!.day}/${controller.selectedDueDate.value!.month}/${controller.selectedDueDate.value!.year}'
+                            : 'Data de Entrega',
                         style: textTheme?.bodyLarge?.copyWith(
                           color: controller.selectedDueDate.value != null
-                              ? colorScheme.onSurface // Cor do texto preenchido
-                              : colorScheme.onSurfaceVariant, // Cor do hint
+                              ? colorScheme.onSurface 
+                              : colorScheme.onSurfaceVariant, 
                         ),
                       ),
                     ],
@@ -506,33 +502,45 @@ class HomeworkPage extends GetView<HomeworkController> {
               Get.back();
             },
             style: TextButton.styleFrom(
-              foregroundColor: colorScheme.onSurfaceVariant, // Cor do tema
+              foregroundColor: colorScheme.onSurfaceVariant, 
             ),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
             onPressed: () async {
               if (controller.formKey.currentState!.validate()) {
-                if (isEdit && homework != null) {
-                  final updatedHomework = homework.copyWith(
-                    title: controller.titleEC.text.trim(),
-                    description: controller.descriptionEC.text.trim().isEmpty
-                        ? null
-                        : controller.descriptionEC.text.trim(),
-                    disciplineId: controller.selectedDiscipline.value?.id,
-                    dueDate: controller.selectedDueDate.value!,
-                    status: controller.selectedStatus.value,
+                try {
+                  if (isEdit && homework != null) {
+                    final updatedHomework = homework.copyWith(
+                      title: controller.titleEC.text.trim(),
+                      description: controller.descriptionEC.text.trim().isEmpty
+                          ? null
+                          : controller.descriptionEC.text.trim(),
+                      disciplineId: controller.selectedDiscipline.value?.id,
+                      dueDate: controller.selectedDueDate.value!,
+                      status: controller.selectedStatus.value,
+                    );
+                    await controller.updateHomework(updatedHomework);
+                  } else {
+                    await controller.createHomework();
+                  }
+                  
+                  Get.back();
+                } catch (e) {
+                  
+                  Get.snackbar(
+                    'Erro',
+                    'Não foi possível ${isEdit ? 'atualizar' : 'adicionar'} a tarefa: $e',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: colorScheme!.errorContainer,
+                    colorText: colorScheme.onErrorContainer,
                   );
-                  await controller.updateHomework(updatedHomework);
-                } else {
-                  await controller.createHomework();
                 }
-                Get.back(); // Fecha o diálogo após a ação
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: colorScheme.primary, // Cor do tema
-              foregroundColor: colorScheme.onPrimary, // Cor do tema
+              backgroundColor: colorScheme.primary, 
+              foregroundColor: colorScheme.onPrimary, 
             ),
             child: Text(isEdit ? 'Atualizar' : 'Adicionar'),
           ),
@@ -584,7 +592,7 @@ class HomeworkPage extends GetView<HomeworkController> {
   void _showHomeworkDetailsDialog(BuildContext context, Homework homework, ColorScheme colorScheme, TextTheme textTheme) {
     Get.dialog(
       AlertDialog(
-        // Fundo do diálogo de detalhes
+        
         backgroundColor: colorScheme.surface,
         surfaceTintColor: colorScheme.surfaceTint,
         title: Text(

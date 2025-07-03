@@ -1,38 +1,35 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:vocatus/app/core/widgets/custom_square_button.dart';
-import './home_controller.dart'; // Mantenha este import se tiver um HomeController
+import './home_controller.dart'; 
 
 class HomePage extends GetView<HomeController> {
-  // Se não tiver HomeController, pode ser StatelessWidget
+  
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Acesse o ColorScheme do tema atual
-    print(
-      'HomePage reconstruindo. Cor primária do tema: ${Theme.of(context).colorScheme.primary}',
-    );
+ 
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
-    // Defina as cores do gradiente com base no ColorScheme
-    // Para o tema claro, será um roxo claro para branco/fundo
-    // Para o tema escuro, pode ser um cinza escuro para preto, ou um roxo escuro para cinza escuro
+    
+    
+    
     List<Color> gradientColors;
     if (Theme.of(context).brightness == Brightness.dark) {
       gradientColors = [
         colorScheme
-            .surfaceContainerHighest, // Uma cor de superfície mais escura
+            .surfaceContainerHighest, 
         colorScheme
-            .surface, // Cor de fundo do tema escuro (geralmente preto ou cinza bem escuro)
+            .surface, 
       ];
     } else {
       gradientColors = [
         colorScheme.primary.withValues(alpha: 
-          0.05, // Um tom muito claro da cor primária
+          0.05, 
         ),
         colorScheme
-            .surface, // Cor de fundo do tema claro (geralmente branco ou cinza claro)
+            .surface, 
       ];
     }
 
@@ -42,7 +39,7 @@ class HomePage extends GetView<HomeController> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: gradientColors, // Use as cores dinâmicas
+            colors: gradientColors, 
           ),
         ),
         child: Padding(
@@ -57,7 +54,7 @@ class HomePage extends GetView<HomeController> {
                 'Chamada',
                 Icons.how_to_reg,
                 () => Get.toNamed('/attendance/select'),
-                context, // Passe o contexto para o CustomSquareButton
+                context, 
               ),
               _buildMenuButton(
                 'Turmas',
@@ -74,7 +71,7 @@ class HomePage extends GetView<HomeController> {
               _buildMenuButton(
                 'Horário',
                 Icons.schedule,
-                () => Get.toNamed('/grade/home'),
+                () => Get.toNamed('/schedule/home'),
                 context,
               ),
               _buildMenuButton(
@@ -96,7 +93,7 @@ class HomePage extends GetView<HomeController> {
     );
   }
 
-  // Modifique _buildMenuButton para aceitar context e usar cores do tema
+  
   Widget _buildMenuButton(
     String text,
     IconData icon,

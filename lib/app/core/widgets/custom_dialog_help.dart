@@ -12,20 +12,20 @@ class CustomDialogHelp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Access the ColorScheme of the current theme
+    
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return AlertDialog(
-      // Dialog background color
+      
       backgroundColor: colorScheme.surface,
-      surfaceTintColor: colorScheme.surfaceTint, // For Material 3 elevation effect
+      surfaceTintColor: colorScheme.surfaceTint, 
 
       title: Row(
         children: [
           Text(
             title,
             style: TextStyle(
-              color: colorScheme.onSurface, // Title text color
+              color: colorScheme.onSurface, 
             ),
           ),
           const SizedBox(width: 8),
@@ -34,14 +34,14 @@ class CustomDialogHelp extends StatelessWidget {
       content: Text(
         message,
         style: TextStyle(
-          color: colorScheme.onSurfaceVariant, // Message text color
+          color: colorScheme.onSurfaceVariant, 
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           style: TextButton.styleFrom(
-            foregroundColor: colorScheme.primary, // Button text color
+            foregroundColor: colorScheme.primary, 
           ),
           child: const Text('OK'),
         ),

@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:vocatus/app/core/constants/constants.dart'; // Pode ser removido se primaryColor não for mais usado
 import 'package:vocatus/app/modules/reports/reports_controller.dart';
 
 class StudentUnifiedReportPage extends GetView<ReportsController> {
@@ -29,7 +28,7 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  colorScheme.primary.withOpacity(0.9), // Usando cor dinâmica
+                  colorScheme.primary.withValues(alpha:0.9), // Usando cor dinâmica
                   colorScheme.primary, // Usando cor dinâmica
                 ],
                 begin: Alignment.topLeft,
@@ -44,7 +43,7 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
           iconTheme: IconThemeData(color: colorScheme.onPrimary), // Usando cor dinâmica
           bottom: TabBar(
             labelColor: colorScheme.onPrimary, // Usando cor dinâmica
-            unselectedLabelColor: colorScheme.onPrimary.withOpacity(0.7), // Usando cor dinâmica
+            unselectedLabelColor: colorScheme.onPrimary.withValues(alpha:0.7), // Usando cor dinâmica
             indicatorColor: colorScheme.onPrimary, // Usando cor dinâmica
             indicatorWeight: 3,
             tabs: const [
@@ -69,7 +68,7 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: colorScheme.shadow.withOpacity(0.1), // Usando cor dinâmica
+                    color: colorScheme.shadow.withValues(alpha:0.1), // Usando cor dinâmica
                     spreadRadius: 1,
                     blurRadius: 4,
                     offset: const Offset(0, 2),
@@ -82,7 +81,7 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
                     children: [
                       CircleAvatar(
                         radius: 30,
-                        backgroundColor: colorScheme.primary.withOpacity(0.1), // Usando cor dinâmica
+                        backgroundColor: colorScheme.primary.withValues(alpha:0.1), // Usando cor dinâmica
                         child: Icon(
                           Icons.person,
                           color: colorScheme.primary, // Usando cor dinâmica
@@ -164,15 +163,15 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
     required String value,
     required Color color,
   }) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1), // Mantendo opacidade com cor específica
+        color: color.withValues(alpha:0.1), // Mantendo opacidade com cor específica
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)), // Mantendo opacidade com cor específica
+        border: Border.all(color: color.withValues(alpha:0.3)), // Mantendo opacidade com cor específica
       ),
       child: Column(
         children: [
@@ -195,7 +194,7 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
             title,
             style: textTheme.bodySmall?.copyWith(
               fontSize: 12,
-              color: color.withOpacity(0.8), // Mantendo opacidade com cor específica
+              color: color.withValues(alpha:0.8), // Mantendo opacidade com cor específica
               fontWeight: FontWeight.w500,
             ),
             textAlign: TextAlign.center,
@@ -229,7 +228,7 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
                   Icon(
                     Icons.checklist_outlined,
                     size: 80,
-                    color: colorScheme.onSurface.withOpacity(0.3), // Usando cor dinâmica
+                    color: colorScheme.onSurface.withValues(alpha:0.3), // Usando cor dinâmica
                   ),
                   const SizedBox(height: 20),
                   Text(
@@ -237,7 +236,7 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
                     textAlign: TextAlign.center,
                     style: textTheme.titleMedium?.copyWith(
                       fontSize: 18,
-                      color: colorScheme.onSurface.withOpacity(0.6), // Usando cor dinâmica
+                      color: colorScheme.onSurface.withValues(alpha:0.6), // Usando cor dinâmica
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -260,7 +259,7 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: isPresent ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1), // Cores específicas
+                      color: isPresent ? Colors.green.withValues(alpha:0.1) : Colors.red.withValues(alpha:0.1), // Cores específicas
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -285,7 +284,7 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
                             attendance['class_name'],
                             style: textTheme.bodySmall?.copyWith(fontSize: 12),
                           ),
-                          backgroundColor: colorScheme.primary.withOpacity(0.1), // Usando cor dinâmica
+                          backgroundColor: colorScheme.primary.withValues(alpha:0.1), // Usando cor dinâmica
                         )
                       : null,
                 ),
@@ -321,7 +320,7 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
                   Icon(
                     Icons.report_problem_outlined,
                     size: 80,
-                    color: colorScheme.onSurface.withOpacity(0.3), // Usando cor dinâmica
+                    color: colorScheme.onSurface.withValues(alpha:0.3), // Usando cor dinâmica
                   ),
                   const SizedBox(height: 20),
                   Text(
@@ -329,7 +328,7 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
                     textAlign: TextAlign.center,
                     style: textTheme.titleMedium?.copyWith(
                       fontSize: 18,
-                      color: colorScheme.onSurface.withOpacity(0.6), // Usando cor dinâmica
+                      color: colorScheme.onSurface.withValues(alpha:0.6), // Usando cor dinâmica
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -371,7 +370,7 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: severityColor.withOpacity(0.1), // Cores específicas
+                              color: severityColor.withValues(alpha:0.1), // Cores específicas
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
@@ -385,14 +384,14 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  occurrence['title'] ?? 'Ocorrência',
+                                  occurrence['occurrence_type'] ?? 'Ocorrência',
                                   style: textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.w600,
                                     fontSize: 16,
                                   ),
                                 ),
                                 Text(
-                                  occurrence['date'] ?? 'Data não informada',
+                                  occurrence['occurrence_date'] ?? 'Data não informada',
                                   style: textTheme.bodyMedium?.copyWith(
                                     color: colorScheme.onSurfaceVariant, // Usando cor dinâmica
                                     fontSize: 14,
@@ -404,9 +403,9 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: severityColor.withOpacity(0.1), // Cores específicas
+                              color: severityColor.withValues(alpha:0.1), // Cores específicas
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: severityColor.withOpacity(0.3)), // Cores específicas
+                              border: Border.all(color: severityColor.withValues(alpha:0.3)), // Cores específicas
                             ),
                             child: Text(
                               severity.toUpperCase(),
@@ -438,7 +437,7 @@ class StudentUnifiedReportPage extends GetView<ReportsController> {
                               occurrence['class_name'],
                               style: textTheme.bodySmall?.copyWith(fontSize: 12),
                             ),
-                            backgroundColor: colorScheme.primary.withOpacity(0.1), // Usando cor dinâmica
+                            backgroundColor: colorScheme.primary.withValues(alpha:0.1), // Usando cor dinâmica
                           ),
                         ),
                       ],

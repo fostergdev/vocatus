@@ -2,52 +2,49 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:vocatus/app/core/utils/database/database_helper.dart';
 import 'package:vocatus/app/core/widgets/custom_error_dialog.dart';
-import 'package:vocatus/app/models/grade.dart';
+import 'package:vocatus/app/models/schedule.dart';
 import 'package:vocatus/app/models/attendance.dart';
 import 'package:vocatus/app/models/student_attendance.dart';
 import 'package:vocatus/app/modules/attendance/attendance_select/attendance_select_controller.dart';
 import 'package:vocatus/app/repositories/attendance/attendance_register/attendance_register_repository.dart';
+import 'package:vocatus/app/repositories/attendance/attendance_register/i_attendance_register_repository.dart';
 
 class AttendanceRegisterController extends GetxController {
-  final AttendanceRegisterRepository _attendanceRepository =
-      AttendanceRegisterRepository(DatabaseHelper.instance);
+  late final IAttendanceRegisterRepository _attendanceRepository;
 
   final isLoading = false.obs;
-  late final Grade grade;
+  late final Schedule schedule;
   final Rx<DateTime> selectedDate = DateTime.now().obs;
   final RxList<StudentAttendance> studentAttendances = <StudentAttendance>[].obs;
   final RxnInt currentAttendanceId = RxnInt(null);
   final TextEditingController contentController = TextEditingController();
 
+  
+  AttendanceRegisterController({
+    IAttendanceRegisterRepository? attendanceRepository,
+  }) : _attendanceRepository = attendanceRepository ?? AttendanceRegisterRepository(DatabaseHelper.instance);
+
   @override
   void onInit() {
     super.onInit();
-    if (Get.arguments is Map &&
-        Get.arguments.containsKey('grade') &&
-        Get.arguments['grade'] is Grade &&
-        Get.arguments.containsKey('date') &&
-        Get.arguments['date'] is DateTime) {
-      grade = Get.arguments['grade'] as Grade;
-      selectedDate.value = Get.arguments['date'] as DateTime;
-      loadAttendanceData();
+    if (Get.arguments != null) {
+      schedule = Get.arguments['schedule'];
+      selectedDate.value = Get.arguments['date'];
     } else {
-      Get.dialog(
-        CustomErrorDialog(
-          title: 'Erro de Navegação',
-          message:
-              'Nenhum horário agendado ou data foi selecionada corretamente.',
-        ),
-      );
-      throw Exception(
-        'Argumentos Grade e/ou Data ausentes ou inválidos para AttendanceRegisterController.',
-      );
+      
+      
+      
+      
+      throw Exception('Schedule and selectedDate must be provided as arguments.');
     }
+    loadAttendanceData();
   }
 
   Future<void> loadAttendanceData() async {
     try {
       isLoading.value = true;
-      if (grade.id == null) {
+      studentAttendances.clear();
+      if (schedule.id == null) {
         Get.dialog(
           CustomErrorDialog(
             title: 'Erro',
@@ -59,8 +56,8 @@ class AttendanceRegisterController extends GetxController {
       }
 
       final existingAttendance = await _attendanceRepository
-          .getAttendanceByGradeAndDate(
-            grade.id!,
+          .getAttendanceByScheduleAndDate(
+            schedule.id!,
             selectedDate.value,
           );
 
@@ -75,7 +72,7 @@ class AttendanceRegisterController extends GetxController {
         contentController.clear();
         final studentsInClass = await _attendanceRepository
             .getStudentsByClasseId(
-              grade.classeId,
+              schedule.classeId,
             );
 
         studentAttendances.assignAll(
@@ -116,7 +113,7 @@ class AttendanceRegisterController extends GetxController {
   Future<void> saveAttendance() async {
     try {
       isLoading.value = true;
-      if (grade.id == null) {
+      if (schedule.id == null) {
         Get.dialog(
           CustomErrorDialog(
             title: 'Erro',
@@ -129,8 +126,8 @@ class AttendanceRegisterController extends GetxController {
 
       final attendance = Attendance(
         id: currentAttendanceId.value,
-        classeId: grade.classeId,
-        gradeId: grade.id!,
+        classeId: schedule.classeId,
+        scheduleId: schedule.id!,
         date: selectedDate.value,
         content: contentController.text,
       );
@@ -140,7 +137,7 @@ class AttendanceRegisterController extends GetxController {
       currentAttendanceId.value = savedAttendance.id;
 
       if (Get.isRegistered<AttendanceSelectController>()) {
-        Get.find<AttendanceSelectController>().loadAvailableGrades();
+        Get.find<AttendanceSelectController>().loadAvailableSchedules();
       }
     } catch (e) {
       Get.dialog(
@@ -181,8 +178,8 @@ class AttendanceRegisterController extends GetxController {
   Attendance createAttendanceObject() {
     return Attendance(
       id: currentAttendanceId.value,
-      classeId: grade.classeId,
-      gradeId: grade.id!,
+      classeId: schedule.classeId,
+      scheduleId: schedule.id!,
       date: selectedDate.value,
       content: contentController.text,
       active: true,

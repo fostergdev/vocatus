@@ -1,68 +1,68 @@
-// lib/app/models/grade.dart
 
-import 'package:flutter/material.dart'; // Para TimeOfDay e MaterialLocalizations
-import 'package:get/get.dart'; // Para Get.context!
-import 'package:vocatus/app/models/classe.dart'; // Importa Classe se Grade tiver uma referência a ela
-import 'package:vocatus/app/models/discipline.dart'; // Importa Discipline se Grade tiver uma referência a ela
+
+import 'package:flutter/material.dart'; 
+import 'package:get/get.dart'; 
+import 'package:vocatus/app/models/classe.dart'; 
+import 'package:vocatus/app/models/discipline.dart'; 
 
 
 @immutable
-class Grade {
+class Schedule {
   final int? id;
   final int classeId;
   final int? disciplineId;
   final int dayOfWeek;
   final int startTimeTotalMinutes;
   final int endTimeTotalMinutes;
-  final int? gradeYear;
+  final int? scheduleYear;
   final DateTime? createdAt;
   final bool? active;
-  final Classe? classe; // Referência opcional à Classe
-  final Discipline? discipline; // Referência opcional à Discipline
+  final Classe? classe; 
+  final Discipline? discipline; 
 
-  const Grade({
+  const Schedule({
     this.id,
     required this.classeId,
     this.disciplineId,
     required this.dayOfWeek,
     required this.startTimeTotalMinutes,
     required this.endTimeTotalMinutes,
-    this.gradeYear,
+    this.scheduleYear,
     this.createdAt,
     this.active = true,
-    this.classe, // Deve ser fornecido externamente, não mapeado do 'map' da Grade
-    this.discipline, // Deve ser fornecido externamente, não mapeado do 'map' da Grade
+    this.classe, 
+    this.discipline, 
   });
 
-  factory Grade.fromMap(Map<String, dynamic> map) {
+  factory Schedule.fromMap(Map<String, dynamic> map) {
     String startTimeStr = map['start_time'] as String;
     String endTimeStr = map['end_time'] as String;
 
     int currentYear = DateTime.now().year;
-    int? parsedGradeYear;
-    if (map['grade_year'] == null) {
-      parsedGradeYear = currentYear;
-    } else if (map['grade_year'] is int) {
-      parsedGradeYear = map['grade_year'] as int;
+    int? parsedScheduleYear;
+    if (map['schedule_year'] == null) {
+      parsedScheduleYear = currentYear;
+    } else if (map['schedule_year'] is int) {
+      parsedScheduleYear = map['schedule_year'] as int;
     } else {
-      parsedGradeYear = int.tryParse(map['grade_year'].toString()) ?? currentYear;
+      parsedScheduleYear = int.tryParse(map['schedule_year'].toString()) ?? currentYear;
     }
 
-    return Grade(
+    return Schedule(
       id: map['id'] as int?,
       classeId: map['classe_id'] as int,
       disciplineId: map['discipline_id'] as int?,
       dayOfWeek: map['day_of_week'] as int,
-      startTimeTotalMinutes: Grade.timeStringToInt(startTimeStr), // <--- Método público
-      endTimeTotalMinutes: Grade.timeStringToInt(endTimeStr),     // <--- Método público
-      gradeYear: parsedGradeYear,
+      startTimeTotalMinutes: Schedule.timeStringToInt(startTimeStr), 
+      endTimeTotalMinutes: Schedule.timeStringToInt(endTimeStr),     
+      scheduleYear: parsedScheduleYear,
       createdAt: map['created_at'] != null && (map['created_at'] is String) && (map['created_at'] as String).isNotEmpty
           ? DateTime.parse(map['created_at'] as String)
           : null,
       active: map['active'] == 1,
-      // Não preenche 'classe' ou 'discipline' aqui via fromMap da Grade,
-      // pois eles geralmente são carregados via JOINs em queries separadas
-      // e anexados ao objeto Grade posteriormente, ou em uma fromMap especializada.
+      
+      
+      
     );
   }
 
@@ -72,35 +72,35 @@ class Grade {
       'classe_id': classeId,
       'discipline_id': disciplineId,
       'day_of_week': dayOfWeek,
-      'start_time': Grade.intToTimeString(startTimeTotalMinutes), // <--- Método público
-      'end_time': Grade.intToTimeString(endTimeTotalMinutes),     // <--- Método público
-      'grade_year': gradeYear,
+      'start_time': Schedule.intToTimeString(startTimeTotalMinutes), 
+      'end_time': Schedule.intToTimeString(endTimeTotalMinutes),     
+      'schedule_year': scheduleYear,
       'created_at': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
       'active': (active ?? true) ? 1 : 0,
     };
   }
 
-  Grade copyWith({
+  Schedule copyWith({
     int? id,
     int? classeId,
     int? disciplineId,
     int? dayOfWeek,
     int? startTimeTotalMinutes,
     int? endTimeTotalMinutes,
-    int? gradeYear,
+    int? scheduleYear,
     DateTime? createdAt,
     bool? active,
     Classe? classe,
     Discipline? discipline,
   }) {
-    return Grade(
+    return Schedule(
       id: id ?? this.id,
       classeId: classeId ?? this.classeId,
       disciplineId: disciplineId ?? this.disciplineId,
       dayOfWeek: dayOfWeek ?? this.dayOfWeek,
       startTimeTotalMinutes: startTimeTotalMinutes ?? this.startTimeTotalMinutes,
       endTimeTotalMinutes: endTimeTotalMinutes ?? this.endTimeTotalMinutes,
-      gradeYear: gradeYear ?? this.gradeYear,
+      scheduleYear: scheduleYear ?? this.scheduleYear,
       createdAt: createdAt ?? this.createdAt,
       active: active ?? this.active,
       classe: classe ?? this.classe,
@@ -111,7 +111,7 @@ class Grade {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is Grade && other.id == id;
+    return other is Schedule && other.id == id;
   }
 
   @override
@@ -135,25 +135,25 @@ class Grade {
     return '$hours:$minutes';
   }
 
-  // Métodos de conversão de tempo tornados públicos
-  static int timeStringToInt(String timeString) { // Antigo _timeStringToInt
+  
+  static int timeStringToInt(String timeString) { 
     final parts = timeString.split(':');
     final hour = int.parse(parts[0]);
     final minute = int.parse(parts[1]);
     return hour * 60 + minute;
   }
 
-  static String intToTimeString(int totalMinutes) { // Antigo _intToTimeString
+  static String intToTimeString(int totalMinutes) { 
     final hours = (totalMinutes ~/ 60).toString().padLeft(2, '0');
     final minutes = (totalMinutes % 60).toString().padLeft(2, '0');
     return '$hours:$minutes';
   }
 
-  TimeOfDay get startTimeOfDay => Grade.intToTimeOfDay(startTimeTotalMinutes);
-  TimeOfDay get endTimeOfDay => Grade.intToTimeOfDay(endTimeTotalMinutes);
+  TimeOfDay get startTimeOfDay => Schedule.intToTimeOfDay(startTimeTotalMinutes);
+  TimeOfDay get endTimeOfDay => Schedule.intToTimeOfDay(endTimeTotalMinutes);
 
   @override
   String toString() {
-    return 'Grade(id: $id, classeId: $classeId, disciplineId: $disciplineId, dayOfWeek: $dayOfWeek, startTimeTotalMinutes: $startTimeTotalMinutes, endTimeTotalMinutes: $endTimeTotalMinutes, gradeYear: $gradeYear, createdAt: $createdAt, active: $active)';
+    return 'Schedule(id: $id, classeId: $classeId, disciplineId: $disciplineId, dayOfWeek: $dayOfWeek, startTimeTotalMinutes: $startTimeTotalMinutes, endTimeTotalMinutes: $endTimeTotalMinutes, scheduleYear: $scheduleYear, createdAt: $createdAt, active: $active)';
   }
 }

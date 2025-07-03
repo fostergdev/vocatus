@@ -1,11 +1,10 @@
-
-
 import 'package:sqflite/sqflite.dart';
 import 'package:vocatus/app/core/utils/database/database_helper.dart';
 import 'package:vocatus/app/models/attendance.dart';
+import 'package:vocatus/app/models/schedule.dart';
 import 'package:vocatus/app/models/student_attendance.dart';
 import 'package:vocatus/app/models/student.dart';
-import 'package:vocatus/app/models/grade.dart';
+
 import 'package:vocatus/app/models/classe.dart';
 import 'package:vocatus/app/repositories/attendance/attendance_register/i_attendance_register_repository.dart';
 
@@ -20,15 +19,16 @@ class AttendanceRegisterRepository implements IAttendanceRegisterRepository {
     List<StudentAttendance> studentAttendances,
   ) async {
     final db = await _dbHelper.database;
+
     return await db.transaction((txn) async {
       int attendanceId;
       Attendance? existingAttendance;
 
       final result = await txn.query(
         'attendance',
-        where: 'grade_id = ? AND date = ?',
+        where: 'schedule_id = ? AND date = ?',
         whereArgs: [
-          attendance.gradeId,
+          attendance.scheduleId,
           attendance.date.toIso8601String().split('T')[0],
         ],
       );
@@ -64,8 +64,8 @@ class AttendanceRegisterRepository implements IAttendanceRegisterRepository {
   }
 
   @override
-  Future<Attendance?> getAttendanceByGradeAndDate(
-    int gradeId,
+  Future<Attendance?> getAttendanceByScheduleAndDate(
+    int scheduleId,
     DateTime date,
   ) async {
     try {
@@ -75,13 +75,15 @@ class AttendanceRegisterRepository implements IAttendanceRegisterRepository {
         SELECT 
           a.*,
           c.id AS classe_id_fk, c.name AS classe_name, c.school_year AS classe_school_year, c.active AS classe_active,
-          g.id AS grade_id_fk, g.day_of_week AS grade_day_of_week, g.start_time AS grade_start_time, g.end_time AS grade_end_time, g.grade_year AS grade_grade_year, g.active AS grade_active
+          s.id AS schedule_id_fk, s.day_of_week AS schedule_day_of_week, 
+          s.start_time AS schedule_start_time, s.end_time AS schedule_end_time, 
+          s.schedule_year AS schedule_year, s.active AS schedule_active
         FROM attendance a
         INNER JOIN classe c ON a.classe_id = c.id
-        INNER JOIN grade g ON a.grade_id = g.id
-        WHERE a.grade_id = ? AND a.date = ? AND a.active = 1
+        INNER JOIN schedule s ON a.schedule_id = s.id
+        WHERE a.schedule_id = ? AND a.date = ? AND a.active = 1
       ''',
-        [gradeId, date.toIso8601String().split('T')[0]],
+        [scheduleId, date.toIso8601String().split('T')[0]],
       );
 
       if (result.isNotEmpty) {
@@ -92,26 +94,26 @@ class AttendanceRegisterRepository implements IAttendanceRegisterRepository {
           'school_year': map['classe_school_year'],
           'active': map['classe_active'],
         };
-        final gradeMap = {
-          'id': map['grade_id_fk'],
-          'day_of_week': map['grade_day_of_week'],
-          'start_time': map['grade_start_time'],
-          'end_time': map['grade_end_time'],
-          'grade_year': map['grade_grade_year'],
-          'active': map['grade_active'],
+        final scheduleMap = {
+          'id': map['schedule_id_fk'],
+          'day_of_week': map['schedule_day_of_week'],
+          'start_time': map['schedule_start_time'],
+          'end_time': map['schedule_end_time'],
+          'schedule_year': map['schedule_year'],
+          'active': map['schedule_active'],
           'classe_id': map['classe_id_fk'],
         };
 
         return Attendance.fromMap(map).copyWith(
           classe: Classe.fromMap(classeMap),
-          grade: Grade.fromMap(gradeMap),
+          schedule: Schedule.fromMap(scheduleMap),
           content: map['content'] as String?,
         );
       }
       return null;
     } catch (e) {
       throw Exception(
-        'Erro ao buscar chamada por grade e data: ${e.toString()}',
+        'Erro ao buscar chamada por schedule e data: ${e.toString()}',
       );
     }
   }

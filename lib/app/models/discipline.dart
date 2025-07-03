@@ -6,7 +6,7 @@ class Discipline {
   final DateTime? createdAt;
   final bool? active;
 
-  Discipline({
+  const Discipline({
     this.id,
     required this.name,
     this.createdAt,
@@ -39,8 +39,10 @@ class Discipline {
   factory Discipline.fromMap(Map<String, dynamic> map) {
     return Discipline(
       id: map['id'] as int?,
-      name: map['name'] as String,
-      createdAt: map['created_at'] != null && (map['created_at'] is String) && (map['created_at'] as String).isNotEmpty
+      name: map['name'] as String? ?? '',
+      createdAt: map['created_at'] != null && 
+                (map['created_at'] is String) && 
+                (map['created_at'] as String).isNotEmpty
           ? DateTime.tryParse(map['created_at'] as String)
           : null,
       active: map['active'] != null ? (map['active'] as int) == 1 : null,
@@ -53,14 +55,18 @@ class Discipline {
       Discipline.fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
-  String toString() => 'Discipline(id: $id, name: $name, createdAt: $createdAt, active: $active)';
-
-  @override
-  bool operator ==(covariant Discipline other) {
-    if (identical(this, other)) return true;
-    return other.id == id && other.name == name && other.createdAt == createdAt && other.active == active;
+  String toString() {
+    return 'Discipline(id: $id, name: $name, createdAt: $createdAt, active: $active)';
   }
 
   @override
-  int get hashCode => id.hashCode ^ name.hashCode ^ createdAt.hashCode ^ active.hashCode;
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    
+    return other is Discipline &&
+        other.id == id; 
+  }
+
+  @override
+  int get hashCode => id.hashCode; 
 }

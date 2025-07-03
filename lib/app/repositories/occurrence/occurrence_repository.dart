@@ -4,7 +4,6 @@ import 'package:vocatus/app/models/occurrence.dart';
 import 'package:vocatus/app/models/student.dart';
 import 'package:vocatus/app/models/attendance.dart';
 import 'package:vocatus/app/repositories/occurrence/i_occurrence_repository.dart';
-import 'dart:developer';
 
 class OccurrenceRepository implements IOccurrenceRepository {
   final DatabaseHelper _dbHelper;
@@ -14,15 +13,13 @@ class OccurrenceRepository implements IOccurrenceRepository {
   @override
   Future<List<Occurrence>> getOccurrencesByAttendanceId(int attendanceId) async {
     try {
-      log('OccurrenceRepository.getOccurrencesByAttendanceId - Buscando ocorrências para chamada: $attendanceId', name: 'OccurrenceRepository');
-      
       final db = await _dbHelper.database;
       final result = await db.rawQuery(
         '''
         SELECT 
-          o.*,
+          o.*, o.title,
           s.id AS student_id_fk, s.name AS student_name, s.active AS student_active, s.created_at AS student_created_at,
-          a.id AS attendance_id_fk, a.classe_id, a.grade_id, a.date AS attendance_date, a.content AS attendance_content
+          a.id AS attendance_id_fk, a.classe_id, a.schedule_id, a.date AS attendance_date, a.content AS attendance_content
         FROM occurrence o
         LEFT JOIN student s ON o.student_id = s.id
         INNER JOIN attendance a ON o.attendance_id = a.id
@@ -34,10 +31,8 @@ class OccurrenceRepository implements IOccurrenceRepository {
 
       return result.map((map) => _mapToOccurrenceWithRelations(map)).toList();
     } on DatabaseException catch (e) {
-      log('OccurrenceRepository.getOccurrencesByAttendanceId - Erro de banco: $e', name: 'OccurrenceRepository');
       throw Exception('Erro de banco de dados ao buscar ocorrências da chamada: ${e.toString()}');
     } catch (e) {
-      log('OccurrenceRepository.getOccurrencesByAttendanceId - Erro: $e', name: 'OccurrenceRepository');
       throw Exception('Erro desconhecido ao buscar ocorrências da chamada: $e');
     }
   }
@@ -45,15 +40,13 @@ class OccurrenceRepository implements IOccurrenceRepository {
   @override
   Future<List<Occurrence>> getOccurrencesByStudentId(int studentId) async {
     try {
-      log('OccurrenceRepository.getOccurrencesByStudentId - Buscando ocorrências para aluno: $studentId', name: 'OccurrenceRepository');
-      
       final db = await _dbHelper.database;
       final result = await db.rawQuery(
         '''
         SELECT 
-          o.*,
+          o.*, o.title,
           s.id AS student_id_fk, s.name AS student_name, s.active AS student_active, s.created_at AS student_created_at,
-          a.id AS attendance_id_fk, a.classe_id, a.grade_id, a.date AS attendance_date, a.content AS attendance_content
+          a.id AS attendance_id_fk, a.classe_id, a.schedule_id, a.date AS attendance_date, a.content AS attendance_content
         FROM occurrence o
         INNER JOIN student s ON o.student_id = s.id
         INNER JOIN attendance a ON o.attendance_id = a.id
@@ -65,10 +58,8 @@ class OccurrenceRepository implements IOccurrenceRepository {
 
       return result.map((map) => _mapToOccurrenceWithRelations(map)).toList();
     } on DatabaseException catch (e) {
-      log('OccurrenceRepository.getOccurrencesByStudentId - Erro de banco: $e', name: 'OccurrenceRepository');
       throw Exception('Erro de banco de dados ao buscar ocorrências do aluno: ${e.toString()}');
     } catch (e) {
-      log('OccurrenceRepository.getOccurrencesByStudentId - Erro: $e', name: 'OccurrenceRepository');
       throw Exception('Erro desconhecido ao buscar ocorrências do aluno: $e');
     }
   }
@@ -76,14 +67,12 @@ class OccurrenceRepository implements IOccurrenceRepository {
   @override
   Future<List<Occurrence>> getOccurrencesByClasseId(int classeId, {DateTime? startDate, DateTime? endDate}) async {
     try {
-      log('OccurrenceRepository.getOccurrencesByClasseId - Buscando ocorrências para turma: $classeId', name: 'OccurrenceRepository');
-      
       final db = await _dbHelper.database;
       String query = '''
         SELECT 
-          o.*,
+          o.*, o.title,
           s.id AS student_id_fk, s.name AS student_name, s.active AS student_active, s.created_at AS student_created_at,
-          a.id AS attendance_id_fk, a.classe_id, a.grade_id, a.date AS attendance_date, a.content AS attendance_content
+          a.id AS attendance_id_fk, a.classe_id, a.schedule_id, a.date AS attendance_date, a.content AS attendance_content
         FROM occurrence o
         LEFT JOIN student s ON o.student_id = s.id
         INNER JOIN attendance a ON o.attendance_id = a.id
@@ -107,10 +96,8 @@ class OccurrenceRepository implements IOccurrenceRepository {
       final result = await db.rawQuery(query, args);
       return result.map((map) => _mapToOccurrenceWithRelations(map)).toList();
     } on DatabaseException catch (e) {
-      log('OccurrenceRepository.getOccurrencesByClasseId - Erro de banco: $e', name: 'OccurrenceRepository');
       throw Exception('Erro de banco de dados ao buscar ocorrências da turma: ${e.toString()}');
     } catch (e) {
-      log('OccurrenceRepository.getOccurrencesByClasseId - Erro: $e', name: 'OccurrenceRepository');
       throw Exception('Erro desconhecido ao buscar ocorrências da turma: $e');
     }
   }
@@ -118,14 +105,12 @@ class OccurrenceRepository implements IOccurrenceRepository {
   @override
   Future<List<Occurrence>> getOccurrencesByType(OccurrenceType type, {int? classeId}) async {
     try {
-      log('OccurrenceRepository.getOccurrencesByType - Buscando ocorrências por tipo: ${type.name}', name: 'OccurrenceRepository');
-      
       final db = await _dbHelper.database;
       String query = '''
         SELECT 
-          o.*,
+          o.*, o.title,
           s.id AS student_id_fk, s.name AS student_name, s.active AS student_active, s.created_at AS student_created_at,
-          a.id AS attendance_id_fk, a.classe_id, a.grade_id, a.date AS attendance_date, a.content AS attendance_content
+          a.id AS attendance_id_fk, a.classe_id, a.schedule_id, a.date AS attendance_date, a.content AS attendance_content
         FROM occurrence o
         LEFT JOIN student s ON o.student_id = s.id
         INNER JOIN attendance a ON o.attendance_id = a.id
@@ -144,10 +129,8 @@ class OccurrenceRepository implements IOccurrenceRepository {
       final result = await db.rawQuery(query, args);
       return result.map((map) => _mapToOccurrenceWithRelations(map)).toList();
     } on DatabaseException catch (e) {
-      log('OccurrenceRepository.getOccurrencesByType - Erro de banco: $e', name: 'OccurrenceRepository');
       throw Exception('Erro de banco de dados ao buscar ocorrências por tipo: ${e.toString()}');
     } catch (e) {
-      log('OccurrenceRepository.getOccurrencesByType - Erro: $e', name: 'OccurrenceRepository');
       throw Exception('Erro desconhecido ao buscar ocorrências por tipo: $e');
     }
   }
@@ -155,13 +138,11 @@ class OccurrenceRepository implements IOccurrenceRepository {
   @override
   Future<List<Occurrence>> getGeneralOccurrences({int? classeId, DateTime? startDate, DateTime? endDate}) async {
     try {
-      log('OccurrenceRepository.getGeneralOccurrences - Buscando ocorrências gerais', name: 'OccurrenceRepository');
-      
       final db = await _dbHelper.database;
       String query = '''
         SELECT 
           o.*,
-          a.id AS attendance_id_fk, a.classe_id, a.grade_id, a.date AS attendance_date, a.content AS attendance_content
+          a.id AS attendance_id_fk, a.classe_id, a.schedule_id, a.date AS attendance_date, a.content AS attendance_content
         FROM occurrence o
         INNER JOIN attendance a ON o.attendance_id = a.id
         WHERE o.student_id IS NULL AND o.active = 1
@@ -189,10 +170,8 @@ class OccurrenceRepository implements IOccurrenceRepository {
       final result = await db.rawQuery(query, args);
       return result.map((map) => _mapToOccurrenceWithRelations(map)).toList();
     } on DatabaseException catch (e) {
-      log('OccurrenceRepository.getGeneralOccurrences - Erro de banco: $e', name: 'OccurrenceRepository');
       throw Exception('Erro de banco de dados ao buscar ocorrências gerais: ${e.toString()}');
     } catch (e) {
-      log('OccurrenceRepository.getGeneralOccurrences - Erro: $e', name: 'OccurrenceRepository');
       throw Exception('Erro desconhecido ao buscar ocorrências gerais: $e');
     }
   }
@@ -200,14 +179,12 @@ class OccurrenceRepository implements IOccurrenceRepository {
   @override
   Future<List<Occurrence>> getStudentOccurrences({int? classeId, int? studentId, DateTime? startDate, DateTime? endDate}) async {
     try {
-      log('OccurrenceRepository.getStudentOccurrences - Buscando ocorrências de alunos', name: 'OccurrenceRepository');
-      
       final db = await _dbHelper.database;
       String query = '''
         SELECT 
-          o.*,
+          o.*, o.title,
           s.id AS student_id_fk, s.name AS student_name, s.active AS student_active, s.created_at AS student_created_at,
-          a.id AS attendance_id_fk, a.classe_id, a.grade_id, a.date AS attendance_date, a.content AS attendance_content
+          a.id AS attendance_id_fk, a.classe_id, a.schedule_id, a.date AS attendance_date, a.content AS attendance_content
         FROM occurrence o
         INNER JOIN student s ON o.student_id = s.id
         INNER JOIN attendance a ON o.attendance_id = a.id
@@ -241,10 +218,8 @@ class OccurrenceRepository implements IOccurrenceRepository {
       final result = await db.rawQuery(query, args);
       return result.map((map) => _mapToOccurrenceWithRelations(map)).toList();
     } on DatabaseException catch (e) {
-      log('OccurrenceRepository.getStudentOccurrences - Erro de banco: $e', name: 'OccurrenceRepository');
       throw Exception('Erro de banco de dados ao buscar ocorrências de alunos: ${e.toString()}');
     } catch (e) {
-      log('OccurrenceRepository.getStudentOccurrences - Erro: $e', name: 'OccurrenceRepository');
       throw Exception('Erro desconhecido ao buscar ocorrências de alunos: $e');
     }
   }
@@ -252,17 +227,11 @@ class OccurrenceRepository implements IOccurrenceRepository {
   @override
   Future<void> createOccurrence(Occurrence occurrence) async {
     try {
-      log('OccurrenceRepository.createOccurrence - Criando ocorrência', name: 'OccurrenceRepository');
-      
       final db = await _dbHelper.database;
       await db.insert('occurrence', occurrence.toMap());
-      
-      log('OccurrenceRepository.createOccurrence - Ocorrência criada com sucesso', name: 'OccurrenceRepository');
     } on DatabaseException catch (e) {
-      log('OccurrenceRepository.createOccurrence - Erro de banco: $e', name: 'OccurrenceRepository');
       throw Exception('Erro de banco de dados ao criar ocorrência: ${e.toString()}');
     } catch (e) {
-      log('OccurrenceRepository.createOccurrence - Erro: $e', name: 'OccurrenceRepository');
       throw Exception('Erro desconhecido ao criar ocorrência: $e');
     }
   }
@@ -270,8 +239,6 @@ class OccurrenceRepository implements IOccurrenceRepository {
   @override
   Future<void> updateOccurrence(Occurrence occurrence) async {
     try {
-      log('OccurrenceRepository.updateOccurrence - Atualizando ocorrência: ${occurrence.id}', name: 'OccurrenceRepository');
-      
       final db = await _dbHelper.database;
       final Map<String, dynamic> occurrenceData = occurrence.toMap();
       occurrenceData.remove('id');
@@ -282,13 +249,9 @@ class OccurrenceRepository implements IOccurrenceRepository {
         where: 'id = ?',
         whereArgs: [occurrence.id],
       );
-      
-      log('OccurrenceRepository.updateOccurrence - Ocorrência atualizada com sucesso', name: 'OccurrenceRepository');
     } on DatabaseException catch (e) {
-      log('OccurrenceRepository.updateOccurrence - Erro de banco: $e', name: 'OccurrenceRepository');
       throw Exception('Erro de banco de dados ao atualizar ocorrência: ${e.toString()}');
     } catch (e) {
-      log('OccurrenceRepository.updateOccurrence - Erro: $e', name: 'OccurrenceRepository');
       throw Exception('Erro desconhecido ao atualizar ocorrência: $e');
     }
   }
@@ -296,8 +259,6 @@ class OccurrenceRepository implements IOccurrenceRepository {
   @override
   Future<void> deleteOccurrence(int occurrenceId) async {
     try {
-      log('OccurrenceRepository.deleteOccurrence - Excluindo ocorrência: $occurrenceId', name: 'OccurrenceRepository');
-      
       final db = await _dbHelper.database;
       await db.update(
         'occurrence',
@@ -305,13 +266,9 @@ class OccurrenceRepository implements IOccurrenceRepository {
         where: 'id = ?',
         whereArgs: [occurrenceId],
       );
-      
-      log('OccurrenceRepository.deleteOccurrence - Ocorrência excluída com sucesso', name: 'OccurrenceRepository');
     } on DatabaseException catch (e) {
-      log('OccurrenceRepository.deleteOccurrence - Erro de banco: $e', name: 'OccurrenceRepository');
       throw Exception('Erro de banco de dados ao excluir ocorrência: ${e.toString()}');
     } catch (e) {
-      log('OccurrenceRepository.deleteOccurrence - Erro: $e', name: 'OccurrenceRepository');
       throw Exception('Erro desconhecido ao excluir ocorrência: $e');
     }
   }
@@ -319,15 +276,13 @@ class OccurrenceRepository implements IOccurrenceRepository {
   @override
   Future<Occurrence?> getOccurrenceById(int occurrenceId) async {
     try {
-      log('OccurrenceRepository.getOccurrenceById - Buscando ocorrência: $occurrenceId', name: 'OccurrenceRepository');
-      
       final db = await _dbHelper.database;
       final result = await db.rawQuery(
         '''
         SELECT 
-          o.*,
+          o.*, o.title,
           s.id AS student_id_fk, s.name AS student_name, s.active AS student_active, s.created_at AS student_created_at,
-          a.id AS attendance_id_fk, a.classe_id, a.grade_id, a.date AS attendance_date, a.content AS attendance_content
+          a.id AS attendance_id_fk, a.classe_id, a.schedule_id, a.date AS attendance_date, a.content AS attendance_content
         FROM occurrence o
         LEFT JOIN student s ON o.student_id = s.id
         INNER JOIN attendance a ON o.attendance_id = a.id
@@ -341,10 +296,8 @@ class OccurrenceRepository implements IOccurrenceRepository {
       }
       return null;
     } on DatabaseException catch (e) {
-      log('OccurrenceRepository.getOccurrenceById - Erro de banco: $e', name: 'OccurrenceRepository');
       throw Exception('Erro de banco de dados ao buscar ocorrência: ${e.toString()}');
     } catch (e) {
-      log('OccurrenceRepository.getOccurrenceById - Erro: $e', name: 'OccurrenceRepository');
       throw Exception('Erro desconhecido ao buscar ocorrência: $e');
     }
   }
@@ -352,8 +305,6 @@ class OccurrenceRepository implements IOccurrenceRepository {
   @override
   Future<List<Student>> getStudentsFromAttendance(int attendanceId) async {
     try {
-      log('OccurrenceRepository.getStudentsFromAttendance - Buscando alunos da chamada: $attendanceId', name: 'OccurrenceRepository');
-      
       final db = await _dbHelper.database;
       final result = await db.rawQuery(
         '''
@@ -368,10 +319,8 @@ class OccurrenceRepository implements IOccurrenceRepository {
 
       return result.map((map) => Student.fromMap(map)).toList();
     } on DatabaseException catch (e) {
-      log('OccurrenceRepository.getStudentsFromAttendance - Erro de banco: $e', name: 'OccurrenceRepository');
       throw Exception('Erro de banco de dados ao buscar alunos da chamada: ${e.toString()}');
     } catch (e) {
-      log('OccurrenceRepository.getStudentsFromAttendance - Erro: $e', name: 'OccurrenceRepository');
       throw Exception('Erro desconhecido ao buscar alunos da chamada: $e');
     }
   }
@@ -392,7 +341,7 @@ class OccurrenceRepository implements IOccurrenceRepository {
       attendance = Attendance.fromMap({
         'id': map['attendance_id_fk'],
         'classe_id': map['classe_id'],
-        'grade_id': map['grade_id'],
+        'schedule_id': map['schedule_id'],
         'date': map['attendance_date'],
         'content': map['attendance_content'],
       });

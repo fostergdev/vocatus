@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:vocatus/app/core/widgets/custom_popbutton.dart'; // Remova se não usar
+import 'package:vocatus/app/core/widgets/custom_popbutton.dart'; 
 import 'package:vocatus/app/modules/reports/reports_controller.dart';
 import 'package:vocatus/app/core/widgets/custom_dialog.dart';
 
@@ -22,7 +22,7 @@ class ReportsPage extends GetView<ReportsController> {
             'Relatórios',
             style: textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
-              color: colorScheme.onPrimary, // Texto da AppBar
+              color: colorScheme.onPrimary, 
             ),
           ),
           centerTitle: true,
@@ -30,8 +30,8 @@ class ReportsPage extends GetView<ReportsController> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  colorScheme.primary.withOpacity(0.9), // Usa a cor primária do tema
-                  colorScheme.primary, // Usa a cor primária do tema
+                  colorScheme.primary.withValues(alpha:0.9), 
+                  colorScheme.primary, 
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -42,11 +42,11 @@ class ReportsPage extends GetView<ReportsController> {
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
           ),
-          iconTheme: IconThemeData(color: colorScheme.onPrimary), // Cor dos ícones da AppBar
+          iconTheme: IconThemeData(color: colorScheme.onPrimary), 
           bottom: TabBar(
-            labelColor: colorScheme.onPrimary, // Cor da label da aba selecionada
-            unselectedLabelColor: colorScheme.onPrimary.withOpacity(0.7), // Cor da label da aba não selecionada
-            indicatorColor: colorScheme.onPrimary, // Cor do indicador da aba
+            labelColor: colorScheme.onPrimary, 
+            unselectedLabelColor: colorScheme.onPrimary.withValues(alpha:0.7), 
+            indicatorColor: colorScheme.onPrimary, 
             indicatorWeight: 3,
             tabs: const [
               Tab(
@@ -66,24 +66,24 @@ class ReportsPage extends GetView<ReportsController> {
               
               if (years.isEmpty) {
                 return IconButton(
-                  icon: Icon(Icons.calendar_today, color: colorScheme.onPrimary), // Ícone do tema
+                  icon: Icon(Icons.calendar_today, color: colorScheme.onPrimary), 
                   onPressed: () {
                     Get.dialog(
                       CustomDialog(
                         title: 'Sem Anos Disponíveis',
-                        icon: Icons.info_outline, // Ícone do diálogo
+                        icon: Icons.info_outline, 
                         content: Text(
                           currentTabIndex == 0 
                             ? 'Não há anos com relatórios de turmas para filtro.'
                             : 'Não há anos com relatórios de alunos para filtro.',
                           textAlign: TextAlign.center,
-                          style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface), // Texto do diálogo
+                          style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface), 
                         ),
                         actions: [
                           TextButton(
                             onPressed: () => Get.back(),
                             style: TextButton.styleFrom(
-                              foregroundColor: colorScheme.primary, // Cor do botão
+                              foregroundColor: colorScheme.primary, 
                             ),
                             child: const Text('OK'),
                           ),
@@ -96,7 +96,7 @@ class ReportsPage extends GetView<ReportsController> {
               
               return CustomPopupMenu(
                 textAlign: TextAlign.center,
-                icon: Icons.calendar_today, // Ícone do menu
+                icon: Icons.calendar_today, 
                 items: [
                   for (var year in years)
                     CustomPopupMenuItem(
@@ -113,8 +113,8 @@ class ReportsPage extends GetView<ReportsController> {
         ),
         body: TabBarView(
           children: [
-            _buildClassReportsTab(colorScheme, textTheme), // Passa colorScheme e textTheme
-            _buildStudentReportsTab(colorScheme, textTheme), // Passa colorScheme e textTheme
+            _buildClassReportsTab(colorScheme, textTheme), 
+            _buildStudentReportsTab(colorScheme, textTheme), 
           ],
         ),
       ),
@@ -132,31 +132,31 @@ class ReportsPage extends GetView<ReportsController> {
               onChanged: controller.onSearchTextChanged,
               decoration: InputDecoration(
                 hintText: 'Buscar turmas por nome...',
-                hintStyle: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant), // Hint style
+                hintStyle: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant), 
                 filled: true,
-                fillColor: colorScheme.surfaceVariant, // Cor de fundo do campo
+                fillColor: colorScheme.surfaceContainerHighest, 
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.0),
-                  borderSide: BorderSide.none, // Sem borda por padrão
+                  borderSide: BorderSide.none, 
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.0),
                   borderSide: BorderSide(
-                    color: colorScheme.outline, // Borda habilitada
+                    color: colorScheme.outline, 
                     width: 1.0,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.0),
                   borderSide: BorderSide(
-                    color: colorScheme.primary, // Borda focada com cor primária
+                    color: colorScheme.primary, 
                     width: 2.0,
                   ),
                 ),
-                prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant), // Ícone de busca
+                prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant), 
                 suffixIcon: controller.searchText.value.isNotEmpty
                     ? IconButton(
-                        icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant), // Ícone de limpar
+                        icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant), 
                         onPressed: () {
                           controller.searchText.value = '';
                           controller.searchInputController.clear();
@@ -169,15 +169,15 @@ class ReportsPage extends GetView<ReportsController> {
                 ),
               ),
               style: textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurface, // Cor do texto digitado
+                color: colorScheme.onSurface, 
                 fontSize: 16,
               ),
-              cursorColor: colorScheme.primary, // Cor do cursor
+              cursorColor: colorScheme.primary, 
             ),
           ),
         ),
         Expanded(
-          child: _buildClassReportsList(colorScheme, textTheme), // Passa colorScheme e textTheme
+          child: _buildClassReportsList(colorScheme, textTheme), 
         ),
       ],
     );
@@ -196,7 +196,7 @@ class ReportsPage extends GetView<ReportsController> {
                 hintText: 'Buscar alunos por nome...',
                 hintStyle: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
                 filled: true,
-                fillColor: colorScheme.surfaceVariant,
+                fillColor: colorScheme.surfaceContainerHighest,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.0),
                   borderSide: BorderSide.none,
@@ -239,7 +239,7 @@ class ReportsPage extends GetView<ReportsController> {
           ),
         ),
         Expanded(
-          child: _buildStudentReportsList(colorScheme, textTheme), // Passa colorScheme e textTheme
+          child: _buildStudentReportsList(colorScheme, textTheme), 
         ),
       ],
     );
@@ -253,13 +253,13 @@ class ReportsPage extends GetView<ReportsController> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(color: colorScheme.primary), // Cor do tema
+              CircularProgressIndicator(color: colorScheme.primary), 
               const SizedBox(height: 16),
               Text(
                 'Carregando relatórios...',
                 style: textTheme.bodyLarge?.copyWith(
                   fontSize: 16,
-                  color: colorScheme.onSurfaceVariant, // Cor do texto
+                  color: colorScheme.onSurfaceVariant, 
                 ),
               ),
             ],
@@ -273,7 +273,7 @@ class ReportsPage extends GetView<ReportsController> {
               Icon(
                 Icons.search_off,
                 size: 80,
-                color: colorScheme.onSurfaceVariant.withOpacity(0.4), // Cor do ícone
+                color: colorScheme.onSurfaceVariant.withValues(alpha:0.4), 
               ),
               const SizedBox(height: 20),
               Text(
@@ -281,7 +281,7 @@ class ReportsPage extends GetView<ReportsController> {
                 textAlign: TextAlign.center,
                 style: textTheme.titleMedium?.copyWith(
                   fontSize: 18,
-                  color: colorScheme.onSurfaceVariant, // Cor do texto
+                  color: colorScheme.onSurfaceVariant, 
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -296,7 +296,7 @@ class ReportsPage extends GetView<ReportsController> {
               Icon(
                 Icons.assignment_outlined,
                 size: 80,
-                color: colorScheme.onSurfaceVariant.withOpacity(0.4), // Cor do ícone
+                color: colorScheme.onSurfaceVariant.withValues(alpha:0.4), 
               ),
               const SizedBox(height: 20),
               Text(
@@ -304,7 +304,7 @@ class ReportsPage extends GetView<ReportsController> {
                 textAlign: TextAlign.center,
                 style: textTheme.titleMedium?.copyWith(
                   fontSize: 18,
-                  color: colorScheme.onSurfaceVariant, // Cor do texto
+                  color: colorScheme.onSurfaceVariant, 
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -314,7 +314,7 @@ class ReportsPage extends GetView<ReportsController> {
                 textAlign: TextAlign.center,
                 style: textTheme.bodyLarge?.copyWith(
                   fontSize: 16,
-                  color: colorScheme.onSurfaceVariant.withOpacity(0.8), // Cor do texto
+                  color: colorScheme.onSurfaceVariant.withValues(alpha:0.8), 
                 ),
               ),
             ],
@@ -333,32 +333,32 @@ class ReportsPage extends GetView<ReportsController> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
               side: BorderSide(
-                color: isActive ? colorScheme.primary.withOpacity(0.3) : colorScheme.outline.withOpacity(0.3), // Borda ativa/inativa
+                color: isActive ? colorScheme.primary.withValues(alpha:0.3) : colorScheme.outline.withValues(alpha:0.3), 
                 width: 1,
               ),
             ),
-            color: colorScheme.surface, // Fundo do Card
-            surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
+            color: colorScheme.surface, 
+            surfaceTintColor: colorScheme.primaryContainer, 
             child: ExpansionTile(
-              backgroundColor: isActive ? Colors.transparent : colorScheme.surfaceVariant, // Fundo expandido
-              collapsedBackgroundColor: isActive ? Colors.transparent : colorScheme.surfaceVariant, // Fundo recolhido
+              backgroundColor: isActive ? Colors.transparent : colorScheme.surfaceContainerHighest, 
+              collapsedBackgroundColor: isActive ? Colors.transparent : colorScheme.surfaceContainerHighest, 
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: isActive ? colorScheme.primary.withOpacity(0.1) : colorScheme.surfaceVariant, // Fundo do avatar
+                  color: isActive ? colorScheme.primary.withValues(alpha:0.1) : colorScheme.surfaceContainerHighest, 
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   Icons.class_,
-                  color: isActive ? colorScheme.primary : colorScheme.onSurfaceVariant, // Cor do ícone
-                  size: 28, // Tamanho padrão do ícone
+                  color: isActive ? colorScheme.primary : colorScheme.onSurfaceVariant, 
+                  size: 28, 
                 ),
               ),
               title: Text(
                 classe.name,
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: isActive ? colorScheme.onSurface : colorScheme.onSurfaceVariant, // Cor do título
+                  color: isActive ? colorScheme.onSurface : colorScheme.onSurfaceVariant, 
                 ),
               ),
               subtitle: Column(
@@ -368,7 +368,7 @@ class ReportsPage extends GetView<ReportsController> {
                     Text(
                       classe.description!,
                       style: textTheme.bodyMedium?.copyWith(
-                        color: isActive ? colorScheme.onSurfaceVariant : colorScheme.onSurfaceVariant.withOpacity(0.7), // Cor da descrição
+                        color: isActive ? colorScheme.onSurfaceVariant : colorScheme.onSurfaceVariant.withValues(alpha:0.7), 
                         fontSize: 14,
                       ),
                     ),
@@ -376,7 +376,7 @@ class ReportsPage extends GetView<ReportsController> {
                   Text(
                     'Ano Letivo: ${classe.schoolYear}',
                     style: textTheme.bodySmall?.copyWith(
-                      color: isActive ? colorScheme.onSurfaceVariant : colorScheme.onSurfaceVariant.withOpacity(0.7), // Cor do ano letivo
+                      color: isActive ? colorScheme.onSurfaceVariant : colorScheme.onSurfaceVariant.withValues(alpha:0.7), 
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
@@ -386,13 +386,13 @@ class ReportsPage extends GetView<ReportsController> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: colorScheme.errorContainer, // Fundo para "Arquivada"
+                        color: colorScheme.errorContainer, 
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         'ARQUIVADA',
                         style: textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onErrorContainer, // Texto para "Arquivada"
+                          color: colorScheme.onErrorContainer, 
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
@@ -411,17 +411,17 @@ class ReportsPage extends GetView<ReportsController> {
                         title: 'Relatório de Presença',
                         subtitle: 'Visualizar frequência da turma',
                         onTap: () => controller.openAttendanceReport(classe),
-                        colorScheme: colorScheme, // Passa colorScheme
-                        textTheme: textTheme, // Passa textTheme
+                        colorScheme: colorScheme, 
+                        textTheme: textTheme, 
                       ),
                       const SizedBox(height: 8),
                       _buildReportOption(
                         icon: Icons.assignment,
                         title: 'Relatório de Notas',
                         subtitle: 'Visualizar desempenho da turma',
-                        onTap: () => controller.openGradesReport(classe),
-                        colorScheme: colorScheme, // Passa colorScheme
-                        textTheme: textTheme, // Passa textTheme
+                        onTap: () => controller.openSchedulesReport(classe),
+                        colorScheme: colorScheme, 
+                        textTheme: textTheme, 
                       ),
                       const SizedBox(height: 8),
                       _buildReportOption(
@@ -429,8 +429,8 @@ class ReportsPage extends GetView<ReportsController> {
                         title: 'Relatório de Ocorrências',
                         subtitle: 'Visualizar ocorrências da turma',
                         onTap: () => controller.openOccurrencesReport(classe),
-                        colorScheme: colorScheme, // Passa colorScheme
-                        textTheme: textTheme, // Passa textTheme
+                        colorScheme: colorScheme, 
+                        textTheme: textTheme, 
                       ),
                     ],
                   ),
@@ -451,13 +451,13 @@ class ReportsPage extends GetView<ReportsController> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(color: colorScheme.primary), // Cor do tema
+              CircularProgressIndicator(color: colorScheme.primary), 
               const SizedBox(height: 16),
               Text(
                 'Carregando alunos...',
                 style: textTheme.bodyLarge?.copyWith(
                   fontSize: 16,
-                  color: colorScheme.onSurfaceVariant, // Cor do texto
+                  color: colorScheme.onSurfaceVariant, 
                 ),
               ),
             ],
@@ -471,7 +471,7 @@ class ReportsPage extends GetView<ReportsController> {
               Icon(
                 Icons.search_off,
                 size: 80,
-                color: colorScheme.onSurfaceVariant.withOpacity(0.4), // Cor do ícone
+                color: colorScheme.onSurfaceVariant.withValues(alpha:0.4), 
               ),
               const SizedBox(height: 20),
               Text(
@@ -479,7 +479,7 @@ class ReportsPage extends GetView<ReportsController> {
                 textAlign: TextAlign.center,
                 style: textTheme.titleMedium?.copyWith(
                   fontSize: 18,
-                  color: colorScheme.onSurfaceVariant, // Cor do texto
+                  color: colorScheme.onSurfaceVariant, 
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -494,7 +494,7 @@ class ReportsPage extends GetView<ReportsController> {
               Icon(
                 Icons.person_outline,
                 size: 80,
-                color: colorScheme.onSurfaceVariant.withOpacity(0.4), // Cor do ícone
+                color: colorScheme.onSurfaceVariant.withValues(alpha:0.4), 
               ),
               const SizedBox(height: 20),
               Text(
@@ -502,7 +502,7 @@ class ReportsPage extends GetView<ReportsController> {
                 textAlign: TextAlign.center,
                 style: textTheme.titleMedium?.copyWith(
                   fontSize: 18,
-                  color: colorScheme.onSurfaceVariant, // Cor do texto
+                  color: colorScheme.onSurfaceVariant, 
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -512,7 +512,7 @@ class ReportsPage extends GetView<ReportsController> {
                 textAlign: TextAlign.center,
                 style: textTheme.bodyLarge?.copyWith(
                   fontSize: 16,
-                  color: colorScheme.onSurfaceVariant.withOpacity(0.8), // Cor do texto
+                  color: colorScheme.onSurfaceVariant.withValues(alpha:0.8), 
                 ),
               ),
             ],
@@ -531,32 +531,32 @@ class ReportsPage extends GetView<ReportsController> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
               side: BorderSide(
-                color: isActive ? colorScheme.primary.withOpacity(0.3) : colorScheme.outline.withOpacity(0.3), // Borda ativa/inativa
+                color: isActive ? colorScheme.primary.withValues(alpha:0.3) : colorScheme.outline.withValues(alpha:0.3), 
                 width: 1,
               ),
             ),
-            color: colorScheme.surface, // Fundo do Card
-            surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
+            color: colorScheme.surface, 
+            surfaceTintColor: colorScheme.primaryContainer, 
             child: ExpansionTile(
-              backgroundColor: isActive ? Colors.transparent : colorScheme.surfaceVariant, // Fundo expandido
-              collapsedBackgroundColor: isActive ? Colors.transparent : colorScheme.surfaceVariant, // Fundo recolhido
+              backgroundColor: isActive ? Colors.transparent : colorScheme.surfaceContainerHighest, 
+              collapsedBackgroundColor: isActive ? Colors.transparent : colorScheme.surfaceContainerHighest, 
               onExpansionChanged: (expanded) {
                 if (expanded) {
                   controller.openStudentUnifiedReport(student);
                 }
               },
               leading: CircleAvatar(
-                backgroundColor: isActive ? colorScheme.primary.withOpacity(0.1) : colorScheme.surfaceVariant, // Fundo do avatar
+                backgroundColor: isActive ? colorScheme.primary.withValues(alpha:0.1) : colorScheme.surfaceContainerHighest, 
                 child: Icon(
                   Icons.person,
-                  color: isActive ? colorScheme.primary : colorScheme.onSurfaceVariant, // Cor do ícone
+                  color: isActive ? colorScheme.primary : colorScheme.onSurfaceVariant, 
                 ),
               ),
               title: Text(
                 student['name'],
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: isActive ? colorScheme.onSurface : colorScheme.onSurfaceVariant, // Cor do título
+                  color: isActive ? colorScheme.onSurface : colorScheme.onSurfaceVariant, 
                 ),
               ),
               subtitle: Column(
@@ -565,7 +565,7 @@ class ReportsPage extends GetView<ReportsController> {
                   Text(
                     'Turma: ${student['class_name'] ?? 'Não informada'}',
                     style: textTheme.bodyMedium?.copyWith(
-                      color: isActive ? colorScheme.onSurfaceVariant : colorScheme.onSurfaceVariant.withOpacity(0.7), // Cor da turma
+                      color: isActive ? colorScheme.onSurfaceVariant : colorScheme.onSurfaceVariant.withValues(alpha:0.7), 
                       fontSize: 14,
                     ),
                   ),
@@ -575,13 +575,13 @@ class ReportsPage extends GetView<ReportsController> {
                       Icon(
                         Icons.checklist,
                         size: 14,
-                        color: colorScheme.tertiary, // Cor para frequência (verde)
+                        color: colorScheme.tertiary, 
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'Frequência: ${student['attendance_percentage'] ?? '0.0'}%',
                         style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.tertiary, // Cor para frequência
+                          color: colorScheme.tertiary, 
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -590,13 +590,13 @@ class ReportsPage extends GetView<ReportsController> {
                       Icon(
                         Icons.report_problem,
                         size: 14,
-                        color: colorScheme.secondary, // Cor para ocorrências (laranja)
+                        color: colorScheme.secondary, 
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'Ocorrências: ${student['total_occurrences'] ?? 0}',
                         style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.secondary, // Cor para ocorrências
+                          color: colorScheme.secondary, 
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -608,13 +608,13 @@ class ReportsPage extends GetView<ReportsController> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: colorScheme.errorContainer, // Fundo para "Inativo"
+                        color: colorScheme.errorContainer, 
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         'INATIVO',
                         style: textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onErrorContainer, // Texto para "Inativo"
+                          color: colorScheme.onErrorContainer, 
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
@@ -638,8 +638,8 @@ class ReportsPage extends GetView<ReportsController> {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
-    required ColorScheme colorScheme, // Adicionado para cores do tema
-    required TextTheme textTheme, // Adicionado para estilos de texto
+    required ColorScheme colorScheme, 
+    required TextTheme textTheme, 
   }) {
     return InkWell(
       onTap: onTap,
@@ -647,7 +647,7 @@ class ReportsPage extends GetView<ReportsController> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          border: Border.all(color: colorScheme.outlineVariant), // Borda do tema
+          border: Border.all(color: colorScheme.outlineVariant), 
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -655,12 +655,12 @@ class ReportsPage extends GetView<ReportsController> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: colorScheme.primary.withOpacity(0.1), // Fundo do ícone
+                color: colorScheme.primary.withValues(alpha:0.1), 
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Icon(
                 icon,
-                color: colorScheme.primary, // Cor do ícone
+                color: colorScheme.primary, 
                 size: 20,
               ),
             ),
@@ -674,13 +674,13 @@ class ReportsPage extends GetView<ReportsController> {
                     style: textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
-                      color: colorScheme.onSurface, // Cor do título
+                      color: colorScheme.onSurface, 
                     ),
                   ),
                   Text(
                     subtitle,
                     style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant, // Cor do subtítulo
+                      color: colorScheme.onSurfaceVariant, 
                       fontSize: 12,
                     ),
                   ),
@@ -690,7 +690,7 @@ class ReportsPage extends GetView<ReportsController> {
             Icon(
               Icons.arrow_forward_ios,
               size: 16,
-              color: colorScheme.onSurfaceVariant.withOpacity(0.4), // Cor da seta
+              color: colorScheme.onSurfaceVariant.withValues(alpha:0.4), 
             ),
           ],
         ),

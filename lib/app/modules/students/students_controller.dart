@@ -58,7 +58,7 @@ class StudentsController extends GetxController {
 
       final studentsToAdd = names.map((name) => Student(name: name)).toList();
 
-      await _studentRepository.addStudentsToClasse(studentsToAdd, currentClasse.id!);
+      await _studentRepository.createAndAddStudentsToClasse(studentsToAdd, currentClasse.id!);
       await readStudents();
       studentNameEC.clear();
     } catch (e) {
@@ -202,7 +202,7 @@ class StudentsController extends GetxController {
     }
     try {
       isLoading.value = true;
-      await _studentRepository.addStudentsToClasse(selectedStudentsToImport, currentClasse.id!);
+      await _studentRepository.createAndAddStudentsToClasse(selectedStudentsToImport, currentClasse.id!);
       await readStudents();
       selectedStudentsToImport.clear();
       Get.back();

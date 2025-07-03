@@ -18,7 +18,7 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
           'Selecionar Turma - Ocorrências',
           style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: colorScheme.onPrimary, // Texto da AppBar
+            color: colorScheme.onPrimary, 
           ),
         ),
         centerTitle: true,
@@ -26,8 +26,8 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                colorScheme.primary.withOpacity(0.9), // Usa a cor primária do tema
-                colorScheme.primary, // Usa a cor primária do tema
+                colorScheme.primary.withValues(alpha:0.9), 
+                colorScheme.primary, 
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -38,17 +38,17 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: IconThemeData(color: colorScheme.onPrimary), // Cor dos ícones da AppBar
+        iconTheme: IconThemeData(color: colorScheme.onPrimary), 
       ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            // Cores do gradiente de fundo, usando o colorScheme
+            
             colors: [
-              colorScheme.primary.withOpacity(0.05), // Um tom bem claro da cor primária
-              colorScheme.background, // A cor de fundo principal do tema
+              colorScheme.primary.withValues(alpha:0.05), 
+              colorScheme.surface, 
             ],
           ),
         ),
@@ -57,28 +57,28 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Dropdown de turmas
+              
               Obx(() {
                 if (controller.isLoading.value) {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.all(20.0),
-                      child: CircularProgressIndicator(color: colorScheme.primary), // Cor do tema
+                      child: CircularProgressIndicator(color: colorScheme.primary), 
                     ),
                   );
                 }
 
                 if (controller.availableClasses.isEmpty) {
                   return Card(
-                    color: colorScheme.errorContainer, // Fundo suave para aviso/erro
-                    surfaceTintColor: colorScheme.onErrorContainer, // Tinta de elevação
+                    color: colorScheme.errorContainer, 
+                    surfaceTintColor: colorScheme.onErrorContainer, 
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
                         children: [
                           Icon(
                             Icons.warning_amber,
-                            color: colorScheme.error, // Cor do ícone de aviso/erro
+                            color: colorScheme.error, 
                             size: 32,
                           ),
                           const SizedBox(height: 8),
@@ -86,14 +86,14 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
                             'Nenhuma turma ativa encontrada',
                             style: textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w600,
-                              color: colorScheme.onErrorContainer, // Cor do texto
+                              color: colorScheme.onErrorContainer, 
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Certifique-se de que existem turmas cadastradas e ativas.',
                             style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onErrorContainer.withOpacity(0.8), // Cor do texto
+                              color: colorScheme.onErrorContainer.withValues(alpha:0.8), 
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -111,17 +111,17 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
                   onChanged: (classe) =>
                       controller.selectedClasse.value = classe,
                   hint: 'Selecione uma turma',
-                  // CustomDrop já está configurado para usar o tema
+                  
                 );
               }),
 
               const SizedBox(height: 32),
 
-              // Lista de chamadas da turma selecionada
+              
               Expanded(
                 child: Obx(() {
                   if (controller.isLoading.value) {
-                    return Center(child: CircularProgressIndicator(color: colorScheme.primary)); // Cor do tema
+                    return Center(child: CircularProgressIndicator(color: colorScheme.primary)); 
                   }
 
                   if (controller.selectedClasse.value == null) {
@@ -129,7 +129,7 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
                       child: Text(
                         'Selecione uma turma para visualizar as chamadas disponíveis',
                         style: textTheme.bodyLarge?.copyWith(
-                          color: colorScheme.onSurfaceVariant, // Cor do texto
+                          color: colorScheme.onSurfaceVariant, 
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -144,13 +144,13 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
                           Icon(
                             Icons.assignment_outlined,
                             size: 64,
-                            color: colorScheme.onSurfaceVariant.withOpacity(0.4), // Cor do ícone
+                            color: colorScheme.onSurfaceVariant.withValues(alpha:0.4), 
                           ),
                           const SizedBox(height: 16),
                           Text(
                             'Nenhuma chamada encontrada para esta turma',
                             style: textTheme.titleMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant, // Cor do texto
+                              color: colorScheme.onSurfaceVariant, 
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -166,33 +166,33 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
                       return Card(
                         margin: const EdgeInsets.only(bottom: 12),
                         elevation: 2,
-                        color: colorScheme.surface, // Fundo do Card
-                        surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
+                        color: colorScheme.surface, 
+                        surfaceTintColor: colorScheme.primaryContainer, 
                         child: ListTile(
                           leading: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: colorScheme.primary.withOpacity(0.1), // Fundo do ícone
+                              color: colorScheme.primary.withValues(alpha:0.1), 
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
                               Icons.assignment,
-                              color: colorScheme.primary, // Cor do ícone
+                              color: colorScheme.primary, 
                             ),
                           ),
                           title: Text(
                             'Chamada - ${controller.formatDate(attendance.date)}',
-                            style: textTheme.titleSmall?.copyWith( // Estilo do título
+                            style: textTheme.titleSmall?.copyWith( 
                               fontWeight: FontWeight.w600,
-                              color: colorScheme.onSurface, // Cor do texto do título
+                              color: colorScheme.onSurface, 
                             ),
                           ),
                           subtitle: Text(
                             attendance.content?.isNotEmpty == true
                                 ? attendance.content!
                                 : 'Sem conteúdo registrado',
-                            style: textTheme.bodyMedium?.copyWith( // Estilo do subtítulo
-                              color: colorScheme.onSurfaceVariant, // Cor do texto do subtítulo
+                            style: textTheme.bodyMedium?.copyWith( 
+                              color: colorScheme.onSurfaceVariant, 
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -200,7 +200,7 @@ class OccurrenceSelectPage extends GetView<OccurrenceSelectController> {
                           trailing: Icon(
                             Icons.arrow_forward_ios,
                             size: 16,
-                            color: colorScheme.onSurfaceVariant.withOpacity(0.4), // Cor da seta
+                            color: colorScheme.onSurfaceVariant.withValues(alpha:0.4), 
                           ),
                           onTap: () =>
                               controller.navigateToOccurrences(attendance),

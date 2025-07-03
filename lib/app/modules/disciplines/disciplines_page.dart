@@ -1,10 +1,10 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:validatorless/validatorless.dart';
-import 'package:vocatus/app/core/constants/constants.dart'; // Mantenha, mas sem primaryColor
+import 'package:vocatus/app/core/constants/constants.dart'; 
 import 'package:vocatus/app/core/widgets/custom_error_dialog.dart';
 import 'package:vocatus/app/core/widgets/custom_popbutton.dart';
-// import 'package:vocatus/app/core/widgets/custom_popbutton.dart'; // Remova se não estiver usando
+
 import 'package:vocatus/app/core/widgets/custom_text_field.dart';
 import 'package:vocatus/app/models/discipline.dart';
 import './disciplines_controller.dart';
@@ -23,7 +23,7 @@ class DisciplinesPage extends GetView<DisciplinesController> {
           'Disciplinas',
           style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: colorScheme.onPrimary, // Texto da AppBar
+            color: colorScheme.onPrimary, 
           ),
         ),
         centerTitle: true,
@@ -31,8 +31,8 @@ class DisciplinesPage extends GetView<DisciplinesController> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                colorScheme.primary.withOpacity(0.9), // Usa a cor primária do tema
-                colorScheme.primary, // Usa a cor primária do tema
+                colorScheme.primary.withValues(alpha:0.9), 
+                colorScheme.primary, 
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -43,12 +43,12 @@ class DisciplinesPage extends GetView<DisciplinesController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: IconThemeData(color: colorScheme.onPrimary), // Cor dos ícones da AppBar
+        iconTheme: IconThemeData(color: colorScheme.onPrimary), 
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
           return Center(
-            child: CircularProgressIndicator(color: colorScheme.primary), // Cor do tema
+            child: CircularProgressIndicator(color: colorScheme.primary), 
           );
         }
         if (controller.disciplines.isEmpty) {
@@ -57,9 +57,9 @@ class DisciplinesPage extends GetView<DisciplinesController> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  Icons.book_outlined, // Ícone mais relevante para disciplinas
+                  Icons.book_outlined, 
                   size: 80,
-                  color: colorScheme.onSurfaceVariant.withOpacity(0.3),
+                  color: colorScheme.onSurfaceVariant.withValues(alpha:0.3),
                 ),
                 const SizedBox(height: 20),
                 Text(
@@ -74,7 +74,7 @@ class DisciplinesPage extends GetView<DisciplinesController> {
                 Text(
                   'Adicione uma nova disciplina para começar.',
                   style: textTheme.bodyLarge?.copyWith(
-                    color: colorScheme.onSurfaceVariant.withOpacity(0.8),
+                    color: colorScheme.onSurfaceVariant.withValues(alpha:0.8),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -99,15 +99,15 @@ class DisciplinesPage extends GetView<DisciplinesController> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    color: colorScheme.surface, // Fundo do Card
-                    surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
-                    shadowColor: colorScheme.shadow.withOpacity(0.1), // Sombra suave
+                    color: colorScheme.surface, 
+                    surfaceTintColor: colorScheme.primaryContainer, 
+                    shadowColor: colorScheme.shadow.withValues(alpha:0.1), 
                     child: ListTile(
                       title: Text(
                         Constants.capitalize(discipline.name),
-                        style: textTheme.titleMedium?.copyWith( // Usar titleMedium
+                        style: textTheme.titleMedium?.copyWith( 
                           fontWeight: FontWeight.w600,
-                          color: colorScheme.onSurface, // Cor do texto do título
+                          color: colorScheme.onSurface, 
                         ),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
@@ -136,27 +136,27 @@ class DisciplinesPage extends GetView<DisciplinesController> {
           ],
         );
       }),
-      floatingActionButton: FloatingActionButton( // Usar FloatingActionButton normal
+      floatingActionButton: FloatingActionButton( 
         onPressed: () async {
           await _showAddDisciplineDialog(context, colorScheme, textTheme);
         },
         tooltip: 'Adicionar Disciplina',
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), // Mais arredondado
-        backgroundColor: colorScheme.primary, // Fundo do FAB
-        foregroundColor: colorScheme.onPrimary, // Ícone/texto do FAB
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), 
+        backgroundColor: colorScheme.primary, 
+        foregroundColor: colorScheme.onPrimary, 
         elevation: 8,
-        child: const Icon(Icons.add, size: 28), // Ícone de '+' padrão
+        child: const Icon(Icons.add, size: 28), 
       ),
     );
   }
 
-  // --- Diálogo de Adicionar Disciplina ---
+  
   Future<void> _showAddDisciplineDialog(BuildContext context, ColorScheme colorScheme, TextTheme textTheme) async {
     controller.nameEC.clear();
     await Get.defaultDialog(
       title: 'Adicionar Disciplina',
-      titleStyle: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface), // Estilo do título do Get.defaultDialog
-      backgroundColor: colorScheme.surface, // Fundo do diálogo
+      titleStyle: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface), 
+      backgroundColor: colorScheme.surface, 
       content: Form(
         key: controller.formKey,
         child: Column(
@@ -166,7 +166,7 @@ class DisciplinesPage extends GetView<DisciplinesController> {
               maxLines: 1,
               controller: controller.nameEC,
               hintText: 'Nome da Disciplina',
-              // CustomTextField já cuida das cores de texto/bordas
+              
             ),
             const SizedBox(height: 16),
           ],
@@ -190,8 +190,8 @@ class DisciplinesPage extends GetView<DisciplinesController> {
           }
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.primary, // Fundo do botão Confirmar
-          foregroundColor: colorScheme.onPrimary, // Texto do botão Confirmar
+          backgroundColor: colorScheme.primary, 
+          foregroundColor: colorScheme.onPrimary, 
         ),
         child: const Text('Adicionar'),
       ),
@@ -200,15 +200,15 @@ class DisciplinesPage extends GetView<DisciplinesController> {
           Get.back();
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.surfaceVariant, // Fundo do botão Cancelar (opcional)
-          foregroundColor: colorScheme.onSurfaceVariant, // Texto do botão Cancelar
+          backgroundColor: colorScheme.surfaceContainerHighest, 
+          foregroundColor: colorScheme.onSurfaceVariant, 
         ),
         child: const Text('Cancelar'),
       ),
     );
   }
 
-  // --- Diálogo de Editar Disciplina ---
+  
   Future<void> _showEditDisciplineDialog(BuildContext context, Discipline discipline, ColorScheme colorScheme, TextTheme textTheme) async {
     controller.nameEditEC.text = discipline.name;
     await Get.defaultDialog(
@@ -257,7 +257,7 @@ class DisciplinesPage extends GetView<DisciplinesController> {
           Get.back();
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.surfaceVariant,
+          backgroundColor: colorScheme.surfaceContainerHighest,
           foregroundColor: colorScheme.onSurfaceVariant,
         ),
         child: const Text('Cancelar'),
@@ -265,24 +265,24 @@ class DisciplinesPage extends GetView<DisciplinesController> {
     );
   }
 
-  // --- Diálogo de Excluir Disciplina ---
+  
   Future<void> _showDeleteDisciplineDialog(BuildContext context, Discipline discipline, ColorScheme colorScheme, TextTheme textTheme) async {
     await Get.defaultDialog(
       title: 'Excluir Disciplina',
-      titleStyle: textTheme.titleLarge?.copyWith(color: colorScheme.error), // Título de exclusão em vermelho
-      backgroundColor: colorScheme.errorContainer, // Fundo do diálogo de exclusão
+      titleStyle: textTheme.titleLarge?.copyWith(color: colorScheme.error), 
+      backgroundColor: colorScheme.errorContainer, 
       content: Text(
         'Você tem certeza que deseja excluir a disciplina "${discipline.name}"?',
-        style: textTheme.bodyLarge?.copyWith(color: colorScheme.onErrorContainer), // Texto da mensagem
-        textAlign: TextAlign.center, // Centraliza o texto da mensagem
+        style: textTheme.bodyLarge?.copyWith(color: colorScheme.onErrorContainer), 
+        textAlign: TextAlign.center, 
       ),
       confirm: ElevatedButton(
         onPressed: () {
           Get.back();
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.onSurfaceVariant, // Fundo do botão "Cancelar" (neutro)
-          foregroundColor: colorScheme.surface, // Cor do texto do botão "Cancelar" (contrasta com onSurfaceVariant)
+          backgroundColor: colorScheme.onSurfaceVariant, 
+          foregroundColor: colorScheme.surface, 
         ),
         child: const Text('Cancelar'),
       ),
@@ -299,8 +299,8 @@ class DisciplinesPage extends GetView<DisciplinesController> {
           }
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.error, // Fundo do botão "Excluir" (vermelho de erro)
-          foregroundColor: colorScheme.onError, // Texto do botão "Excluir"
+          backgroundColor: colorScheme.error, 
+          foregroundColor: colorScheme.onError, 
         ),
         child: const Text('Excluir'),
       ),

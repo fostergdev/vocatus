@@ -30,7 +30,7 @@ class _CustomConfirmationDialogWithCodeState
   @override
   void initState() {
     super.initState();
-    // Gera um código de 3 dígitos (entre 100 e 999)
+    
     _generatedCode = (100 + (DateTime.now().millisecondsSinceEpoch % 900))
         .toString();
   }
@@ -43,7 +43,7 @@ class _CustomConfirmationDialogWithCodeState
 
   @override
   Widget build(BuildContext context) {
-    // Acesse o ColorScheme do tema atual
+    
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return CustomDialog(
@@ -58,7 +58,7 @@ class _CustomConfirmationDialogWithCodeState
               SelectableText(
                 '${widget.message}\n\nCódigo: $_generatedCode',
                 style: TextStyle(
-                  // Cor do texto principal do diálogo
+                  
                   color: colorScheme.onSurface,
                 ),
               ),
@@ -71,7 +71,7 @@ class _CustomConfirmationDialogWithCodeState
                   labelText: 'Digite o código',
                   border: const OutlineInputBorder(),
                   counterText: '',
-                  // Cores da label e borda do TextFormField
+                  
                   labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
                   focusedBorder: OutlineInputBorder(
                     borderSide: BorderSide(
@@ -99,7 +99,7 @@ class _CustomConfirmationDialogWithCodeState
                   ),
                 ),
                 style: TextStyle(
-                  // Cor do texto digitado no campo
+                  
                   color: colorScheme.onSurface,
                 ),
                 validator: (value) {
@@ -124,20 +124,20 @@ class _CustomConfirmationDialogWithCodeState
               widget.onConfirm();
             }
           },
-          // Estilo do botão de confirmação
+          
           style: ElevatedButton.styleFrom(
-            backgroundColor: colorScheme.primary, // Cor de fundo do botão
+            backgroundColor: colorScheme.primary, 
             foregroundColor:
-                colorScheme.onPrimary, // Cor do texto/ícone do botão
+                colorScheme.onPrimary, 
           ),
           child: Text(widget.confirmButtonText),
         ),
         TextButton(
           onPressed: () => Get.back(),
-          // Estilo do botão de cancelar
+          
           style: TextButton.styleFrom(
             foregroundColor:
-                colorScheme.onSurfaceVariant, // Cor do texto do botão
+                colorScheme.onSurfaceVariant, 
           ),
           child: const Text('Cancelar'),
         ),

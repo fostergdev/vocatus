@@ -6,7 +6,6 @@ import 'package:vocatus/app/models/student.dart';
 import 'package:vocatus/app/models/attendance.dart';
 import 'package:vocatus/app/repositories/occurrence/occurrence_repository.dart';
 import 'package:vocatus/app/core/widgets/custom_error_dialog.dart';
-import 'dart:developer';
 
 class OccurrenceController extends GetxController {
   final OccurrenceRepository _occurrenceRepository = OccurrenceRepository(
@@ -20,6 +19,7 @@ class OccurrenceController extends GetxController {
   final availableStudents = <Student>[].obs;
 
   final descriptionEC = TextEditingController();
+  final titleEC = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
   final selectedStudent = Rx<Student?>(null);
@@ -33,7 +33,6 @@ class OccurrenceController extends GetxController {
 
   @override
   void onInit() {
-    log('OccurrenceController.onInit - Inicializando controller para chamada: ${currentAttendance.id}', name: 'OccurrenceController');
     selectedDate.value = DateTime.now();
     loadOccurrences();
     loadAvailableStudents();
@@ -42,27 +41,24 @@ class OccurrenceController extends GetxController {
 
   @override
   void onClose() {
-    log('OccurrenceController.onClose - Limpando recursos do controller', name: 'OccurrenceController');
     descriptionEC.dispose();
+    titleEC.dispose();
     super.onClose();
   }
 
   Future<void> loadOccurrences() async {
     try {
       isLoading.value = true;
-      log('OccurrenceController.loadOccurrences - Carregando ocorrências da chamada', name: 'OccurrenceController');
       
       List<Occurrence> result = await _occurrenceRepository.getOccurrencesByAttendanceId(
         currentAttendance.id!,
       );
       
-      // Aplicar filtros se necessário
+      
       result = _applyFilters(result);
       
       occurrences.value = result;
-      log('OccurrenceController.loadOccurrences - ${result.length} ocorrências carregadas', name: 'OccurrenceController');
     } catch (e) {
-      log('OccurrenceController.loadOccurrences - Erro: $e', name: 'OccurrenceController');
       Get.dialog(
         CustomErrorDialog(
           title: 'Erro',
@@ -76,16 +72,12 @@ class OccurrenceController extends GetxController {
 
   Future<void> loadAvailableStudents() async {
     try {
-      log('OccurrenceController.loadAvailableStudents - Carregando alunos da chamada', name: 'OccurrenceController');
-      
       final result = await _occurrenceRepository.getStudentsFromAttendance(
         currentAttendance.id!,
       );
       
       availableStudents.value = result;
-      log('OccurrenceController.loadAvailableStudents - ${result.length} alunos carregados', name: 'OccurrenceController');
     } catch (e) {
-      log('OccurrenceController.loadAvailableStudents - Erro: $e', name: 'OccurrenceController');
       Get.snackbar(
         'Erro',
         'Erro ao carregar alunos: $e',
@@ -110,12 +102,11 @@ class OccurrenceController extends GetxController {
     }
 
     try {
-      log('OccurrenceController.createOccurrence - Criando nova ocorrência', name: 'OccurrenceController');
-      
       final occurrence = Occurrence(
         attendanceId: currentAttendance.id!,
         studentId: isGeneralOccurrence.value ? null : selectedStudent.value?.id,
         occurrenceType: selectedType.value,
+        title: titleEC.text.trim(),
         description: descriptionEC.text.trim(),
         occurrenceDate: selectedDate.value!,
       );
@@ -133,10 +124,7 @@ class OccurrenceController extends GetxController {
         backgroundColor: Colors.green.shade100,
         colorText: Colors.green.shade800,
       );
-      
-      log('OccurrenceController.createOccurrence - Ocorrência criada com sucesso', name: 'OccurrenceController');
     } catch (e) {
-      log('OccurrenceController.createOccurrence - Erro: $e', name: 'OccurrenceController');
       Get.dialog(
         CustomErrorDialog(
           title: 'Erro ao Criar Ocorrência',
@@ -151,11 +139,10 @@ class OccurrenceController extends GetxController {
     if (selectedDate.value == null) return;
 
     try {
-      log('OccurrenceController.updateOccurrence - Atualizando ocorrência: ${occurrence.id}', name: 'OccurrenceController');
-      
       final updatedOccurrence = occurrence.copyWith(
         studentId: isGeneralOccurrence.value ? null : selectedStudent.value?.id,
         occurrenceType: selectedType.value,
+        title: titleEC.text.trim(),
         description: descriptionEC.text.trim(),
         occurrenceDate: selectedDate.value!,
       );
@@ -173,10 +160,7 @@ class OccurrenceController extends GetxController {
         backgroundColor: Colors.green.shade100,
         colorText: Colors.green.shade800,
       );
-      
-      log('OccurrenceController.updateOccurrence - Ocorrência atualizada com sucesso', name: 'OccurrenceController');
     } catch (e) {
-      log('OccurrenceController.updateOccurrence - Erro: $e', name: 'OccurrenceController');
       Get.dialog(
         CustomErrorDialog(
           title: 'Erro ao Atualizar Ocorrência',
@@ -188,8 +172,6 @@ class OccurrenceController extends GetxController {
 
   Future<void> deleteOccurrence(Occurrence occurrence) async {
     try {
-      log('OccurrenceController.deleteOccurrence - Excluindo ocorrência: ${occurrence.id}', name: 'OccurrenceController');
-      
       await _occurrenceRepository.deleteOccurrence(occurrence.id!);
       
       loadOccurrences();
@@ -201,10 +183,7 @@ class OccurrenceController extends GetxController {
         backgroundColor: Colors.green.shade100,
         colorText: Colors.green.shade800,
       );
-      
-      log('OccurrenceController.deleteOccurrence - Ocorrência excluída com sucesso', name: 'OccurrenceController');
     } catch (e) {
-      log('OccurrenceController.deleteOccurrence - Erro: $e', name: 'OccurrenceController');
       Get.dialog(
         CustomErrorDialog(
           title: 'Erro ao Excluir Ocorrência',
@@ -216,6 +195,7 @@ class OccurrenceController extends GetxController {
 
   void clearForm() {
     descriptionEC.clear();
+    titleEC.clear();
     selectedStudent.value = null;
     selectedType.value = null;
     selectedDate.value = DateTime.now();
@@ -224,6 +204,7 @@ class OccurrenceController extends GetxController {
 
   void prepareEditOccurrence(Occurrence occurrence) {
     descriptionEC.text = occurrence.description;
+    titleEC.text = occurrence.title ?? '';
     selectedStudent.value = occurrence.student;
     selectedType.value = occurrence.occurrenceType;
     selectedDate.value = occurrence.occurrenceDate;

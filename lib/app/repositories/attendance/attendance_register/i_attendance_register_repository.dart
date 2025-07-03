@@ -9,7 +9,7 @@ abstract class IAttendanceRegisterRepository {
     Attendance attendance,
     List<StudentAttendance> studentAttendances,
   );
-  Future<Attendance?> getAttendanceByGradeAndDate(int gradeId, DateTime date);
+  Future<Attendance?> getAttendanceByScheduleAndDate(int scheduleId, DateTime date);
   Future<List<StudentAttendance>> getStudentAttendancesByAttendanceId(
     int attendanceId,
   );

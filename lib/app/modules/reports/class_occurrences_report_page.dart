@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:vocatus/app/core/constants/constants.dart'; // Mantenha, mas já sem primaryColor
+
 import 'package:vocatus/app/modules/reports/reports_controller.dart';
 
 class ClassOccurrencesReportPage extends GetView<ReportsController> {
@@ -24,7 +24,7 @@ class ClassOccurrencesReportPage extends GetView<ReportsController> {
           'Ocorrências - $className',
           style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: colorScheme.onPrimary, // Cor do texto da AppBar
+            color: colorScheme.onPrimary, 
           ),
         ),
         centerTitle: true,
@@ -32,8 +32,8 @@ class ClassOccurrencesReportPage extends GetView<ReportsController> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                colorScheme.primary.withOpacity(0.9), // Usa a cor primária do tema
-                colorScheme.primary, // Usa a cor primária do tema
+                colorScheme.primary.withValues(alpha:0.9), 
+                colorScheme.primary, 
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -44,16 +44,16 @@ class ClassOccurrencesReportPage extends GetView<ReportsController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: IconThemeData(color: colorScheme.onPrimary), // Cor dos ícones da AppBar
+        iconTheme: IconThemeData(color: colorScheme.onPrimary), 
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.construction, // Ícone de construção
+              Icons.construction, 
               size: 80,
-              color: colorScheme.secondary.withOpacity(0.6), // Cor do ícone, relacionada à cor secundária do tema
+              color: colorScheme.secondary.withValues(alpha:0.6), 
             ),
             const SizedBox(height: 20),
             Text(
@@ -61,7 +61,7 @@ class ClassOccurrencesReportPage extends GetView<ReportsController> {
               textAlign: TextAlign.center,
               style: textTheme.titleMedium?.copyWith(
                 fontSize: 18,
-                color: colorScheme.onSurfaceVariant, // Cor do texto
+                color: colorScheme.onSurfaceVariant, 
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -71,16 +71,16 @@ class ClassOccurrencesReportPage extends GetView<ReportsController> {
               textAlign: TextAlign.center,
               style: textTheme.bodyLarge?.copyWith(
                 fontSize: 16,
-                color: colorScheme.onSurfaceVariant.withOpacity(0.8), // Cor do texto
+                color: colorScheme.onSurfaceVariant.withValues(alpha:0.8), 
               ),
             ),
             const SizedBox(height: 30),
             ElevatedButton.icon(
               onPressed: () => Get.back(),
-              icon: Icon(Icons.arrow_back, color: colorScheme.onPrimary), // Cor do ícone
-              label: Text('Voltar', style: TextStyle(color: colorScheme.onPrimary)), // Cor do texto
+              icon: Icon(Icons.arrow_back, color: colorScheme.onPrimary), 
+              label: Text('Voltar', style: TextStyle(color: colorScheme.onPrimary)), 
               style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.primary, // Fundo do botão
+                backgroundColor: colorScheme.primary, 
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
             ),

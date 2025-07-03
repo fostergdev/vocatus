@@ -8,7 +8,8 @@ class CustomTextField extends StatefulWidget {
   final bool isPassword;
   final TextInputType? keyboardType;
   final MaskTextInputFormatter? maskFormatter;
-  final Widget? suffixIcon;
+  final Widget? suffixIcon; 
+  final Widget? actionWidget; 
   final int? maxLines;
   final int? minLines;
   final TextStyle? hintStyle;
@@ -25,6 +26,7 @@ class CustomTextField extends StatefulWidget {
     this.keyboardType,
     this.maskFormatter,
     this.suffixIcon,
+    this.actionWidget, 
     this.maxLines,
     this.minLines,
     this.hintStyle,
@@ -48,27 +50,28 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
-    // Acesse o ColorScheme do tema atual
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
 
-    // 1. Determina qual ícone de sufixo deve ser usado:
-    Widget? effectiveSuffixIcon;
+    
+    Widget? internalSuffixIcon;
     if (widget.isPassword) {
-      effectiveSuffixIcon = IconButton(
+      internalSuffixIcon = IconButton(
         icon: Icon(
           _showPassword ? Icons.visibility : Icons.visibility_off,
-          color: colorScheme.onSurfaceVariant, // Cor do ícone de visibilidade
+          color: colorScheme.onSurfaceVariant,
         ),
         onPressed: _togglePasswordVisibility,
       );
     } else {
-      effectiveSuffixIcon = widget.suffixIcon;
+      
+      internalSuffixIcon = widget.suffixIcon;
     }
 
-    // 2. Cria a decoração base com as cores do tema
+    
     InputDecoration baseDecoration = InputDecoration(
-      filled: true, // Campo preenchido para melhor visualização do fundo
-      fillColor: colorScheme.surfaceVariant, // Cor de fundo do campo
+      filled: true,
+      fillColor: colorScheme.surfaceContainerHighest,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.0),
         borderSide: BorderSide(color: colorScheme.outline, width: 1.0),
@@ -79,7 +82,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.0),
-        borderSide: BorderSide(color: colorScheme.primary, width: 2.0), // Borda focada com a cor primária
+        borderSide: BorderSide(color: colorScheme.primary, width: 2.0),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.0),
@@ -90,42 +93,72 @@ class _CustomTextFieldState extends State<CustomTextField> {
         borderSide: BorderSide(color: colorScheme.error, width: 2.0),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      // Cores para hintText e labelText
-      hintStyle: widget.hintStyle ?? TextStyle(color: colorScheme.onSurfaceVariant),
+      hintStyle: widget.hintStyle ?? textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
       labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-      // Cores para o texto de erro e help text
       errorStyle: TextStyle(color: colorScheme.error),
       helperStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-      // Cor do prefixIcon e suffixIcon
       prefixIconColor: colorScheme.onSurfaceVariant,
       suffixIconColor: colorScheme.onSurfaceVariant,
+      
+      suffixIcon: internalSuffixIcon,
     );
 
-    // 3. Mescla a decoração base com a decoração customizada passada pelo usuário
-    //    e aplica o hintText e suffixIcon
+    
     InputDecoration finalDecoration = baseDecoration.copyWith(
       hintText: widget.hintText ?? widget.decoration?.hintText,
       hintStyle: widget.hintStyle ?? widget.decoration?.hintStyle,
-      suffixIcon: effectiveSuffixIcon,
-    ).applyDefaults(Theme.of(context).inputDecorationTheme); // Aplica defaults do tema
+    );
 
-    return TextFormField(
-      onChanged: widget.onChanged,
-      validator: widget.validator,
-      controller: widget.controller,
-      obscureText: widget.isPassword ? _showPassword : false,
-      keyboardType: widget.keyboardType,
-      inputFormatters: widget.maskFormatter != null
-          ? [widget.maskFormatter!]
-          : [],
-      maxLines: widget.maxLines,
-      minLines: widget.minLines,
-      autofocus: widget.autofocus,
-      decoration: finalDecoration, // Usa a decoração final mesclada
-      style: TextStyle(
-        color: colorScheme.onSurface, // Cor do texto digitado no campo
-      ),
-      cursorColor: colorScheme.primary, // Cor do cursor
+    if (widget.decoration != null) {
+      finalDecoration = finalDecoration.copyWith(
+        labelText: widget.decoration?.labelText,
+        alignLabelWithHint: widget.decoration?.alignLabelWithHint,
+        filled: widget.decoration?.filled,
+        fillColor: widget.decoration?.fillColor,
+        enabledBorder: widget.decoration?.enabledBorder,
+        focusedBorder: widget.decoration?.focusedBorder,
+        contentPadding: widget.decoration?.contentPadding,
+        
+        
+        
+        suffixIcon: widget.isPassword ? internalSuffixIcon : (widget.suffixIcon ?? widget.decoration?.suffixIcon),
+        
+        hintText: widget.hintText ?? widget.decoration?.hintText ?? finalDecoration.hintText,
+        hintStyle: widget.hintStyle ?? widget.decoration?.hintStyle ?? finalDecoration.hintStyle,
+      );
+    }
+
+    finalDecoration = finalDecoration.applyDefaults(Theme.of(context).inputDecorationTheme);
+
+    
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center, 
+      children: [
+        Expanded(
+          child: TextFormField(
+            onChanged: widget.onChanged,
+            validator: widget.validator,
+            controller: widget.controller,
+            obscureText: widget.isPassword ? _showPassword : false,
+            keyboardType: widget.keyboardType,
+            inputFormatters: widget.maskFormatter != null
+                ? [widget.maskFormatter!]
+                : [],
+            maxLines: widget.maxLines,
+            minLines: widget.minLines,
+            autofocus: widget.autofocus,
+            decoration: finalDecoration,
+            style: TextStyle(
+              color: colorScheme.onSurface,
+            ),
+            cursorColor: colorScheme.primary,
+          ),
+        ),
+        if (widget.actionWidget != null) ...[
+          const SizedBox(width: 8.0), 
+          widget.actionWidget!, 
+        ],
+      ],
     );
   }
 }

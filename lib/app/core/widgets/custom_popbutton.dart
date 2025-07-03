@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// Mantenha esta classe auxiliar como está
+
 class CustomPopupMenuItem {
   final String label;
   final IconData? icon;
@@ -15,7 +15,7 @@ class CustomPopupMenuItem {
 
 class CustomPopupMenu extends StatelessWidget {
   final List<CustomPopupMenuItem> items;
-  // Removendo iconColor e definindo-o automaticamente via tema
+  
   final IconData? icon;
   final TextAlign textAlign;
 
@@ -28,16 +28,16 @@ class CustomPopupMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Acesse o ColorScheme do tema atual
+    
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return PopupMenuButton<int>(
-      // Cor de fundo do PopupMenu
-      color: colorScheme.surfaceContainerHigh, // Uma cor de superfície mais elevada
+      
+      color: colorScheme.surfaceContainerHigh, 
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      // Cor do ícone do botão que abre o menu (ex: três pontinhos)
-      // Usamos onSurfaceVariant para um ícone neutro que contrasta com o fundo da AppBar/tela
+      
+      
       icon: Icon(icon ?? Icons.more_vert, color: colorScheme.onSurfaceVariant),
       onSelected: (index) => items[index].onTap(),
       itemBuilder: (context) => [
@@ -50,7 +50,7 @@ class CustomPopupMenu extends StatelessWidget {
                   : MainAxisAlignment.start,
               children: [
                 if (items[i].icon != null) ...[
-                  // Cor do ícone dos itens do menu (usa a cor primária ou onSurface)
+                  
                   Icon(items[i].icon, color: colorScheme.onSurface),
                   const SizedBox(width: 12),
                 ],
@@ -58,7 +58,7 @@ class CustomPopupMenu extends StatelessWidget {
                   child: Text(
                     items[i].label,
                     style: TextStyle(
-                      // Cor do texto dos itens do menu
+                      
                       color: colorScheme.onSurface,
                       fontWeight: FontWeight.w600,
                     ),

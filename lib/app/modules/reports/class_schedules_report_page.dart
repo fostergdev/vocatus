@@ -1,13 +1,12 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:vocatus/app/core/constants/constants.dart'; // Keep, but remember no primaryColor here
 import 'package:vocatus/app/modules/reports/reports_controller.dart';
 
-class ClassGradesReportPage extends GetView<ReportsController> {
+class ClassSchedulesReportPage extends GetView<ReportsController> {
   final int classId;
   final String className;
 
-  const ClassGradesReportPage({
+  const ClassSchedulesReportPage({
     super.key,
     required this.classId,
     required this.className,
@@ -24,7 +23,7 @@ class ClassGradesReportPage extends GetView<ReportsController> {
           'Notas - $className',
           style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: colorScheme.onPrimary, // AppBar title color
+            color: colorScheme.onPrimary, 
           ),
         ),
         centerTitle: true,
@@ -32,8 +31,10 @@ class ClassGradesReportPage extends GetView<ReportsController> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                colorScheme.primary.withOpacity(0.9), // Uses theme's primary color
-                colorScheme.primary, // Uses theme's primary color
+                colorScheme.primary.withValues(
+                  alpha: 0.9,
+                ), 
+                colorScheme.primary, 
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -44,7 +45,9 @@ class ClassGradesReportPage extends GetView<ReportsController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: IconThemeData(color: colorScheme.onPrimary), // AppBar icon color
+        iconTheme: IconThemeData(
+          color: colorScheme.onPrimary,
+        ), 
       ),
       body: Center(
         child: Column(
@@ -53,7 +56,9 @@ class ClassGradesReportPage extends GetView<ReportsController> {
             Icon(
               Icons.assignment_outlined,
               size: 80,
-              color: colorScheme.primary.withOpacity(0.5), // Icon color, subtly linked to primary
+              color: colorScheme.primary.withValues(
+                alpha: 0.5,
+              ), 
             ),
             const SizedBox(height: 20),
             Text(
@@ -61,27 +66,38 @@ class ClassGradesReportPage extends GetView<ReportsController> {
               textAlign: TextAlign.center,
               style: textTheme.titleMedium?.copyWith(
                 fontSize: 18,
-                color: colorScheme.onSurfaceVariant, // Text color
+                color: colorScheme.onSurfaceVariant, 
                 fontWeight: FontWeight.w500,
               ),
             ),
             const SizedBox(height: 10),
             Text(
-              'Esta funcionalidade está em desenvolvimento.\nEm breve você poderá visualizar o desempenho acadêmico da turma.',
+              'Esta funcionalidade está em desenvolvimento.\nAguarde atualizações futuras para acessar o relatório de notas.',
               textAlign: TextAlign.center,
               style: textTheme.bodyLarge?.copyWith(
                 fontSize: 16,
-                color: colorScheme.onSurfaceVariant.withOpacity(0.8), // Text color
+                color: colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.8,
+                ), 
               ),
             ),
             const SizedBox(height: 30),
             ElevatedButton.icon(
               onPressed: () => Get.back(),
-              icon: Icon(Icons.arrow_back, color: colorScheme.onPrimary), // Icon color
-              label: Text('Voltar', style: TextStyle(color: colorScheme.onPrimary)), // Text color
+              icon: Icon(
+                Icons.arrow_back,
+                color: colorScheme.onPrimary,
+              ), 
+              label: Text(
+                'Voltar',
+                style: TextStyle(color: colorScheme.onPrimary),
+              ), 
               style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.primary, // Button background color
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                backgroundColor: colorScheme.primary, 
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
               ),
             ),
           ],

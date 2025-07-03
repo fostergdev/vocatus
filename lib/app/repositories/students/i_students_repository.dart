@@ -3,7 +3,7 @@ import 'package:vocatus/app/models/student.dart';
 
 abstract class IStudentsRepository {
   Future<List<Student>> getStudentsByClasseId(int classeId);
-  Future<void> addStudentsToClasse(List<Student> students, int classeId);
+  Future<void> createAndAddStudentsToClasse(List<Student> students, int classeId);
   Future<void> removeStudentFromClasse(Student student, int classeId);
   Future<void> updateStudent(Student student);
   Future<List<Classe>> getAllClassesExcept(int excludeId, {int? year});

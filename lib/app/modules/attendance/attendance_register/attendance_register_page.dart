@@ -2,9 +2,9 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:vocatus/app/core/constants/constants.dart';
-import 'package:vocatus/app/core/widgets/custom_popbutton.dart'; // Mantenha se ainda usar, mas não foi fornecido o código
+import 'package:vocatus/app/core/widgets/custom_popbutton.dart';
 import 'package:vocatus/app/core/widgets/custom_text_field.dart';
-import 'package:vocatus/app/models/grade.dart';
+import 'package:vocatus/app/models/schedule.dart';
 import 'package:vocatus/app/models/student_attendance.dart';
 import './attendance_register_controller.dart';
 
@@ -16,15 +16,15 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
-    final Grade selectedGrade = controller.grade;
+    final Schedule selectedSchedule = controller.schedule;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          selectedGrade.classe?.name ?? 'Turma',
+          selectedSchedule.classe?.name ?? 'Turma',
           style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: colorScheme.onPrimary, // Texto da AppBar
+            color: colorScheme.onPrimary,
           ),
         ),
         centerTitle: true,
@@ -32,8 +32,8 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                colorScheme.primary.withOpacity(0.9), // Usa a cor primária do tema
-                colorScheme.primary, // Usa a cor primária do tema
+                colorScheme.primary.withValues(alpha: 0.9),
+                colorScheme.primary,
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -44,7 +44,7 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: IconThemeData(color: colorScheme.onPrimary), // Cor dos ícones da AppBar
+        iconTheme: IconThemeData(color: colorScheme.onPrimary),
       ),
       body: Column(
         children: [
@@ -55,9 +55,12 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
               vertical: 16.0,
             ),
             decoration: BoxDecoration(
-              color: colorScheme.primaryContainer, // Fundo suave (Material 3)
+              color: colorScheme.primaryContainer,
               border: Border(
-                bottom: BorderSide(color: colorScheme.outlineVariant, width: 1.0), // Borda inferior
+                bottom: BorderSide(
+                  color: colorScheme.outlineVariant,
+                  width: 1.0,
+                ),
               ),
             ),
             child: Column(
@@ -67,10 +70,10 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${Constants.getDayName(selectedGrade.dayOfWeek)}, ${DateFormat('dd/MM/yyyy').format(controller.selectedDate.value)}',
+                      '${Constants.getDayName(selectedSchedule.dayOfWeek)}, ${DateFormat('dd/MM/yyyy').format(controller.selectedDate.value)}',
                       style: textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: colorScheme.primary, // Cor do texto de data
+                        color: colorScheme.primary,
                       ),
                     ),
                     Row(
@@ -78,13 +81,13 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                         Icon(
                           Icons.access_time,
                           size: 18,
-                          color: colorScheme.secondary, // Cor do ícone de tempo
+                          color: colorScheme.secondary,
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          '${Grade.formatTimeDisplay(selectedGrade.startTimeOfDay)} - ${Grade.formatTimeDisplay(selectedGrade.endTimeOfDay)}',
+                          '${Schedule.formatTimeDisplay(selectedSchedule.startTimeOfDay)} - ${Schedule.formatTimeDisplay(selectedSchedule.endTimeOfDay)}',
                           style: textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurfaceVariant, // Cor do texto de horário
+                            color: colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -100,13 +103,14 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                     Icon(
                       Icons.menu_book,
                       size: 18,
-                      color: colorScheme.onSurfaceVariant, // Cor do ícone de disciplina
+                      color: colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      selectedGrade.discipline?.name ?? 'Discipina Não Definida',
+                      selectedSchedule.discipline?.name ??
+                          'Discipina Não Definida',
                       style: textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurface, // Cor do texto de disciplina
+                        color: colorScheme.onSurface,
                       ),
                     ),
                   ],
@@ -115,61 +119,68 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
             ),
           ),
 
-          // Campo de Texto de Conteúdo da Aula
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: CustomTextField(
-              hintText: "Conteúdo da Aula",
+              hintText:
+                  "Conteúdo da Aula", 
               maxLines: 3,
               minLines: 1,
               keyboardType: TextInputType.multiline,
               controller: controller.contentController,
-              // O `decoration` do CustomTextField já pega as cores do tema
-              // mas podemos sobrescrever aqui se quisermos algo específico
               decoration: InputDecoration(
+                
                 labelText: "Conteúdo da Aula",
                 alignLabelWithHint: true,
-                filled: true,
-                fillColor: colorScheme.surfaceVariant, // Fundo preenchido
+                
+                
+                
+                
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  
+                  borderRadius: BorderRadius.circular(
+                    16,
+                  ), 
                   borderSide: BorderSide(
                     color: colorScheme.outline,
                     width: 1.0,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
+                  
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide(
-                    color: colorScheme.primary, // Borda focada com a cor primária
+                    color: colorScheme.primary,
                     width: 2.0,
                   ),
                 ),
-                hintText: "Digite o conteúdo da aula...",
-                hintStyle: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
+                
+                hintStyle: textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
                 contentPadding: const EdgeInsets.symmetric(
                   vertical: 16,
                   horizontal: 16,
                 ),
-                // O suffixIcon já está usando o CustomPopupMenu customizado por você.
                 suffixIcon: CustomPopupMenu(
+                  
                   items: [
                     CustomPopupMenuItem(
                       label: 'Adicionar Tarefa',
                       icon: Icons.task,
                       onTap: () {
-                        if (controller.grade.classe != null) {
+                        if (controller.schedule.classe != null) {
                           Get.toNamed(
                             '/homework/home',
-                            arguments: controller.grade.classe!,
+                            arguments: controller.schedule.classe!,
                           );
                         } else {
                           Get.snackbar(
                             'Erro',
                             'Não foi possível acessar as tarefas. Turma não encontrada.',
                             snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: colorScheme.errorContainer, // Cor do tema
-                            colorText: colorScheme.onErrorContainer, // Cor do tema
+                            backgroundColor: colorScheme.errorContainer,
+                            colorText: colorScheme.onErrorContainer,
                           );
                         }
                       },
@@ -181,17 +192,18 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                         if (controller.studentAttendances.isNotEmpty) {
                           await controller.saveAttendance();
                         }
-                        
+
                         if (controller.currentAttendanceId.value != null) {
-                          final attendance = controller.createAttendanceObject();
+                          final attendance = controller
+                              .createAttendanceObject();
                           Get.toNamed('/occurrence', arguments: attendance);
                         } else {
                           Get.snackbar(
                             'Atenção',
                             'É necessário salvar a chamada antes de registrar ocorrências.',
                             snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: colorScheme.tertiaryContainer, // Cor do tema
-                            colorText: colorScheme.onTertiaryContainer, // Cor do tema
+                            backgroundColor: colorScheme.tertiaryContainer,
+                            colorText: colorScheme.onTertiaryContainer,
                           );
                         }
                       },
@@ -202,11 +214,12 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
             ),
           ),
 
-          // Lista de Alunos para Chamada
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
-                return Center(child: CircularProgressIndicator(color: colorScheme.primary)); // Cor do tema
+                return Center(
+                  child: CircularProgressIndicator(color: colorScheme.primary),
+                );
               }
               if (controller.studentAttendances.isEmpty) {
                 return Center(
@@ -215,14 +228,14 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                     children: [
                       Icon(
                         Icons.person_off,
-                        color: colorScheme.onSurfaceVariant, // Cor do ícone
+                        color: colorScheme.onSurfaceVariant,
                         size: 80,
                       ),
                       const SizedBox(height: 20),
                       Text(
                         'Nenhum aluno encontrado para esta turma/chamada.',
                         style: textTheme.titleMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant, // Cor do texto
+                          color: colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w500,
                         ),
                         textAlign: TextAlign.center,
@@ -231,7 +244,9 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                       Text(
                         'Verifique a configuração da turma ou a lista de alunos.',
                         style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant.withOpacity(0.8), // Cor do texto
+                          color: colorScheme.onSurfaceVariant.withValues(
+                            alpha: 0.8,
+                          ),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -255,14 +270,14 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                       vertical: 8,
                     ),
                     elevation: 2,
-                    color: colorScheme.surface, // Fundo do Card
-                    surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
+                    color: colorScheme.surface,
+                    surfaceTintColor: colorScheme.primaryContainer,
                     child: CheckboxListTile(
                       title: Text(
                         studentAttendance.student?.name ?? 'Aluno desconhecido',
                         style: textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.w500,
-                          color: colorScheme.onSurface, // Cor do texto do nome do aluno
+                          color: colorScheme.onSurface,
                         ),
                       ),
                       subtitle: Text(
@@ -270,9 +285,11 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                             ? 'Presente'
                             : 'Ausente',
                         style: textTheme.bodySmall?.copyWith(
-                          color: studentAttendance.presence == PresenceStatus.present
-                              ? colorScheme.tertiary // Cor para presente (verde)
-                              : colorScheme.error, // Cor para ausente (vermelho)
+                          color:
+                              studentAttendance.presence ==
+                                  PresenceStatus.present
+                              ? colorScheme.tertiary
+                              : colorScheme.error,
                         ),
                       ),
                       value:
@@ -286,9 +303,9 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                         );
                       },
                       controlAffinity: ListTileControlAffinity.trailing,
-                      activeColor: colorScheme.primary, // Cor do Checkbox quando ativo
-                      checkColor: colorScheme.onPrimary, // Cor do ícone de check
-                      tileColor: colorScheme.surface, // Cor do tile (fundo)
+                      activeColor: colorScheme.primary,
+                      checkColor: colorScheme.onPrimary,
+                      tileColor: colorScheme.surface,
                     ),
                   );
                 },
@@ -300,24 +317,28 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
       floatingActionButton: Obx(
         () => controller.studentAttendances.isNotEmpty
             ? FloatingActionButton.small(
-                onPressed: controller.isLoading.value ? null : () async {
-                  await controller.saveAttendance();
-                  Get.back();
-                },
+                onPressed: controller.isLoading.value
+                    ? null
+                    : () async {
+                        await controller.saveAttendance();
+                        Get.back();
+                      },
                 tooltip: 'Salvar Chamada',
-                backgroundColor: controller.isLoading.value 
-                    ? colorScheme.surfaceVariant 
-                    : colorScheme.primary, // Fundo do FAB
+                backgroundColor: controller.isLoading.value
+                    ? colorScheme.surfaceContainerHighest
+                    : colorScheme.primary,
                 child: controller.isLoading.value
                     ? SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onPrimary), // Cor da animação
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            colorScheme.onPrimary,
+                          ),
                         ),
                       )
-                    : Icon(Icons.save, color: colorScheme.onPrimary), // Ícone do FAB
+                    : Icon(Icons.save, color: colorScheme.onPrimary),
               )
             : const SizedBox.shrink(),
       ),

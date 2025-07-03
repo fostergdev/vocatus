@@ -26,7 +26,7 @@ class SettingsController extends GetxController {
 
   void setPrimaryColor(Color color) {
     primaryColor.value = color;
-    _box.write(_primaryColorKey, color.value);
+    _box.write(_primaryColorKey, color.toARGB32());
   }
 
   void _loadThemeMode() {
@@ -46,12 +46,12 @@ class SettingsController extends GetxController {
   }
   
   List<Color> get availableColors => [
-    Color(0xFF2196F3), // Azul
-    Color(0xFF4CAF50), // Verde
-    Color(0xFFF44336), // Vermelho
-    Color(0xFF9C27B0), // Roxo
-    Color(0xFFFF9800), // Laranja
-    Color(0xFF795548), // Marrom
-    Color(0xFF607D8B), // Azul acinzentado
+    Color(0xFF2196F3), 
+    Color(0xFF4CAF50), 
+    Color(0xFFF44336), 
+    Color(0xFF9C27B0), 
+    Color(0xFFFF9800), 
+    Color(0xFF795548), 
+    Color(0xFF607D8B), 
   ];
 }

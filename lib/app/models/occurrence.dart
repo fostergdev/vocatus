@@ -17,6 +17,7 @@ class Occurrence {
   final int attendanceId;
   final int? studentId; // null para ocorrência geral da sala
   final OccurrenceType? occurrenceType;
+  final String? title;
   final String description;
   final DateTime occurrenceDate;
   final DateTime? createdAt;
@@ -29,6 +30,7 @@ class Occurrence {
     required this.attendanceId,
     this.studentId,
     this.occurrenceType,
+    this.title,
     required this.description,
     required this.occurrenceDate,
     this.createdAt,
@@ -45,6 +47,7 @@ class Occurrence {
       occurrenceType: map['occurrence_type'] != null
           ? _getOccurrenceTypeFromString(map['occurrence_type'] as String)
           : null,
+      title: map['title'] as String?,
       description: map['description'] as String,
       occurrenceDate: DateTime.parse(map['occurrence_date'] as String),
       createdAt: map['created_at'] != null && (map['created_at'] is String) && (map['created_at'] as String).isNotEmpty
@@ -60,8 +63,9 @@ class Occurrence {
       'attendance_id': attendanceId,
       'student_id': studentId,
       'occurrence_type': occurrenceType?.name,
+      'title': title,
       'description': description,
-      'occurrence_date': occurrenceDate.toIso8601String(),
+      'occurrence_date': occurrenceDate.toIso8601String().split('T')[0],
       'created_at': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
       'active': (active ?? true) ? 1 : 0,
     };
@@ -72,6 +76,7 @@ class Occurrence {
     int? attendanceId,
     int? studentId,
     OccurrenceType? occurrenceType,
+    String? title,
     String? description,
     DateTime? occurrenceDate,
     DateTime? createdAt,
@@ -84,6 +89,7 @@ class Occurrence {
       attendanceId: attendanceId ?? this.attendanceId,
       studentId: studentId ?? this.studentId,
       occurrenceType: occurrenceType ?? this.occurrenceType,
+      title: title ?? this.title,
       description: description ?? this.description,
       occurrenceDate: occurrenceDate ?? this.occurrenceDate,
       createdAt: createdAt ?? this.createdAt,

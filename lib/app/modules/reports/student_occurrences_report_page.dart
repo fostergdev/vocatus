@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:vocatus/app/core/constants/constants.dart'; // Mantenha, mas já sem primaryColor
+
 import 'package:vocatus/app/modules/reports/reports_controller.dart';
 import 'package:intl/intl.dart';
 
@@ -22,7 +22,7 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
           'Ocorrências - $studentName',
           style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: colorScheme.onPrimary, // Texto da AppBar
+            color: colorScheme.onPrimary, 
           ),
         ),
         centerTitle: true,
@@ -30,8 +30,8 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                colorScheme.primary.withOpacity(0.9), // Usa a cor primária do tema
-                colorScheme.primary, // Usa a cor primária do tema
+                colorScheme.primary.withValues(alpha:0.9), 
+                colorScheme.primary, 
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -42,12 +42,12 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: IconThemeData(color: colorScheme.onPrimary), // Cor dos ícones da AppBar
+        iconTheme: IconThemeData(color: colorScheme.onPrimary), 
         actions: [
           IconButton(
-            icon: Icon(Icons.file_download, color: colorScheme.onPrimary), // Cor do ícone
+            icon: Icon(Icons.file_download, color: colorScheme.onPrimary), 
             onPressed: () {
-              _showExportOptions(context, colorScheme, textTheme); // Passa theme
+              _showExportOptions(context, colorScheme, textTheme); 
             },
           ),
         ],
@@ -57,7 +57,7 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
-              child: CircularProgressIndicator(color: colorScheme.primary), // Cor do tema
+              child: CircularProgressIndicator(color: colorScheme.primary), 
             );
           }
 
@@ -69,7 +69,7 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
                   Icon(
                     Icons.error_outline,
                     size: 64,
-                    color: colorScheme.error, // Cor do ícone de erro
+                    color: colorScheme.error, 
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -77,7 +77,7 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
                     style: textTheme.titleMedium?.copyWith(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: colorScheme.error, // Cor do texto de erro
+                      color: colorScheme.error, 
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -85,7 +85,7 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
                     snapshot.error.toString(),
                     style: textTheme.bodyMedium?.copyWith(
                       fontSize: 14,
-                      color: colorScheme.onSurfaceVariant, // Cor do texto
+                      color: colorScheme.onSurfaceVariant, 
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -102,9 +102,9 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.sentiment_very_satisfied, // Ícone para "nenhuma ocorrência"
+                    Icons.sentiment_very_satisfied, 
                     size: 64,
-                    color: colorScheme.tertiary.withOpacity(0.4), // Cor verde/terciária
+                    color: colorScheme.tertiary.withValues(alpha:0.4), 
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -112,7 +112,7 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
                     style: textTheme.titleMedium?.copyWith(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: colorScheme.tertiary, // Cor verde/terciária
+                      color: colorScheme.tertiary, 
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -120,7 +120,7 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
                     'Este aluno não possui ocorrências registradas.',
                     style: textTheme.bodyMedium?.copyWith(
                       fontSize: 14,
-                      color: colorScheme.onSurfaceVariant.withOpacity(0.7), // Cor do texto
+                      color: colorScheme.onSurfaceVariant.withValues(alpha:0.7), 
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -134,9 +134,9 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSummaryCard(occurrencesData, colorScheme, textTheme), // Passa theme
+                _buildSummaryCard(occurrencesData, colorScheme, textTheme), 
                 const SizedBox(height: 16),
-                _buildOccurrencesList(occurrencesData, colorScheme, textTheme), // Passa theme
+                _buildOccurrencesList(occurrencesData, colorScheme, textTheme), 
               ],
             ),
           );
@@ -163,8 +163,8 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      color: colorScheme.surface, // Fundo do Card
-      surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
+      color: colorScheme.surface, 
+      surfaceTintColor: colorScheme.primaryContainer, 
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -175,12 +175,12 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: colorScheme.secondary.withOpacity(0.1), // Fundo do ícone
+                    color: colorScheme.secondary.withValues(alpha:0.1), 
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     Icons.summarize,
-                    color: colorScheme.secondary, // Cor do ícone
+                    color: colorScheme.secondary, 
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -189,7 +189,7 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
                   style: textTheme.titleMedium?.copyWith(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface, // Cor do texto
+                    color: colorScheme.onSurface, 
                   ),
                 ),
               ],
@@ -202,8 +202,8 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
                     'Total',
                     totalOccurrences.toString(),
                     Icons.report_problem,
-                    colorScheme.error, // Cor do tema (vermelho para problema)
-                    colorScheme, textTheme, // Passa theme
+                    colorScheme.error, 
+                    colorScheme, textTheme, 
                   ),
                 ),
                 Expanded(
@@ -211,8 +211,8 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
                     'Mais Comum',
                     mostCommonType,
                     Icons.trending_up,
-                    _getOccurrenceTypeColor(mostCommonType, colorScheme), // Cor dinâmica
-                    colorScheme, textTheme, // Passa theme
+                    _getOccurrenceTypeColor(mostCommonType, colorScheme), 
+                    colorScheme, textTheme, 
                   ),
                 ),
               ],
@@ -224,7 +224,7 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
                 style: textTheme.bodyLarge?.copyWith(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface, // Cor do texto
+                  color: colorScheme.onSurface, 
                 ),
               ),
               const SizedBox(height: 8),
@@ -232,15 +232,15 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
                 spacing: 8,
                 runSpacing: 8,
                 children: occurrencesByType.entries.map((entry) {
-                  Color typeColor = _getOccurrenceTypeColor(entry.key, colorScheme); // Cor do tema
+                  Color typeColor = _getOccurrenceTypeColor(entry.key, colorScheme); 
                   return Chip(
                     label: Text(
                       '${entry.key}: ${entry.value}',
-                      style: textTheme.labelMedium?.copyWith(fontSize: 12, color: typeColor), // Texto do chip
+                      style: textTheme.labelMedium?.copyWith(fontSize: 12, color: typeColor), 
                     ),
-                    backgroundColor: typeColor.withOpacity(0.1), // Fundo do chip
+                    backgroundColor: typeColor.withValues(alpha:0.1), 
                     side: BorderSide(
-                      color: typeColor.withOpacity(0.3), // Borda do chip
+                      color: typeColor.withValues(alpha:0.3), 
                     ),
                   );
                 }).toList(),
@@ -257,10 +257,10 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
       padding: const EdgeInsets.all(12),
       margin: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1), // Fundo suave da cor
+        color: color.withValues(alpha:0.1), 
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: color.withOpacity(0.3), // Borda suave da cor
+          color: color.withValues(alpha:0.3), 
           width: 1,
         ),
       ),
@@ -268,7 +268,7 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
         children: [
           Icon(
             icon,
-            color: color, // Ícone com a cor
+            color: color, 
             size: 24,
           ),
           const SizedBox(height: 8),
@@ -277,7 +277,7 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
             style: textTheme.titleMedium?.copyWith(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: color, // Valor com a cor
+              color: color, 
             ),
             textAlign: TextAlign.center,
           ),
@@ -285,7 +285,7 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
             title,
             style: textTheme.bodySmall?.copyWith(
               fontSize: 12,
-              color: colorScheme.onSurfaceVariant, // Label com cor neutra
+              color: colorScheme.onSurfaceVariant, 
             ),
             textAlign: TextAlign.center,
           ),
@@ -300,8 +300,8 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      color: colorScheme.surface, // Fundo do Card
-      surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
+      color: colorScheme.surface, 
+      surfaceTintColor: colorScheme.primaryContainer, 
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -312,7 +312,7 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
               style: textTheme.titleMedium?.copyWith(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface, // Cor do título
+                color: colorScheme.onSurface, 
               ),
             ),
             const SizedBox(height: 16),
@@ -320,24 +320,24 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: occurrencesData.length,
-              separatorBuilder: (context, index) => Divider(color: colorScheme.outlineVariant), // Separador
+              separatorBuilder: (context, index) => Divider(color: colorScheme.outlineVariant), 
               itemBuilder: (context, index) {
                 final occurrence = occurrencesData[index];
                 final occurrenceDate = DateTime.tryParse(occurrence['occurrence_date'] ?? '') ?? DateTime.now();
                 final formattedDate = DateFormat('dd/MM/yyyy').format(occurrenceDate);
                 final type = occurrence['occurrence_type']?.toString() ?? 'Geral';
-                final color = _getOccurrenceTypeColor(type, colorScheme); // Cor do tema
+                final color = _getOccurrenceTypeColor(type, colorScheme); 
 
                 return ExpansionTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.1), // Fundo do ícone
+                      color: color.withValues(alpha:0.1), 
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       _getOccurrenceIcon(type),
-                      color: color, // Cor do ícone
+                      color: color, 
                       size: 20,
                     ),
                   ),
@@ -345,17 +345,17 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
                     type,
                     style: textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurface, // Cor do título
+                      color: colorScheme.onSurface, 
                     ),
                   ),
                   subtitle: Text(
                     formattedDate,
-                    style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant), // Cor do subtítulo
+                    style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant), 
                   ),
-                  trailing: Container( // Chip de tipo de ocorrência no trailing
+                  trailing: Container( 
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
+                      color: color.withValues(alpha:0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -379,7 +379,7 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
                               style: textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
-                                color: colorScheme.onSurface, // Cor do título
+                                color: colorScheme.onSurface, 
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -387,7 +387,7 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
                               occurrence['description'].toString(),
                               style: textTheme.bodyMedium?.copyWith(
                                 fontSize: 14,
-                                color: colorScheme.onSurfaceVariant, // Cor do texto
+                                color: colorScheme.onSurfaceVariant, 
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -397,14 +397,14 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
                               Icon(
                                 Icons.school,
                                 size: 16,
-                                color: colorScheme.onSurfaceVariant, // Cor do ícone
+                                color: colorScheme.onSurfaceVariant, 
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 'Turma: ${occurrence['class_name'] ?? 'Não informada'}',
                                 style: textTheme.bodySmall?.copyWith(
                                   fontSize: 12,
-                                  color: colorScheme.onSurfaceVariant, // Cor do texto
+                                  color: colorScheme.onSurfaceVariant, 
                                 ),
                               ),
                             ],
@@ -416,14 +416,14 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
                                 Icon(
                                   Icons.book,
                                   size: 16,
-                                  color: colorScheme.onSurfaceVariant, // Cor do ícone
+                                  color: colorScheme.onSurfaceVariant, 
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   'Disciplina: ${occurrence['discipline_name']}',
                                   style: textTheme.bodySmall?.copyWith(
                                     fontSize: 12,
-                                    color: colorScheme.onSurfaceVariant, // Cor do texto
+                                    color: colorScheme.onSurfaceVariant, 
                                   ),
                                 ),
                               ],
@@ -445,15 +445,15 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
   Color _getOccurrenceTypeColor(String type, ColorScheme colorScheme) {
     switch (type.toLowerCase()) {
       case 'comportamento':
-        return colorScheme.error; // Vermelho
+        return colorScheme.error; 
       case 'saude':
-        return colorScheme.secondary; // Laranja/Amarelo
+        return colorScheme.secondary; 
       case 'atraso':
-        return colorScheme.tertiary; // Verde/Azul
+        return colorScheme.tertiary; 
       case 'material':
-        return colorScheme.primary; // Primário
+        return colorScheme.primary; 
       default:
-        return colorScheme.onSurfaceVariant; // Neutro
+        return colorScheme.onSurfaceVariant; 
     }
   }
 
@@ -481,7 +481,7 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
       builder: (context) => Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: colorScheme.surface, // Fundo do bottom sheet
+          color: colorScheme.surface, 
           borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         ),
         child: Column(
@@ -491,7 +491,7 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: colorScheme.outlineVariant, // Cor da barra de arrasto
+                color: colorScheme.outlineVariant, 
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -501,27 +501,27 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
               style: textTheme.titleMedium?.copyWith(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface, // Cor do título
+                color: colorScheme.onSurface, 
               ),
             ),
             const SizedBox(height: 16),
             ListTile(
-              leading: Icon(Icons.picture_as_pdf, color: colorScheme.error), // Cor do ícone
-              title: Text('Exportar como PDF', style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface)), // Cor do texto
+              leading: Icon(Icons.picture_as_pdf, color: colorScheme.error), 
+              title: Text('Exportar como PDF', style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface)), 
               onTap: () {
                 Navigator.pop(context);
                 Get.snackbar(
                   'Exportar PDF',
                   'Funcionalidade em desenvolvimento',
                   snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: colorScheme.tertiaryContainer, // Fundo do Snackbar
-                  colorText: colorScheme.onTertiaryContainer, // Texto do Snackbar
+                  backgroundColor: colorScheme.tertiaryContainer, 
+                  colorText: colorScheme.onTertiaryContainer, 
                 );
               },
             ),
             ListTile(
-              leading: Icon(Icons.table_chart, color: colorScheme.tertiary), // Cor do ícone
-              title: Text('Exportar como Excel', style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface)), // Cor do texto
+              leading: Icon(Icons.table_chart, color: colorScheme.tertiary), 
+              title: Text('Exportar como Excel', style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface)), 
               onTap: () {
                 Navigator.pop(context);
                 Get.snackbar(
@@ -534,8 +534,8 @@ class StudentOccurrencesReportPage extends GetView<ReportsController> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.share, color: colorScheme.primary), // Cor do ícone
-              title: Text('Compartilhar', style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface)), // Cor do texto
+              leading: Icon(Icons.share, color: colorScheme.primary), 
+              title: Text('Compartilhar', style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface)), 
               onTap: () {
                 Navigator.pop(context);
                 Get.snackbar(

@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:sqflite/sqflite.dart';
 import 'package:vocatus/app/core/utils/database/database_helper.dart';
 import 'package:vocatus/app/models/classe.dart';
@@ -16,7 +15,7 @@ class StudentsRepository implements IStudentsRepository {
       final db = await _dbHelper.database;
       final result = await db.rawQuery(
         '''
-        SELECT s.*, cs.active as link_active
+        SELECT s.*
         FROM student s
         INNER JOIN classe_student cs ON cs.student_id = s.id
         WHERE cs.classe_id = ? AND cs.active = 1
@@ -35,7 +34,7 @@ class StudentsRepository implements IStudentsRepository {
   }
 
   @override
-  Future<void> addStudentsToClasse(List<Student> students, int classeId) async {
+  Future<void> createAndAddStudentsToClasse(List<Student> students, int classeId) async {
     try {
       final db = await _dbHelper.database;
       await db.transaction((txn) async {
@@ -51,7 +50,6 @@ class StudentsRepository implements IStudentsRepository {
             if (existingById.isNotEmpty) {
               studentId = existingById.first['id'] as int;
             } else {
-              log('AVISO: Aluno com ID ${student.id} não encontrado. Criando novo registro para ${student.name}.', name: 'StudentsRepository');
               studentId = await txn.insert('student', {
                 "name": student.name.trim(),
                 "created_at": DateTime.now().toIso8601String(),

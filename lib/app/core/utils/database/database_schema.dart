@@ -1,5 +1,4 @@
 import 'package:sqflite/sqflite.dart';
-import 'dart:developer';
 
 class DatabaseSchema {
   static const List<String> createTableQueries = [
@@ -43,14 +42,14 @@ class DatabaseSchema {
     );
     ''',
     '''
-    CREATE TABLE grade (
+    CREATE TABLE schedule (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       classe_id INTEGER NOT NULL,
       discipline_id INTEGER,
       day_of_week INTEGER NOT NULL,
       start_time TEXT NOT NULL,
       end_time TEXT NOT NULL,
-      grade_year INTEGER NOT NULL,
+      schedule_year INTEGER NOT NULL,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       active INTEGER NOT NULL DEFAULT 1,
       FOREIGN KEY (classe_id) REFERENCES classe(id) ON DELETE CASCADE,
@@ -62,14 +61,14 @@ class DatabaseSchema {
     CREATE TABLE attendance (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       classe_id INTEGER NOT NULL,
-      grade_id INTEGER,
+      schedule_id INTEGER,
       date TEXT NOT NULL,
       content TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       active INTEGER NOT NULL DEFAULT 1,
       FOREIGN KEY (classe_id) REFERENCES classe(id) ON DELETE CASCADE,
-      FOREIGN KEY (grade_id) REFERENCES grade(id) ON DELETE SET NULL,
-      UNIQUE (classe_id, grade_id, date)
+      FOREIGN KEY (schedule_id) REFERENCES schedule(id) ON DELETE SET NULL,
+      UNIQUE (classe_id, schedule_id, date)
     );
     ''',
     '''
@@ -90,6 +89,7 @@ class DatabaseSchema {
       attendance_id INTEGER NOT NULL,
       student_id INTEGER,
       occurrence_type TEXT,
+      title TEXT,
       description TEXT NOT NULL,
       occurrence_date TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -98,13 +98,31 @@ class DatabaseSchema {
       FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE
     );
     ''',
+
+    '''
+    CREATE TABLE homework (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      classe_id INTEGER NOT NULL,
+      discipline_id INTEGER,
+      title TEXT NOT NULL,
+      description TEXT,
+      due_date TEXT NOT NULL,
+      assigned_date TEXT NOT NULL,
+      status TEXT NOT NULL, 
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      active INTEGER NOT NULL DEFAULT 1,
+      FOREIGN KEY (classe_id) REFERENCES classe(id) ON DELETE CASCADE,
+      FOREIGN KEY (discipline_id) REFERENCES discipline(id) ON DELETE SET NULL
+    );
+    ''',
   ];
 
   static const List<String> tableNamesInReverseOrder = [
+    'homework',
     'occurrence',
     'student_attendance',
     'attendance',
-    'grade',
+    'schedule',
     'classe_student',
     'student',
     'classe',
@@ -112,18 +130,14 @@ class DatabaseSchema {
   ];
 
   static Future<void> createTables(Database db) async {
-    log('DatabaseSchema.createTables - Iniciando criação de todas as tabelas.', name: 'DatabaseSchema');
     for (String query in createTableQueries) {
       await db.execute(query);
     }
-    log('DatabaseSchema.createTables - Todas as tabelas criadas com sucesso.', name: 'DatabaseSchema');
   }
 
   static Future<void> dropTables(Database db) async {
-    log('DatabaseSchema.dropTables - Iniciando exclusão de todas as tabelas.', name: 'DatabaseSchema');
     for (String tableName in tableNamesInReverseOrder) {
       await db.execute('DROP TABLE IF EXISTS $tableName;');
     }
-    log('DatabaseSchema.dropTables - Todas as tabelas excluídas com sucesso.', name: 'DatabaseSchema');
   }
 }

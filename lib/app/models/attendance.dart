@@ -1,27 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:vocatus/app/models/classe.dart';
-import 'package:vocatus/app/models/grade.dart';
+import 'package:vocatus/app/models/schedule.dart';
+
 
 @immutable
 class Attendance {
   final int? id;
   final int classeId;
-  final int gradeId;
+  final int scheduleId;
   final DateTime date;
   final DateTime? createdAt;
   final bool? active;
   final Classe? classe;
-  final Grade? grade;
+  final Schedule? schedule;
   final String? content;
 
   const Attendance({
     this.id,
     required this.classeId,
-    required this.gradeId,
+    required this.scheduleId,
     required this.date,
     this.createdAt,
     this.classe,
-    this.grade,
+    this.schedule,
     this.active = true,
     this.content,
   });
@@ -30,7 +31,7 @@ class Attendance {
     return Attendance(
       id: map['id'] as int?,
       classeId: map['classe_id'] as int,
-      gradeId: map['grade_id'] as int,
+      scheduleId: map['schedule_id'] as int,
       date: DateTime.parse(map['date'] as String),
       createdAt: map['created_at'] != null && (map['created_at'] is String) && (map['created_at'] as String).isNotEmpty
           ? DateTime.parse(map['created_at'] as String)
@@ -44,7 +45,7 @@ class Attendance {
     return {
       'id': id,
       'classe_id': classeId,
-      'grade_id': gradeId,
+      'schedule_id': scheduleId,
       'date': date.toIso8601String().split('T')[0],
       'created_at': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
       'active': (active ?? true) ? 1 : 0,
@@ -55,22 +56,22 @@ class Attendance {
   Attendance copyWith({
     int? id,
     int? classeId,
-    int? gradeId,
+    int? scheduleId,
     DateTime? date,
     DateTime? createdAt,
     Classe? classe,
-    Grade? grade,
+    Schedule? schedule,
     bool? active,
     String? content,
   }) {
     return Attendance(
       id: id ?? this.id,
       classeId: classeId ?? this.classeId,
-      gradeId: gradeId ?? this.gradeId,
+      scheduleId: scheduleId ?? this.scheduleId,
       date: date ?? this.date,
       createdAt: createdAt ?? this.createdAt,
       classe: classe ?? this.classe,
-      grade: grade ?? this.grade,
+      schedule: schedule ?? this.schedule,
       active: active ?? this.active,
       content: content ?? this.content,
     );
@@ -87,6 +88,6 @@ class Attendance {
 
   @override
   String toString() {
-    return 'Attendance(id: $id, classeId: $classeId, gradeId: $gradeId, date: $date, createdAt: $createdAt, active: $active, content: $content)';
+    return 'Attendance(id: $id, classeId: $classeId, scheduleId: $scheduleId, date: $date, createdAt: $createdAt, active: $active, content: $content)';
   }
 }

@@ -10,4 +10,5 @@ abstract class IReportsRepository {
   Future<List<Map<String, dynamic>>> getStudentAttendanceReport(int studentId);
   Future<List<Map<String, dynamic>>> getStudentOccurrencesReport(int studentId);
   Future<List<Map<String, dynamic>>> getOccurrencesReportByClassId(int classId);
+  Future<List<Map<String, dynamic>>> getHomeworkByClassId(int classId);
 }

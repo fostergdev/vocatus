@@ -6,7 +6,7 @@ import 'package:vocatus/app/core/widgets/custom_popbutton.dart';
 import 'package:vocatus/app/core/widgets/custom_text_field.dart';
 import 'package:vocatus/app/core/widgets/custom_dialog.dart';
 import 'package:vocatus/app/core/widgets/custom_confirmation_dialog_with_code.dart';
-// import 'package:vocatus/app/core/widgets/custom_popbutton.dart'; // Remova se não estiver usando
+
 import 'package:vocatus/app/models/occurrence.dart';
 import 'package:vocatus/app/models/student.dart';
 import './occurrence_controller.dart';
@@ -25,7 +25,7 @@ class OccurrencePage extends GetView<OccurrenceController> {
           'Ocorrências',
           style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: colorScheme.onPrimary, // Texto da AppBar
+            color: colorScheme.onPrimary, 
           ),
         ),
         centerTitle: true,
@@ -33,8 +33,8 @@ class OccurrencePage extends GetView<OccurrenceController> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                colorScheme.primary.withOpacity(0.9), // Usa a cor primária do tema
-                colorScheme.primary, // Usa a cor primária do tema
+                colorScheme.primary.withValues(alpha:0.9), 
+                colorScheme.primary, 
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -45,7 +45,7 @@ class OccurrencePage extends GetView<OccurrenceController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: IconThemeData(color: colorScheme.onPrimary), // Cor dos ícones da AppBar
+        iconTheme: IconThemeData(color: colorScheme.onPrimary), 
         actions: [
           CustomPopupMenu(
             icon: Icons.filter_list,
@@ -91,26 +91,26 @@ class OccurrencePage extends GetView<OccurrenceController> {
       ),
       body: Column(
         children: [
-          _buildHeader(colorScheme, textTheme), // Passa colorScheme e textTheme
+          _buildHeader(colorScheme, textTheme), 
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
-                return Center(child: CircularProgressIndicator(color: colorScheme.primary)); // Cor do tema
+                return Center(child: CircularProgressIndicator(color: colorScheme.primary)); 
               }
               if (controller.occurrences.isEmpty) {
-                return _buildEmptyState(colorScheme, textTheme); // Passa colorScheme e textTheme
+                return _buildEmptyState(colorScheme, textTheme); 
               }
-              return _buildOccurrencesList(context, colorScheme, textTheme); // Passa context e theme
+              return _buildOccurrencesList(context, colorScheme, textTheme); 
             }),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton( // Usar FloatingActionButton normal
-        onPressed: () => _showAddOccurrenceDialog(context, colorScheme, textTheme), // Passa context e theme
-        backgroundColor: colorScheme.primary, // Fundo do FAB
-        foregroundColor: colorScheme.onPrimary, // Ícone/texto do FAB
+      floatingActionButton: FloatingActionButton( 
+        onPressed: () => _showAddOccurrenceDialog(context, colorScheme, textTheme), 
+        backgroundColor: colorScheme.primary, 
+        foregroundColor: colorScheme.onPrimary, 
         elevation: 8,
-        child: const Icon(Icons.add, size: 28), // Ícone de '+' padrão
+        child: const Icon(Icons.add, size: 28), 
       ),
     );
   }
@@ -125,14 +125,14 @@ class OccurrencePage extends GetView<OccurrenceController> {
             'Chamada: ${controller.currentAttendance.date.day}/${controller.currentAttendance.date.month}/${controller.currentAttendance.date.year}',
             style: textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w600,
-              color: colorScheme.primary, // Cor da data da chamada
+              color: colorScheme.primary, 
             ),
           ),
           if (controller.currentAttendance.content != null) ...[
             const SizedBox(height: 4),
             Text(
               controller.currentAttendance.content!,
-              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant), // Cor do conteúdo da chamada
+              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant), 
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -141,7 +141,7 @@ class OccurrencePage extends GetView<OccurrenceController> {
           Obx(
             () => Text(
               '${controller.occurrences.length} ocorrência(s)',
-              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant), // Cor do texto de contagem
+              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant), 
             ),
           ),
         ],
@@ -154,19 +154,19 @@ class OccurrencePage extends GetView<OccurrenceController> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.report_outlined, size: 64, color: colorScheme.onSurfaceVariant.withOpacity(0.4)), // Cor do ícone
+          Icon(Icons.report_outlined, size: 64, color: colorScheme.onSurfaceVariant.withValues(alpha:0.4)), 
           const SizedBox(height: 16),
           Text(
             'Nenhuma ocorrência registrada',
             style: textTheme.titleMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant, // Cor do texto
+              color: colorScheme.onSurfaceVariant, 
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Toque no botão + para registrar uma nova ocorrência',
-            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant.withOpacity(0.7)), // Cor do texto
+            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant.withValues(alpha:0.7)), 
           ),
         ],
       ),
@@ -179,7 +179,7 @@ class OccurrencePage extends GetView<OccurrenceController> {
       itemCount: controller.occurrences.length,
       itemBuilder: (context, index) {
         final occurrence = controller.occurrences[index];
-        return _buildOccurrenceCard(occurrence, context, colorScheme, textTheme); // Passa context e theme
+        return _buildOccurrenceCard(occurrence, context, colorScheme, textTheme); 
       },
     );
   }
@@ -190,20 +190,20 @@ class OccurrencePage extends GetView<OccurrenceController> {
     Color thematicTypeColor;
     switch (occurrence.occurrenceType!) {
       case OccurrenceType.comportamento:
-        thematicTypeColor = colorScheme.tertiary; // Exemplo: verde/azul
+        thematicTypeColor = colorScheme.tertiary; 
         break;
       case OccurrenceType.saude:
-        thematicTypeColor = colorScheme.error; // Exemplo: vermelho
+        thematicTypeColor = colorScheme.error; 
         break;
       case OccurrenceType.atraso:
-        thematicTypeColor = colorScheme.secondary; // Exemplo: laranja/amarelo
+        thematicTypeColor = colorScheme.secondary; 
         break;
       case OccurrenceType.material:
-        thematicTypeColor = colorScheme.primary; // Exemplo: cor primária
+        thematicTypeColor = colorScheme.primary; 
         break;
-      case OccurrenceType.outros: // Se tiver um tipo 'outros'
+      case OccurrenceType.outros: 
       default:
-        thematicTypeColor = colorScheme.onSurfaceVariant; // Cor neutra
+        thematicTypeColor = colorScheme.onSurfaceVariant; 
         break;
     }
 
@@ -213,16 +213,16 @@ class OccurrencePage extends GetView<OccurrenceController> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: thematicTypeColor.withOpacity(0.3), // Borda com cor do tipo de ocorrência
+          color: thematicTypeColor.withValues(alpha:0.3), 
           width: 1,
         ),
       ),
-      color: colorScheme.surface, // Fundo do Card
-      surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
-      shadowColor: colorScheme.shadow.withOpacity(0.1), // Sombra
+      color: colorScheme.surface, 
+      surfaceTintColor: colorScheme.primaryContainer, 
+      shadowColor: colorScheme.shadow.withValues(alpha:0.1), 
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => _showOccurrenceDetailsDialog(context, occurrence, colorScheme, textTheme), // Passa context e theme
+        onTap: () => _showOccurrenceDetailsDialog(context, occurrence, colorScheme, textTheme), 
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -233,13 +233,13 @@ class OccurrencePage extends GetView<OccurrenceController> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: thematicTypeColor.withOpacity(0.1), // Fundo do ícone
+                      color: thematicTypeColor.withValues(alpha:0.1), 
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       occurrence.getTypeIcon(),
                       size: 20,
-                      color: thematicTypeColor, // Cor do ícone do tipo de ocorrência
+                      color: thematicTypeColor, 
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -249,9 +249,9 @@ class OccurrencePage extends GetView<OccurrenceController> {
                       children: [
                         Text(
                           occurrence.getTypeDisplayName(),
-                          style: textTheme.titleSmall?.copyWith( // Usar titleSmall
+                          style: textTheme.titleSmall?.copyWith( 
                             fontWeight: FontWeight.w600,
-                            color: colorScheme.onSurface, // Cor do nome do tipo
+                            color: colorScheme.onSurface, 
                           ),
                         ),
                         Text(
@@ -260,8 +260,8 @@ class OccurrencePage extends GetView<OccurrenceController> {
                               : occurrence.student?.name ?? 'Aluno não identificado',
                           style: textTheme.bodySmall?.copyWith(
                             color: isGeneral
-                                ? colorScheme.primary // Cor para geral
-                                : colorScheme.onSurfaceVariant, // Cor para aluno
+                                ? colorScheme.primary 
+                                : colorScheme.onSurfaceVariant, 
                             fontWeight: isGeneral
                                 ? FontWeight.w500
                                 : FontWeight.normal,
@@ -271,14 +271,14 @@ class OccurrencePage extends GetView<OccurrenceController> {
                     ),
                   ),
                   PopupMenuButton<String>(
-                    color: colorScheme.surfaceContainerHigh, // Fundo do menu
-                    onSelected: (value) => _handleOccurrenceAction(value, occurrence, context, colorScheme, textTheme), // Passa context e theme
+                    color: colorScheme.surfaceContainerHigh, 
+                    onSelected: (value) => _handleOccurrenceAction(value, occurrence, context, colorScheme, textTheme), 
                     itemBuilder: (context) => [
                       PopupMenuItem(
                         value: 'edit',
                         child: Row(
                           children: [
-                            Icon(Icons.edit, color: colorScheme.primary), // Cor para editar
+                            Icon(Icons.edit, color: colorScheme.primary), 
                             const SizedBox(width: 8),
                             Text('Editar', style: TextStyle(color: colorScheme.onSurface)),
                           ],
@@ -288,7 +288,7 @@ class OccurrencePage extends GetView<OccurrenceController> {
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, color: colorScheme.error), // Cor para excluir
+                            Icon(Icons.delete, color: colorScheme.error), 
                             const SizedBox(width: 8),
                             Text('Excluir', style: TextStyle(color: colorScheme.onSurface)),
                           ],
@@ -301,18 +301,18 @@ class OccurrencePage extends GetView<OccurrenceController> {
               const SizedBox(height: 12),
               Text(
                 occurrence.description,
-                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant), // Cor da descrição
+                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant), 
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Icon(Icons.calendar_today, size: 16, color: colorScheme.onSurfaceVariant), // Cor do ícone
+                  Icon(Icons.calendar_today, size: 16, color: colorScheme.onSurfaceVariant), 
                   const SizedBox(width: 4),
                   Text(
                     controller.formatOccurrenceDate(occurrence.occurrenceDate),
-                    style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant), // Cor da data
+                    style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant), 
                   ),
                 ],
               ),
@@ -355,13 +355,13 @@ class OccurrencePage extends GetView<OccurrenceController> {
     String dialogTitle,
     bool isEdit, [
     Occurrence? occurrence,
-    ColorScheme? colorScheme, // Passa colorScheme
-    TextTheme? textTheme, // Passa textTheme
+    ColorScheme? colorScheme, 
+    TextTheme? textTheme, 
   ]) {
-    colorScheme = colorScheme ?? Theme.of(context).colorScheme; // Garante que o colorScheme exista
-    textTheme = textTheme ?? Theme.of(context).textTheme; // Garante que o textTheme exista
+    colorScheme = colorScheme ?? Theme.of(context).colorScheme; 
+    textTheme = textTheme ?? Theme.of(context).textTheme; 
 
-    // Definir a data da ocorrência para a data da chamada atual se não estiver editando
+    
     if (!isEdit) {
       controller.selectedDate.value = controller.currentAttendance.date;
     }
@@ -376,7 +376,7 @@ class OccurrencePage extends GetView<OccurrenceController> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Switch para ocorrência geral
+                
                 Obx(
                   () => SwitchListTile(
                     title: Text(
@@ -394,14 +394,14 @@ class OccurrencePage extends GetView<OccurrenceController> {
                         controller.selectedStudent.value = null;
                       }
                     },
-                    activeColor: colorScheme!.primary, // Cor do switch quando ativo
-                    inactiveThumbColor: colorScheme!.onSurfaceVariant,
-                    inactiveTrackColor: colorScheme!.surfaceVariant,
+                    activeColor: colorScheme!.primary, 
+                    inactiveThumbColor: colorScheme.onSurfaceVariant,
+                    inactiveTrackColor: colorScheme.surfaceContainerHighest,
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                // Seleção de aluno (apenas se não for ocorrência geral)
+                
                 Obx(
                   () => controller.isGeneralOccurrence.value
                       ? const SizedBox.shrink()
@@ -420,7 +420,7 @@ class OccurrencePage extends GetView<OccurrenceController> {
                         ),
                 ),
 
-                // Tipo de ocorrência
+                
                 Obx(
                   () => CustomDrop<OccurrenceType>(
                     items: OccurrenceType.values,
@@ -433,31 +433,31 @@ class OccurrencePage extends GetView<OccurrenceController> {
                 ),
                 const SizedBox(height: 16),
 
-                // Data da ocorrência (somente visualização)
+                
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 16,
                   ),
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceVariant, // Fundo do container
-                    border: Border.all(color: colorScheme.outline), // Borda
+                    color: colorScheme.surfaceContainerHighest, 
+                    border: Border.all(color: colorScheme.outline), 
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.calendar_today, color: colorScheme.onSurfaceVariant), // Ícone
+                      Icon(Icons.calendar_today, color: colorScheme.onSurfaceVariant), 
                       const SizedBox(width: 12),
                       Text(
                         'Data: ${controller.currentAttendance.date.day}/${controller.currentAttendance.date.month}/${controller.currentAttendance.date.year}',
-                        style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface), // Texto
+                        style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface), 
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                // Descrição
+                
                 CustomTextField(
                   controller: controller.descriptionEC,
                   hintText: 'Descreva a ocorrência...',
@@ -475,7 +475,7 @@ class OccurrencePage extends GetView<OccurrenceController> {
               Get.back();
             },
             style: TextButton.styleFrom(
-              foregroundColor: colorScheme.onSurfaceVariant, // Cor do botão Cancelar
+              foregroundColor: colorScheme.onSurfaceVariant, 
             ),
             child: const Text('Cancelar'),
           ),
@@ -487,12 +487,12 @@ class OccurrencePage extends GetView<OccurrenceController> {
                 } else {
                   await controller.createOccurrence();
                 }
-                Get.back(); // Fecha o diálogo após a ação
+                Get.back(); 
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: colorScheme.primary, // Fundo do botão Registrar/Atualizar
-              foregroundColor: colorScheme.onPrimary, // Texto do botão
+              backgroundColor: colorScheme.primary, 
+              foregroundColor: colorScheme.onPrimary, 
             ),
             child: Text(isEdit ? 'Atualizar' : 'Registrar'),
           ),
@@ -504,7 +504,7 @@ class OccurrencePage extends GetView<OccurrenceController> {
   void _showDeleteConfirmationDialog(
     BuildContext context,
     Occurrence occurrence,
-    ColorScheme colorScheme, // Passa colorScheme
+    ColorScheme colorScheme, 
   ) {
     Get.dialog(
       CustomConfirmationDialogWithCode(
@@ -519,20 +519,20 @@ class OccurrencePage extends GetView<OccurrenceController> {
   void _showOccurrenceDetailsDialog(
     BuildContext context,
     Occurrence occurrence,
-    ColorScheme colorScheme, // Passa colorScheme
-    TextTheme textTheme, // Passa textTheme
+    ColorScheme colorScheme, 
+    TextTheme textTheme, 
   ) {
     Get.dialog(
       AlertDialog(
-        // Fundo do diálogo de detalhes
+        
         backgroundColor: colorScheme.surface,
         surfaceTintColor: colorScheme.surfaceTint,
         title: Row(
           children: [
-            // Mapeamento das cores do tipo de ocorrência para o ColorScheme
+            
             Icon(
               occurrence.getTypeIcon(),
-              color: controller.getOccurrenceTypeColor(occurrence.occurrenceType!), // Usa a cor do tipo (ajustada no controller)
+              color: controller.getOccurrenceTypeColor(occurrence.occurrenceType!), 
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -540,7 +540,7 @@ class OccurrencePage extends GetView<OccurrenceController> {
                 occurrence.getTypeDisplayName(),
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface, // Cor do título
+                  color: colorScheme.onSurface, 
                 ),
               ),
             ),
@@ -554,11 +554,11 @@ class OccurrencePage extends GetView<OccurrenceController> {
                 occurrence.student != null) ...[
               Row(
                 children: [
-                  Icon(Icons.person, size: 16, color: colorScheme.onSurfaceVariant), // Cor do ícone
+                  Icon(Icons.person, size: 16, color: colorScheme.onSurfaceVariant), 
                   const SizedBox(width: 8),
                   Text(
                     'Aluno: ${occurrence.student!.name}',
-                    style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface), // Cor do texto
+                    style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface), 
                   ),
                 ],
               ),
@@ -567,12 +567,12 @@ class OccurrencePage extends GetView<OccurrenceController> {
             if (occurrence.isGeneralOccurrence) ...[
               Row(
                 children: [
-                  Icon(Icons.info, size: 16, color: colorScheme.primary), // Cor do ícone
+                  Icon(Icons.info, size: 16, color: colorScheme.primary), 
                   const SizedBox(width: 8),
                   Text(
                     'Ocorrência Geral da Sala',
                     style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.primary, // Cor do texto
+                      color: colorScheme.primary, 
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -582,23 +582,23 @@ class OccurrencePage extends GetView<OccurrenceController> {
             ],
             Row(
               children: [
-                Icon(Icons.calendar_today, size: 16, color: colorScheme.onSurfaceVariant), // Cor do ícone
+                Icon(Icons.calendar_today, size: 16, color: colorScheme.onSurfaceVariant), 
                 const SizedBox(width: 4),
                 Text(
                   'Data: ${occurrence.occurrenceDate.day}/${occurrence.occurrenceDate.month}/${occurrence.occurrenceDate.year}',
-                  style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface), // Cor do texto
+                  style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface), 
                 ),
               ],
             ),
             const SizedBox(height: 16),
             Text(
               'Descrição:',
-              style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface), // Cor do título da descrição
+              style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface), 
             ),
             const SizedBox(height: 4),
             Text(
               occurrence.description,
-              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant), // Cor da descrição
+              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant), 
             ),
           ],
         ),
@@ -606,7 +606,7 @@ class OccurrencePage extends GetView<OccurrenceController> {
           TextButton(
             onPressed: () => Get.back(),
             style: TextButton.styleFrom(
-              foregroundColor: colorScheme.onSurfaceVariant, // Cor do botão Fechar
+              foregroundColor: colorScheme.onSurfaceVariant, 
             ),
             child: const Text('Fechar'),
           ),
@@ -616,8 +616,8 @@ class OccurrencePage extends GetView<OccurrenceController> {
               _showEditOccurrenceDialog(context, occurrence, colorScheme, textTheme);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: colorScheme.primary, // Fundo do botão Editar
-              foregroundColor: colorScheme.onPrimary, // Texto do botão
+              backgroundColor: colorScheme.primary, 
+              foregroundColor: colorScheme.onPrimary, 
             ),
             child: const Text('Editar'),
           ),

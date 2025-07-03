@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:vocatus/app/modules/settings/settings_controller.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart'; // Importe o pacote
+import 'package:flutter_colorpicker/flutter_colorpicker.dart'; 
 
 class SettingsPage extends GetView<SettingsController> {
   const SettingsPage({super.key});
@@ -20,7 +20,7 @@ class SettingsPage extends GetView<SettingsController> {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          // --- Seção de Modo do Tema ---
+          
           Card(
             margin: const EdgeInsets.only(bottom: 20.0),
             elevation: 4,
@@ -55,7 +55,7 @@ class SettingsPage extends GetView<SettingsController> {
                       },
                       activeColor: colorScheme.primary,
                       inactiveThumbColor: colorScheme.onSurfaceVariant,
-                      inactiveTrackColor: colorScheme.surfaceVariant,
+                      inactiveTrackColor: colorScheme.surfaceContainerHighest,
                     ),
                   ),
                 ],
@@ -63,7 +63,7 @@ class SettingsPage extends GetView<SettingsController> {
             ),
           ),
 
-          // --- Seção de Cor Primária ---
+          
           Card(
             margin: const EdgeInsets.only(bottom: 20.0),
             elevation: 4,
@@ -104,7 +104,7 @@ class SettingsPage extends GetView<SettingsController> {
                         ),
                         ElevatedButton.icon(
                           onPressed: () {
-                            // Chama a nova função simplificada para mostrar o Color Picker
+                            
                             _showColorPickerBottomSheet(context, colorScheme);
                           },
                           icon: Icon(Icons.color_lens, color: colorScheme.onPrimary),
@@ -129,24 +129,24 @@ class SettingsPage extends GetView<SettingsController> {
     );
   }
 
-  // --- Função _showColorPickerBottomSheet simplificada para BlockPicker ---
+  
   void _showColorPickerBottomSheet(BuildContext context, ColorScheme colorScheme) {
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.all(20.0),
         decoration: BoxDecoration(
-          color: colorScheme.surface, // Fundo do bottom sheet
+          color: colorScheme.surface, 
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.shadow.withOpacity(0.2),
+              color: colorScheme.shadow.withOpacity(0.2), 
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
           ],
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min, // Para o conteúdo se ajustar
+          mainAxisSize: MainAxisSize.min, 
           children: [
             Text(
               'Selecione uma Cor',
@@ -157,31 +157,34 @@ class SettingsPage extends GetView<SettingsController> {
               ),
             ),
             const SizedBox(height: 20),
-            // --- AQUI ESTÁ O BlockPicker ---
-            SingleChildScrollView( // Para garantir que o picker seja rolável se houver muitas cores
+            
+            SingleChildScrollView( 
               child: BlockPicker(
-                pickerColor: controller.primaryColor.value, // Cor inicial do picker
+                pickerColor: controller.primaryColor.value, 
                 onColorChanged: (color) {
-                  controller.setPrimaryColor(color); // Define a nova cor
-                  Get.back(); // Fecha o bottom sheet IMEDIATAMENTE ao selecionar
+                  controller.setPrimaryColor(color); 
+                  Get.back(); 
                 },
-                availableColors: const [ // Cores que serão exibidas em blocos
+                availableColors: const [ 
                   Colors.red, Colors.pink, Colors.purple, Colors.deepPurple,
                   Colors.indigo, Colors.blue, Colors.lightBlue, Colors.cyan,
                   Colors.teal, Colors.green, Colors.lightGreen, Colors.lime,
                   Colors.yellow, Colors.amber, Colors.orange, Colors.deepOrange,
                   Colors.brown, Colors.grey, Colors.blueGrey, Colors.black,
-                  // Adicione ou remova cores conforme sua paleta desejada
+                  
+                  
+                  
+                  
                 ],
               ),
             ),
             const SizedBox(height: 10),
-            // Não precisamos de botões "Confirmar" ou "Fechar"
-            // pois o bottom sheet fecha automaticamente.
+            
+            
           ],
         ),
       ),
-      isScrollControlled: true, // Permite que o bottom sheet seja maior se necessário
+      isScrollControlled: true, 
     );
   }
 }

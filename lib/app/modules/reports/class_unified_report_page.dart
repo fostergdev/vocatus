@@ -1,9 +1,7 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:vocatus/app/core/constants/constants.dart'; // Mantenha, mas sem primaryColor
+import 'package:vocatus/app/core/widgets/custom_popbutton.dart'; 
 import 'package:vocatus/app/models/classe.dart';
 import './reports_controller.dart';
 
@@ -19,25 +17,24 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (classe.id != null) {
         controller.loadAttendanceReport(classe.id!);
-        controller.loadOccurrencesReport(
-          classe.id!,
-        );
-        log(
-          'Carregando dados para turma ${classe.id}',
-          name: 'ClassUnifiedReportPage',
-        );
+        controller.loadOccurrencesReport(classe.id!);
+        controller.loadHomeworkReport(classe.id!);
       }
     });
 
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
+    return Obx(() {
+      final bool hasAnyOccurrences = controller.occurrencesData.isNotEmpty;
+      final bool hasAnyHomework = controller.homeworkData.isNotEmpty;
+      
+      final bool hasAnyAttendance = controller.attendanceReportData.isNotEmpty;
+
+      return Scaffold(
         appBar: AppBar(
           title: Text(
-            'Relatórios - ${classe.name}',
+            classe.name,
             style: textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onPrimary, // Texto da AppBar
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onPrimary,
             ),
           ),
           centerTitle: true,
@@ -45,835 +42,411 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  colorScheme.primary.withOpacity(0.9), // Usa a cor primária do tema
-                  colorScheme.primary, // Usa a cor primária do tema
+                  colorScheme.primary.withOpacity(0.9),
+                  colorScheme.primary,
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
             ),
           ),
-          iconTheme: IconThemeData(color: colorScheme.onPrimary), // Cor dos ícones da AppBar
-          bottom: TabBar(
-            labelColor: colorScheme.onPrimary, // Cor da label da aba selecionada
-            unselectedLabelColor: colorScheme.onPrimary.withOpacity(0.7), // Cor da label da aba não selecionada
-            indicatorColor: colorScheme.onPrimary, // Cor do indicador da aba
-            indicatorWeight: 3,
-            tabs: const [
-              Tab(icon: Icon(Icons.how_to_reg, size: 20), text: 'Presença'),
-              Tab(
-                icon: Icon(Icons.analytics, size: 20),
-                text: 'Média da Turma',
-              ),
-              Tab(
-                icon: Icon(Icons.report_problem, size: 20),
-                text: 'Ocorrências',
-              ),
-            ],
-          ),
+          iconTheme: IconThemeData(color: colorScheme.onPrimary),
         ),
-        body: TabBarView(
-          children: [
-            _buildAttendanceTab(classe, colorScheme, textTheme), // Passa context e theme
-            _buildClassAverageTab(classe, colorScheme, textTheme), // Passa context e theme
-            _buildOccurrencesTab(classe, colorScheme, textTheme), // Passa context e theme
-          ],
+        body: _buildPageContent(
+          context,
+          classe,
+          colorScheme,
+          textTheme,
+          hasAnyOccurrences,
+          hasAnyHomework,
+          hasAnyAttendance,
         ),
-      ),
-    );
+      );
+    });
   }
 
-  Widget _buildAttendanceTab(Classe classe, ColorScheme colorScheme, TextTheme textTheme) {
-    return Obx(() {
-      if (controller.isLoadingAttendance.value) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(color: colorScheme.primary), // Cor do tema
-              const SizedBox(height: 16),
-              Text(
-                'Carregando registros de presença...',
-                style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant), // Cor do texto
-              ),
-            ],
+  
+  List<CustomPopupMenuItem> _buildAppBarMenuItems(
+    BuildContext context,
+    bool hasAnyOccurrences,
+    bool hasAnyHomework,
+    bool hasAnyAttendance,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    final List<CustomPopupMenuItem> appBarMenuItems = [];
+    if (hasAnyOccurrences) {
+      appBarMenuItems.add(
+        CustomPopupMenuItem(
+          label: 'Ver Todas Ocorrências (${controller.occurrencesData.length})',
+          icon: Icons.error_outline,
+          onTap: () => _showOccurrencesDialog(
+            context,
+            controller.occurrencesData,
+            colorScheme,
+            textTheme,
           ),
-        );
-      }
-
-      if (controller.attendanceReportData.isEmpty) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.how_to_reg, size: 80, color: colorScheme.onSurfaceVariant.withOpacity(0.4)), // Cor do tema
-              const SizedBox(height: 16),
-              Text(
-                'Nenhum registro de presença',
-                style: textTheme.titleMedium?.copyWith(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurfaceVariant, // Cor do tema
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Esta turma ainda não possui chamadas registradas.',
-                style: textTheme.bodyMedium?.copyWith(fontSize: 14, color: colorScheme.onSurfaceVariant.withOpacity(0.7)), // Cor do tema
-                textAlign: TextAlign.center,
-              ),
-            ],
+        ),
+      );
+    }
+    if (hasAnyHomework) {
+      appBarMenuItems.add(
+        CustomPopupMenuItem(
+          label: 'Ver Todas Tarefas de Casa (${controller.homeworkData.length})',
+          icon: Icons.assignment,
+          onTap: () => _showHomeworkDialog(
+            context,
+            controller.homeworkData,
+            colorScheme,
+            textTheme,
           ),
-        );
-      }
-
-      final Map<String, List<Map<String, dynamic>>> groupedByDate = {};
+        ),
+      );
+    }
+    if (hasAnyAttendance) {
+      
+      final Map<int, Map<String, dynamic>> groupedAttendances = {};
       for (final record in controller.attendanceReportData) {
-        final String date = record['date']?.toString() ?? '';
-        if (date.isNotEmpty) {
-          if (!groupedByDate.containsKey(date)) {
-            groupedByDate[date] = [];
-          }
-          groupedByDate[date]!.add(record);
+        final attendanceId = record['attendance_id'] as int?;
+        if (attendanceId != null && !groupedAttendances.containsKey(attendanceId)) {
+          groupedAttendances[attendanceId] = record; 
         }
       }
-
-      final sortedDates = groupedByDate.keys.toList()
-        ..sort((a, b) => DateTime.parse(b).compareTo(DateTime.parse(a)));
-
-      return ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: sortedDates.length,
-        itemBuilder: (context, index) {
-          final date = sortedDates[index];
-          final records = groupedByDate[date]!;
-          return _buildDateCard(date, records, colorScheme, textTheme); // Passa colorscheme e texttheme
-        },
+      appBarMenuItems.add(
+        CustomPopupMenuItem(
+          label: 'Ver Todas Chamadas (${groupedAttendances.length})', 
+          icon: Icons.check_circle_outline,
+          onTap: () => _showAttendanceDialog(
+            context,
+            controller.attendanceReportData,
+            colorScheme,
+            textTheme,
+          ),
+        ),
       );
-    });
-  }
-
-  Widget _buildDateCard(String dateStr, List<Map<String, dynamic>> records, ColorScheme colorScheme, TextTheme textTheme) {
-    final DateTime date = DateTime.parse(dateStr);
-    final String formattedDate = DateFormat('dd/MM/yyyy').format(date);
-
-    final int presentCount = records.where((r) => r['status'] == 'P').length; // P = Presente
-    final int absentCount = records.where((r) => r['status'] == 'F').length; // F = Falta
-    final int totalStudents = records.length;
-
-    final String content = records.first['content']?.toString() ?? '';
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      color: colorScheme.surface, // Fundo do Card
-      surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
-      child: ExpansionTile(
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: colorScheme.primary.withOpacity(0.1), // Fundo do ícone
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            Icons.calendar_today,
-            color: colorScheme.primary, // Cor do ícone
-            size: 20,
-          ),
-        ),
-        title: Text(
-          formattedDate,
-          style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, fontSize: 16, color: colorScheme.onSurface), // Estilo do título
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildMiniStat('Presentes', presentCount, colorScheme.tertiary, colorScheme, textTheme), // Cores do tema
-                const SizedBox(height: 4),
-                _buildMiniStat('Ausentes', absentCount, colorScheme.error, colorScheme, textTheme), // Cores do tema
-                const SizedBox(height: 4),
-                _buildMiniStat('Total', totalStudents, colorScheme.primary, colorScheme, textTheme), // Cores do tema
-              ],
-            ),
-          ],
-        ),
-        children: [
-          if (content.isNotEmpty)
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: colorScheme.secondaryContainer, // Fundo suave para conteúdo (Material 3)
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: colorScheme.secondary.withOpacity(0.2)), // Borda
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Conteúdo da Aula:',
-                    style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, fontSize: 14, color: colorScheme.onSecondaryContainer), // Cor do texto
-                  ),
-                  const SizedBox(height: 4),
-                  Text(content, style: textTheme.bodyMedium?.copyWith(fontSize: 14, color: colorScheme.onSecondaryContainer)), // Cor do texto
-                ],
-              ),
-            ),
-          const SizedBox(height: 8),
-          ...records.map((record) => _buildStudentItem(record, colorScheme, textTheme)), // Passa colorscheme e texttheme
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStudentItem(Map<String, dynamic> record, ColorScheme colorScheme, TextTheme textTheme) {
-    final String studentName =
-        record['student_name']?.toString() ?? 'Nome não informado';
-    final String status = record['status']?.toString() ?? 'N';
-
-    // Mapeamento de status para cores e ícones do ColorScheme
-    Color thematicStatusColor;
-    String statusText;
-    IconData statusIcon;
-
-    if (status == 'P') { // P = Presente
-      thematicStatusColor = colorScheme.tertiary; // Geralmente verde
-      statusText = 'Presente';
-      statusIcon = Icons.check_circle_rounded;
-    } else if (status == 'F') { // F = Falta
-      thematicStatusColor = colorScheme.error; // Vermelho
-      statusText = 'Ausente';
-      statusIcon = Icons.cancel_rounded;
-    } else { // N/A ou outros
-      thematicStatusColor = colorScheme.onSurfaceVariant;
-      statusText = 'N/A';
-      statusIcon = Icons.help_outline;
     }
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      child: Row(
-        children: [
-          Icon(statusIcon, color: thematicStatusColor, size: 20), // Cor do ícone de status
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              studentName,
-              style: textTheme.bodyMedium?.copyWith(fontSize: 14, fontWeight: FontWeight.w500, color: colorScheme.onSurface), // Cor do texto do nome do aluno
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: thematicStatusColor.withOpacity(0.1), // Fundo suave da cor do status
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: thematicStatusColor.withOpacity(0.3)), // Borda da cor do status
-            ),
-            child: Text(
-              statusText,
-              style: textTheme.labelLarge?.copyWith(
-                color: thematicStatusColor, // Cor do texto do status
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    return appBarMenuItems;
   }
 
-  Widget _buildMiniStat(String label, int value, Color color, ColorScheme colorScheme, TextTheme textTheme) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1), // Fundo com opacidade da cor fornecida
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.2)), // Borda com opacidade da cor fornecida
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle), // Círculo com a cor fornecida
-          ),
-          const SizedBox(width: 8),
-          Text(
-            '$label: $value',
-            style: textTheme.bodySmall?.copyWith(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: color, // Cor do texto (a mesma da bolinha)
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildClassAverageTab(Classe classe, ColorScheme colorScheme, TextTheme textTheme) {
-    return Obx(() {
-      if (controller.isLoadingAttendance.value) { // Reutiliza isLoadingAttendance, pode precisar de um isLoading separado para médias se for complexo
-        return Center(child: CircularProgressIndicator(color: colorScheme.primary)); // Cor do tema
-      }
-
-      final attendanceData = controller.attendanceReportData;
-      final uniqueStudents = attendanceData
-          .map((a) => a['student_name'])
-          .toSet();
-      final uniqueDates = attendanceData.map((a) => a['date']).toSet();
-
-      final totalPresences = attendanceData
-          .where((a) => a['status'] == 'P') // P = Presente
-          .length;
-      final totalAbsences = attendanceData
-          .where((a) => a['status'] == 'F') // F = Falta
-          .length;
-      final totalRecords = attendanceData.length;
-
-      final double attendancePercentage = totalRecords > 0
-          ? (totalPresences / totalRecords) * 100
-          : 0.0;
-
-      return SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Card(
-              elevation: 4,
-              color: colorScheme.surface, // Fundo do Card
-              surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.analytics,
-                          color: colorScheme.primary, // Cor do ícone
-                          size: 28,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Resumo da Turma',
-                          style: textTheme.titleMedium?.copyWith(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurface, // Cor do texto
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatCard(
-                            'Total de Alunos',
-                            uniqueStudents.length.toString(),
-                            Icons.person,
-                            colorScheme.secondary, // Cor do tema
-                            colorScheme, textTheme, // Passa colorScheme e textTheme
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildStatCard(
-                            'Aulas Realizadas',
-                            uniqueDates.length.toString(),
-                            Icons.calendar_today,
-                            colorScheme.tertiary, // Cor do tema
-                            colorScheme, textTheme, // Passa colorScheme e textTheme
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            Card(
-              elevation: 4,
-              color: colorScheme.surface, // Fundo do Card
-              surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.pie_chart, color: colorScheme.secondary, size: 28), // Cor do ícone
-                        const SizedBox(width: 12),
-                        Text(
-                          'Frequência Geral',
-                          style: textTheme.titleMedium?.copyWith(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurface, // Cor do texto
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Center(
-                      child: Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: [
-                              attendancePercentage >= 75
-                                  ? colorScheme.tertiary // Acima de 75% (verde)
-                                  : attendancePercentage >= 50
-                                  ? colorScheme.secondary // Acima de 50% (laranja/amarelo)
-                                  : colorScheme.error, // Abaixo de 50% (vermelho)
-                              (attendancePercentage >= 75
-                                      ? colorScheme.tertiary
-                                      : attendancePercentage >= 50
-                                      ? colorScheme.secondary
-                                      : colorScheme.error)
-                                  .withOpacity(0.3), // Tom suave
-                            ],
-                          ),
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                '${attendancePercentage.toStringAsFixed(1)}%',
-                                style: textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.onPrimary, // Texto em contraste com o gradiente
-                                ),
-                              ),
-                              Text(
-                                'Frequência',
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onPrimary, // Texto em contraste
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        Column(
-                          children: [
-                            Text(
-                              totalPresences.toString(),
-                              style: textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.tertiary, // Cor para Presenças (verde)
-                              ),
-                            ),
-                            Text(
-                              'Presenças',
-                              style: textTheme.bodySmall?.copyWith(
-                                color: colorScheme.tertiary, // Cor para Presenças
-                              ),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              totalAbsences.toString(),
-                              style: textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.error, // Cor para Ausências (vermelho)
-                              ),
-                            ),
-                            Text(
-                              'Ausências',
-                              style: textTheme.bodySmall?.copyWith(
-                                color: colorScheme.error, // Cor para Ausências
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            if (uniqueStudents.isNotEmpty)
-              Card(
-                elevation: 4,
-                color: colorScheme.surface, // Fundo do Card
-                surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.person, color: colorScheme.primary, size: 28), // Cor do ícone
-                          const SizedBox(width: 12),
-                          Text(
-                            'Frequência por Aluno',
-                            style: textTheme.titleMedium?.copyWith(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface, // Cor do texto
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      ...uniqueStudents.map((studentName) {
-                        final studentRecords = attendanceData.where(
-                          (a) => a['student_name'] == studentName,
-                        );
-                        final studentPresences = studentRecords
-                            .where((a) => a['status'] == 'P') // P = Presente
-                            .length;
-                        final studentTotal = studentRecords.length;
-                        final studentPercentage = studentTotal > 0
-                            ? (studentPresences / studentTotal) * 100
-                            : 0.0;
-
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      studentName.toString(),
-                                      style: textTheme.bodyLarge?.copyWith(
-                                        fontWeight: FontWeight.w500,
-                                        color: colorScheme.onSurface, // Cor do nome do aluno
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    '${studentPercentage.toStringAsFixed(1)}%',
-                                    style: textTheme.bodyLarge?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: studentPercentage >= 75
-                                          ? colorScheme.tertiary
-                                          : studentPercentage >= 50
-                                          ? colorScheme.secondary
-                                          : colorScheme.error,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              LinearProgressIndicator(
-                                value: studentPercentage / 100,
-                                backgroundColor: colorScheme.surfaceVariant, // Fundo da barra
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  studentPercentage >= 75
-                                      ? colorScheme.tertiary
-                                      : studentPercentage >= 50
-                                      ? colorScheme.secondary
-                                      : colorScheme.error,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        ),
-      );
-    });
-  }
-
-  Widget _buildStatCard(
-    String label,
-    String value,
-    IconData icon,
-    Color color, // Esta é a cor "temática" passada (primary, secondary, tertiary)
+  
+  Widget _buildPageContent(
+    BuildContext context,
+    Classe classe,
     ColorScheme colorScheme,
     TextTheme textTheme,
+    bool hasAnyOccurrences,
+    bool hasAnyHomework,
+    bool hasAnyAttendance,
   ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1), // Fundo suave da cor
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)), // Borda suave da cor
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 28), // Ícone com a cor
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: textTheme.headlineSmall?.copyWith(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: color, // Valor com a cor
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: textTheme.bodyMedium?.copyWith(
-              fontSize: 12,
-              color: color, // Label com a cor
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOccurrencesTab(Classe classe, ColorScheme colorScheme, TextTheme textTheme) {
     return Obx(() {
-      log('🔍 Building occurrences tab. Data count: ${controller.occurrencesData.length}', 
-          name: 'ClassUnifiedReportPage');
-      
-      if (controller.isLoadingOccurrences.value) {
+      if (controller.isLoadingAttendance.value ||
+          controller.isLoadingOccurrences.value ||
+          controller.isLoadingHomework.value) {
         return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(color: colorScheme.primary), // Cor do tema
-              const SizedBox(height: 16),
-              Text(
-                'Carregando ocorrências...',
-                style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant), // Cor do tema
-              ),
-            ],
-          ),
+          child: CircularProgressIndicator(color: colorScheme.primary),
         );
       }
 
-      if (controller.occurrencesData.isEmpty) {
-        log('⚠️ No occurrences data available', name: 'ClassUnifiedReportPage');
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.report_problem, size: 80, color: colorScheme.onSurfaceVariant.withOpacity(0.4)), // Cor do tema
-              const SizedBox(height: 16),
-              Text(
-                'Nenhuma ocorrência registrada',
-                style: textTheme.titleMedium?.copyWith(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurfaceVariant, // Cor do tema
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Esta turma ainda não possui ocorrências registradas.',
-                style: textTheme.bodyMedium?.copyWith(fontSize: 14, color: colorScheme.onSurfaceVariant.withOpacity(0.7)), // Cor do tema
-                textAlign: TextAlign.center,
-              ),
-            ],
+      final List<Widget> preListButtons = [];
+
+      if (hasAnyOccurrences) {
+        preListButtons.add(
+          _buildActionButton(
+            context,
+            Icons.error_outline,
+            colorScheme.error,
+            () => _showOccurrencesDialog(
+              context,
+              controller.occurrencesData,
+              colorScheme,
+              textTheme,
+            ),
+            controller.occurrencesData.length,
+            colorScheme,
           ),
         );
       }
-
-      final Map<String, List<Map<String, dynamic>>> groupedByDate = {};
-      for (final occurrence in controller.occurrencesData) {
-        final String date = occurrence['date']?.toString() ?? '';
-        log('📆 Processing occurrence with date: $date', name: 'ClassUnifiedReportPage');
+      if (hasAnyHomework) {
+        preListButtons.add(
+          _buildActionButton(
+            context,
+            Icons.assignment,
+            colorScheme.secondary,
+            () => _showHomeworkDialog(
+              context,
+              controller.homeworkData,
+              colorScheme,
+              textTheme,
+            ),
+            controller.homeworkData.length,
+            colorScheme,
+          ),
+        );
+      }
+      if (hasAnyAttendance) {
         
-        if (date.isNotEmpty) {
-          if (!groupedByDate.containsKey(date)) {
-            groupedByDate[date] = [];
+        final Map<int, Map<String, dynamic>> groupedAttendances = {};
+        for (final record in controller.attendanceReportData) {
+          final attendanceId = record['attendance_id'] as int?;
+          if (attendanceId != null && !groupedAttendances.containsKey(attendanceId)) {
+            groupedAttendances[attendanceId] = record;
           }
-          groupedByDate[date]!.add(occurrence);
-        } else {
-          log('⚠️ Found occurrence with empty date', name: 'ClassUnifiedReportPage');
         }
+        preListButtons.add(
+          _buildActionButton(
+            context,
+            Icons.how_to_reg,
+            colorScheme.tertiary,
+            () => _showAttendanceDialog(
+              context,
+              controller.attendanceReportData,
+              colorScheme,
+              textTheme,
+            ),
+            groupedAttendances.length, 
+            colorScheme,
+          ),
+        );
       }
 
-      final sortedDates = groupedByDate.keys.toList()
-        ..sort((a, b) => DateTime.parse(a).compareTo(DateTime.parse(b)));
-      
-      log('📅 Datas ordenadas (crescente): ${sortedDates.join(", ")}', name: 'ClassUnifiedReportPage');
+      if (controller.attendanceReportData.isEmpty &&
+          controller.occurrencesData.isEmpty &&
+          controller.homeworkData.isEmpty) {
+        return _buildEmptyState(colorScheme, textTheme);
+      }
 
-      return ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: sortedDates.length,
-        itemBuilder: (context, index) {
-          final date = sortedDates[index];
-          final occurrences = groupedByDate[date]!;
-          return _buildOccurrenceDateCard(date, occurrences, colorScheme, textTheme); // Passa colorscheme e texttheme
-        },
+      return Column(
+        children: [
+          if (preListButtons.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                alignment: WrapAlignment.start,
+                children: preListButtons,
+              ),
+            ),
+          Expanded(
+            child: _buildAttendanceList(classe, colorScheme, textTheme),
+          ),
+        ],
       );
     });
   }
 
-  Widget _buildOccurrenceDateCard(
-    String dateStr,
-    List<Map<String, dynamic>> occurrences,
+  
+  Widget _buildActionButton(
+    BuildContext context,
+    IconData icon,
+    Color color,
+    VoidCallback onPressed,
+    int count,
     ColorScheme colorScheme,
-    TextTheme textTheme,
   ) {
-    final DateTime date = DateTime.parse(dateStr);
-    final String formattedDate = DateFormat('dd/MM/yyyy').format(date);
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      color: colorScheme.surface, // Fundo do Card
-      surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ExpansionTile(
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: colorScheme.primary.withOpacity(0.1), // Fundo do ícone
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            Icons.calendar_today,
-            color: colorScheme.primary, // Cor do ícone
-            size: 20,
+    return Tooltip(
+      message: _getButtonTooltip(icon, count), 
+      child: Card(
+        margin: EdgeInsets.zero,
+        elevation: 1,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.all(10), 
+            child: Icon(
+              icon,
+              size: 24, 
+              color: color, 
+            ),
           ),
         ),
-        title: Text(
-          formattedDate,
-          style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, fontSize: 16, color: colorScheme.onSurface), // Estilo do título
-        ),
-        subtitle: Text(
-          '${occurrences.length} ocorrência${occurrences.length != 1 ? 's' : ''}',
-          style: textTheme.bodyMedium?.copyWith(fontSize: 14, color: colorScheme.onSurfaceVariant), // Estilo do subtítulo
-        ),
-        children: [
-          ...occurrences.map((occurrence) => _buildOccurrenceItem(occurrence, colorScheme, textTheme)), // Passa colorscheme e texttheme
-          const SizedBox(height: 8),
-        ],
       ),
     );
   }
 
-  Widget _buildOccurrenceItem(Map<String, dynamic> occurrence, ColorScheme colorScheme, TextTheme textTheme) {
-    final String studentName =
-        occurrence['student_name']?.toString() ?? 'Turma Toda';
-    final String description = occurrence['description']?.toString() ?? '';
-    final String type = occurrence['type']?.toString() ?? 'Geral';
-    final bool isGeneral = occurrence['is_general'] == 1;
+  
+  String _getButtonTooltip(IconData icon, int count) {
+    if (icon == Icons.error_outline) {
+      return 'Ver Ocorrências ($count)';
+    } else if (icon == Icons.assignment) {
+      return 'Ver Tarefas ($count)';
+    } else if (icon == Icons.how_to_reg) {
+      return 'Ver Chamadas ($count)'; 
+    }
+    return '';
+  }
 
-    Color typeColor;
-    IconData typeIcon;
-
-    // Mapeamento de tipo para cores do ColorScheme
-    switch (type.toUpperCase()) {
-      case 'DISCIPLINAR': // Comportamento
-      case 'COMPORTAMENTO':
-        typeColor = colorScheme.error; // Vermelho para problemas disciplinares/comportamentais
-        typeIcon = Icons.psychology;
-        break;
-      case 'PEDAGOGICA': // Exemplo de um novo tipo
-        typeColor = colorScheme.tertiary; // Verde/azul para pedagógica
-        typeIcon = Icons.school;
-        break;
-      case 'SAUDE':
-        typeColor = colorScheme.secondary; // Laranja/amarelo para saúde
-        typeIcon = Icons.local_hospital;
-        break;
-      case 'ATRASO':
-        typeColor = colorScheme.onSurfaceVariant; // Neutro para atraso
-        typeIcon = Icons.access_time;
-        break;
-      case 'MATERIAL':
-        typeColor = colorScheme.primary; // Primária para material
-        typeIcon = Icons.inventory;
-        break;
-      default: // Geral ou tipos não mapeados
-        if (isGeneral) {
-          typeColor = colorScheme.primary; // Primária para geral
-          typeIcon = Icons.info;
-        } else {
-          typeColor = colorScheme.onSurfaceVariant; // Neutro para outros de aluno
-          typeIcon = Icons.person;
+  
+  Widget _buildAttendanceList(
+    Classe classe,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    final Map<String, List<Map<String, dynamic>>> occurrencesByDate = {};
+    for (final occurrence in controller.occurrencesData) {
+      final date = occurrence['date']?.toString();
+      if (date != null) {
+        if (!occurrencesByDate.containsKey(date)) {
+          occurrencesByDate[date] = [];
         }
+        occurrencesByDate[date]!.add(occurrence);
+      }
     }
 
+    final Map<String, List<Map<String, dynamic>>> homeworkByDueDate = {};
+    for (final homework in controller.homeworkData) {
+      final date = homework['due_date']?.toString();
+      if (date != null) {
+        if (!homeworkByDueDate.containsKey(date)) {
+          homeworkByDueDate[date] = [];
+        }
+        homeworkByDueDate[date]!.add(homework);
+      }
+    }
+
+    final Map<int, Map<String, dynamic>> groupedAttendances = {};
+    for (final record in controller.attendanceReportData) {
+      final attendanceId = record['attendance_id'] as int?;
+      if (attendanceId == null) continue;
+
+      if (!groupedAttendances.containsKey(attendanceId)) {
+        final date = record['date']?.toString() ?? '';
+        final currentOccurrences = occurrencesByDate[date] ?? [];
+        final hasOccurrences = currentOccurrences.isNotEmpty;
+
+        final currentHomework = homeworkByDueDate[date] ?? [];
+        final hasHomework = currentHomework.isNotEmpty;
+
+        groupedAttendances[attendanceId] = {
+          'id': attendanceId,
+          'date': date,
+          'content': record['content'] ?? 'Sem conteúdo',
+          'class_name': record['class_name'] ?? 'N/A',
+          'discipline_name': record['discipline_name'] ?? 'N/A',
+          'start_time': record['start_time'] ?? '--:--',
+          'end_time': record['end_time'] ?? '--:--',
+          'has_occurrences': hasOccurrences,
+          'occurrences_count': currentOccurrences.length,
+          'occurrences_list': currentOccurrences,
+          'has_homework': hasHomework,
+          'homework_count': currentHomework.length,
+          'homework_list': currentHomework,
+          'students': [],
+        };
+      }
+
+      (groupedAttendances[attendanceId]!['students'] as List).add({
+        'student_id': record['student_id'],
+        'student_name': record['student_name'] ?? 'Nome não informado',
+        'status': record['status'] ?? 'N',
+      });
+    }
+
+    final sortedAttendances = groupedAttendances.values.toList()
+      ..sort((a, b) {
+        final dateA = DateTime.tryParse(a['date']) ?? DateTime.now();
+        final dateB = DateTime.tryParse(b['date']) ?? DateTime.now();
+        final dateCompare = dateA.compareTo(dateB);
+        if (dateCompare != 0) return dateCompare;
+        return (a['start_time'] as String).compareTo(b['start_time'] as String);
+      });
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: sortedAttendances.length,
+      itemBuilder: (context, index) {
+        final attendance = sortedAttendances[index];
+        return _buildAttendanceCard(context, attendance, colorScheme, textTheme);
+      },
+    );
+  }
+
+  
+  Widget _buildAttendanceCard(
+    BuildContext context,
+    Map<String, dynamic> attendance,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    final DateTime date =
+        DateTime.tryParse(attendance['date']) ?? DateTime.now();
+    final String formattedDate = DateFormat('dd/MM/yyyy').format(date);
+    final String startTime = attendance['start_time'];
+    final String endTime = attendance['end_time'];
+    final String className = attendance['class_name'];
+    final String disciplineName = attendance['discipline_name'];
+    final String content = attendance['content'];
+
+    final List<Map<String, dynamic>> students = (attendance['students'] as List)
+        .cast<Map<String, dynamic>>();
+
+    final presentCount = students.where((s) => s['status'] == 'P').length;
+    final totalStudents = students.length;
+    final attendancePercentage = totalStudents > 0
+        ? (presentCount / totalStudents * 100).round()
+        : 0;
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 12, left: 16, right: 16),
+      margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
-      color: colorScheme.surfaceContainerLow, // Fundo do Card interno
-      surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: typeColor.withOpacity(0.3), // Borda com cor do tipo de ocorrência
+          color: colorScheme.outline.withOpacity(0.2),
           width: 1,
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: typeColor.withOpacity(0.1), // Fundo do ícone
-                    borderRadius: BorderRadius.circular(8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
                   ),
-                  child: Icon(
-                    typeIcon,
-                    size: 20,
-                    color: typeColor, // Cor do ícone do tipo de ocorrência
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    formattedDate,
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceVariant.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
                     children: [
-                      Text(
-                        type.capitalize!,
-                        style: textTheme.titleSmall?.copyWith( // Estilo do título do tipo
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.onSurface, // Cor do texto do tipo
-                        ),
+                      Icon(
+                        Icons.access_time,
+                        size: 16,
+                        color: colorScheme.onSurfaceVariant,
                       ),
+                      const SizedBox(width: 4),
                       Text(
-                        isGeneral ? 'Ocorrência Geral da Turma' : studentName,
-                        style: textTheme.bodySmall?.copyWith( // Estilo do texto de aluno/geral
-                          color: isGeneral ? colorScheme.primary : colorScheme.onSurfaceVariant, // Cor para geral ou aluno
-                          fontWeight: isGeneral ? FontWeight.w500 : FontWeight.normal,
+                        '$startTime - $endTime',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurface,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -881,30 +454,634 @@ class ClassUnifiedReportPage extends GetView<ReportsController> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              description,
-              style: textTheme.bodyMedium?.copyWith(
-                fontSize: 14,
-                color: colorScheme.onSurfaceVariant, // Cor da descrição
-              ),
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.calendar_today, size: 16, color: colorScheme.onSurfaceVariant), // Cor do ícone de calendário
-                const SizedBox(width: 4),
-                Text(
-                  DateFormat('dd/MM/yyyy').format(DateTime.parse(occurrence['date'].toString())),
-                  style: textTheme.bodySmall?.copyWith(
-                    fontSize: 14,
-                    color: colorScheme.onSurfaceVariant, // Cor da data
+                Expanded(
+                  child: Text(
+                    disciplineName,
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
+                ),
+                const SizedBox(width: 8),
+                Chip(
+                  label: Text('Turma: $className'),
+                  visualDensity: VisualDensity.compact,
+                  backgroundColor: colorScheme.surfaceVariant,
+                  labelStyle: textTheme.bodySmall,
                 ),
               ],
             ),
+            const SizedBox(height: 4),
+            LinearProgressIndicator(
+              value: attendancePercentage / 100,
+              backgroundColor: colorScheme.surfaceVariant,
+              color: _getPercentageColor(attendancePercentage, colorScheme),
+              minHeight: 6,
+            ),
+            const SizedBox(height: 4),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                '$attendancePercentage% de presença',
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
           ],
         ),
+        children: [
+          if (content.isNotEmpty && content != 'Sem conteúdo' ||
+              students.isNotEmpty)
+            Divider(
+              height: 24,
+              thickness: 1,
+              indent: 16,
+              endIndent: 16,
+              color: colorScheme.outlineVariant,
+            ),
+          if (content.isNotEmpty && content != 'Sem conteúdo')
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.secondaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Conteúdo abordado:',
+                      style: textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSecondaryContainer,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      content,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSecondaryContainer,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          const SizedBox(height: 8),
+          ...students.map(
+            (student) => _buildStudentItem(student, colorScheme, textTheme),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  
+  Color _getPercentageColor(int percentage, ColorScheme colorScheme) {
+    if (percentage >= 75) return colorScheme.tertiary;
+    if (percentage >= 50) return colorScheme.primary;
+    return colorScheme.error;
+  }
+
+  
+  Widget _buildStudentItem(
+    Map<String, dynamic> record,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    final String studentName = record['student_name'];
+    final String status = record['status'];
+
+    Color statusColor;
+    String statusText;
+    IconData statusIcon;
+
+    if (status == 'P') {
+      statusColor = colorScheme.tertiary;
+      statusText = 'Presente';
+      statusIcon = Icons.check_circle_rounded;
+    } else if (status == 'F') {
+      statusColor = colorScheme.error;
+      statusText = 'Ausente';
+      statusIcon = Icons.cancel_rounded;
+    } else {
+      statusColor = colorScheme.onSurfaceVariant;
+      statusText = 'N/A';
+      statusIcon = Icons.help_outline;
+    }
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: Icon(statusIcon, color: statusColor, size: 24),
+        title: Text(
+          studentName,
+          style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: statusColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: statusColor.withOpacity(0.3)),
+          ),
+          child: Text(
+            statusText,
+            style: textTheme.labelMedium?.copyWith(
+              color: statusColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  
+  void _showOccurrencesDialog(
+    BuildContext context,
+    List<Map<String, dynamic>> occurrences,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.error_outline, color: colorScheme.error),
+              const SizedBox(width: 8),
+              Text(
+                'Ocorrências Registradas',
+                style: textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          content: occurrences.isEmpty
+              ? Text(
+                  'Nenhuma ocorrência encontrada para esta turma.',
+                  style: textTheme.bodyMedium,
+                )
+              : SizedBox(
+                  width: double.maxFinite,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: occurrences.length,
+                    itemBuilder: (context, index) {
+                      final occurrence = occurrences[index];
+                      final String studentName =
+                          occurrence['student_name'] ?? 'Aluno não informado';
+                      final String type =
+                          occurrence['type'] ?? 'Tipo não informado';
+                      final String description =
+                          occurrence['description'] ?? 'Sem descrição';
+                      final String date = occurrence['date'] != null
+                          ? DateFormat('dd/MM/yyyy').format(
+                              DateTime.tryParse(occurrence['date']) ??
+                                  DateTime.now(),
+                            )
+                          : 'N/A';
+                      final String time = (occurrence['time'] as String?) ??
+                          (DateTime.tryParse(occurrence['date'])
+                              ?.toLocal()
+                              .toString()
+                              .substring(11, 16)) ??
+                          'N/A';
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: BorderSide(
+                            color: colorScheme.outlineVariant.withOpacity(0.5),
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '$studentName - $type',
+                                style: textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Data: $date às $time',
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                description,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: Text(
+                'Fechar',
+                style: textTheme.labelLarge?.copyWith(
+                  color: colorScheme.primary,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  
+  void _showHomeworkDialog(
+    BuildContext context,
+    List<Map<String, dynamic>> homeworks,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.assignment, color: colorScheme.secondary),
+              const SizedBox(width: 8),
+              Text(
+                'Tarefas de Casa',
+                style: textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          content: homeworks.isEmpty
+              ? Text(
+                  'Nenhuma tarefa de casa encontrada para esta turma.',
+                  style: textTheme.bodyMedium,
+                )
+              : SizedBox(
+                  width: double.maxFinite,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: homeworks.length,
+                    itemBuilder: (context, index) {
+                      final homework = homeworks[index];
+                      final String title = homework['title'] ?? 'Sem título';
+                      final String description =
+                          homework['description'] ?? 'Sem descrição';
+                      final String disciplineName =
+                          homework['discipline_name'] ?? 'N/A';
+                      final String dueDate =
+                          homework['due_date_formatted'] ?? 'N/A';
+                      final String assignedDate =
+                          homework['assigned_date_formatted'] ?? 'N/A';
+                      final String status = homework['status'] ?? 'pending';
+
+                      Color statusColor;
+                      String statusText;
+                      switch (status.toLowerCase()) {
+                        case 'pending':
+                          statusColor = colorScheme.error;
+                          statusText = 'Pendente';
+                          break;
+                        case 'completed':
+                          statusColor = colorScheme.tertiary;
+                          statusText = 'Concluído';
+                          break;
+                        default:
+                          statusColor = colorScheme.onSurfaceVariant;
+                          statusText = 'Status Desconhecido';
+                      }
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: BorderSide(color: statusColor.withOpacity(0.5)),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '$title (${disciplineName})',
+                                style: textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Data de Atribuição: $assignedDate',
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              Text(
+                                'Data de Entrega: $dueDate',
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                description,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Align(
+                                alignment: Alignment.bottomRight,
+                                child: Chip(
+                                  label: Text(statusText),
+                                  backgroundColor: statusColor.withOpacity(0.2),
+                                  labelStyle: textTheme.labelSmall?.copyWith(color: statusColor),
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: Text(
+                'Fechar',
+                style: textTheme.labelLarge?.copyWith(
+                  color: colorScheme.primary,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  
+  void _showAttendanceDialog(
+    BuildContext context,
+    List<Map<String, dynamic>> attendances,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    
+    final Map<int, Map<String, dynamic>> groupedAttendances = {};
+    for (final record in attendances) {
+      final attendanceId = record['attendance_id'] as int?;
+      if (attendanceId == null) continue;
+
+      if (!groupedAttendances.containsKey(attendanceId)) {
+        groupedAttendances[attendanceId] = {
+          'id': attendanceId,
+          'date': record['date']?.toString() ?? '',
+          'content': record['content'] ?? 'Sem conteúdo',
+          'class_name': record['class_name'] ?? 'N/A',
+          'discipline_name': record['discipline_name'] ?? 'N/A',
+          'start_time': record['start_time'] ?? '--:--',
+          'end_time': record['end_time'] ?? '--:--',
+          'students': [],
+        };
+      }
+      (groupedAttendances[attendanceId]!['students'] as List).add({
+        'student_id': record['student_id'],
+        'student_name': record['student_name'] ?? 'Nome não informado',
+        'status': record['status'] ?? 'N',
+      });
+    }
+
+    
+    final sortedAttendances = groupedAttendances.values.toList()
+      ..sort((a, b) {
+        final dateA = DateTime.tryParse(a['date']) ?? DateTime.now();
+        final dateB = DateTime.tryParse(b['date']) ?? DateTime.now();
+        final dateCompare = dateA.compareTo(dateB);
+        if (dateCompare != 0) return dateCompare;
+        return (a['start_time'] as String).compareTo(b['start_time'] as String);
+      });
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.how_to_reg, color: colorScheme.tertiary),
+              const SizedBox(width: 8),
+              Text(
+                'Chamadas Registradas',
+                style: textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          content: attendances.isEmpty
+              ? Text(
+                  'Nenhuma chamada encontrada para esta turma.',
+                  style: textTheme.bodyMedium,
+                )
+              : SizedBox(
+                  width: double.maxFinite,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: sortedAttendances.length,
+                    itemBuilder: (context, index) {
+                      final attendance = sortedAttendances[index];
+                      final DateTime date =
+                          DateTime.tryParse(attendance['date']) ?? DateTime.now();
+                      final String formattedDate =
+                          DateFormat('dd/MM/yyyy').format(date);
+                      final String startTime = attendance['start_time'];
+                      final String endTime = attendance['end_time'];
+                      final String disciplineName = attendance['discipline_name'];
+                      final List<Map<String, dynamic>> students =
+                          (attendance['students'] as List).cast<Map<String, dynamic>>();
+
+                      final presentCount = students.where((s) => s['status'] == 'P').length;
+                      final totalStudents = students.length;
+                      final attendancePercentage = totalStudents > 0
+                          ? (presentCount / totalStudents * 100).round()
+                          : 0;
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: BorderSide(
+                            color: colorScheme.outlineVariant.withOpacity(0.5),
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                disciplineName,
+                                style: textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Data: $formattedDate (${startTime} - ${endTime})',
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              LinearProgressIndicator(
+                                value: attendancePercentage / 100,
+                                backgroundColor: colorScheme.surfaceVariant,
+                                color: _getPercentageColor(attendancePercentage, colorScheme),
+                                minHeight: 4,
+                              ),
+                              const SizedBox(height: 4),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: Text(
+                                  '$attendancePercentage% de presença',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                              if (students.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Alunos:',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                ),
+                                ...students.map((student) => Padding(
+                                      padding: const EdgeInsets.only(left: 8.0, top: 2.0),
+                                      child: Text(
+                                        '${student['student_name']} - ${_getStatusText(student['status'])}',
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    )),
+                              ],
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: Text(
+                'Fechar',
+                style: textTheme.labelLarge?.copyWith(
+                  color: colorScheme.primary,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  
+  String _getStatusText(String status) {
+    if (status == 'P') return 'Presente';
+    if (status == 'F') return 'Ausente';
+    return 'N/A';
+  }
+
+  
+  Widget _buildEmptyState(ColorScheme colorScheme, TextTheme textTheme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.how_to_reg,
+            size: 80,
+            color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Nenhum registro encontrado',
+            style: textTheme.titleMedium?.copyWith(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Não há chamadas, ocorrências ou tarefas de casa registradas para esta turma.',
+            style: textTheme.bodyMedium?.copyWith(
+              fontSize: 14,
+              color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

@@ -1,8 +1,8 @@
-// lib/app/models/classe.dart
+
 
 import 'dart:convert';
-import 'package:vocatus/app/models/grade.dart'; // Importa Grade para a lista de agendamentos
-import 'package:vocatus/app/models/discipline.dart'; // Importa Discipline, pois Grade pode ter uma referência a ela
+import 'package:vocatus/app/models/discipline.dart';
+import 'package:vocatus/app/models/schedule.dart'; 
 
 class Classe {
   final int? id;
@@ -11,7 +11,7 @@ class Classe {
   final int schoolYear;
   final DateTime? createdAt;
   final bool? active;
-  final List<Grade> schedules; // Lista de Grades para os agendamentos
+  final List<Schedule> schedules; 
 
   Classe({
     this.id,
@@ -19,12 +19,12 @@ class Classe {
     this.description,
     required this.schoolYear,
     this.createdAt,
-    this.active = true, // Valor padrão para bool
-    this.schedules = const [], // Inicializa como lista vazia por padrão
+    this.active = true, 
+    this.schedules = const [], 
   });
 
-  /// Retorna uma nova instância de Classe com os campos fornecidos,
-  /// mantendo os valores originais se não forem especificados.
+  
+  
   Classe copyWith({
     int? id,
     String? name,
@@ -32,7 +32,7 @@ class Classe {
     int? schoolYear,
     DateTime? createdAt,
     bool? active,
-    List<Grade>? schedules,
+    List<Schedule>? schedules,
   }) {
     return Classe(
       id: id ?? this.id,
@@ -45,11 +45,11 @@ class Classe {
     );
   }
 
-  /// Cria uma instância de [Classe] a partir de um [Map].
-  /// Esta factory é para carregar a CLASSE BASE do banco de dados (tabela 'classe').
-  /// Ela NÃO espera os dados de 'schedules' diretamente do map da tabela 'classe'.
-  /// Os 'schedules' serão preenchidos separadamente no controlador,
-  /// a partir da query `getClassesRawReport` que retorna dados JOINED.
+  
+  
+  
+  
+  
   factory Classe.fromMap(Map<String, dynamic> map) {
     return Classe(
       id: map['id'] as int?,
@@ -59,24 +59,24 @@ class Classe {
       createdAt: map['created_at'] != null && (map['created_at'] is String) && (map['created_at'] as String).isNotEmpty
           ? DateTime.tryParse(map['created_at'] as String)
           : null,
-      active: map['active'] != null ? (map['active'] as int) == 1 : null, // Mapeia int do DB para bool
-      schedules: [], // Sempre inicia vazia, será preenchida no ReportsController
+      active: map['active'] != null ? (map['active'] as int) == 1 : null, 
+      schedules: [], 
     );
   }
 
-  /// Constrói uma lista de objetos [Classe] a partir dos dados brutos do relatório,
-  /// que incluem informações de `classe`, `grade` e `discipline` (via JOIN).
-  ///
-  /// Este método é essencial para processar o resultado da sua query
-  /// `getClassesRawReport`, agrupando os horários (grades) em suas respectivas turmas.
+  
+  
+  
+  
+  
   static List<Classe> fromRawReportList(List<Map<String, dynamic>> rawData) {
     final Map<int, Classe> classesMap = {};
 
     for (var row in rawData) {
       final int? classeId = row['classe_id'] as int?;
-      if (classeId == null) continue; // Pula a linha se não houver ID da turma
+      if (classeId == null) continue; 
 
-      // Se a turma ainda não está no mapa, cria um novo objeto Classe
+      
       if (!classesMap.containsKey(classeId)) {
         classesMap[classeId] = Classe(
           id: classeId,
@@ -87,43 +87,43 @@ class Classe {
               ? DateTime.tryParse(row['created_at'] as String)
               : null,
           active: row['classe_active'] != null ? (row['classe_active'] as int) == 1 : null,
-          schedules: [], // Inicializa vazio, os horários serão adicionados abaixo
+          schedules: [], 
         );
       }
 
-      // Verifica se há detalhes de horário (Grade) nesta linha
-      // É importante verificar 'grade_id' para garantir que esta parte da linha
-      // realmente representa um horário e não apenas um registro de turma sem horário.
-      if (row['grade_id'] != null && row['day_of_week'] != null && row['start_time'] != null) {
+      
+      
+      
+      if (row['schedule_id'] != null && row['day_of_week'] != null && row['start_time'] != null) {
         final Discipline? discipline = row['discipline_id'] != null
             ? Discipline(
                 id: row['discipline_id'] as int,
                 name: row['discipline_name'] as String,
-                active: true, // Assumindo ativo se ID e nome existirem
+                active: true, 
               )
             : null;
 
-        final Grade grade = Grade(
-          id: row['grade_id'] as int, // O ID da grade (horário específico)
+        final Schedule schedule = Schedule(
+          id: row['schedule_id'] as int, 
           classeId: classeId,
           disciplineId: row['discipline_id'] as int?,
           dayOfWeek: row['day_of_week'] as int,
-          startTimeTotalMinutes: Grade.timeStringToInt(row['start_time'] as String),
-          endTimeTotalMinutes: Grade.timeStringToInt(row['end_time'] as String),
-          gradeYear: row['school_year'] as int, // O ano da grade é o mesmo da turma
+          startTimeTotalMinutes: Schedule.timeStringToInt(row['start_time'] as String),
+          endTimeTotalMinutes: Schedule.timeStringToInt(row['end_time'] as String),
+          scheduleYear: row['school_year'] as int, 
           discipline: discipline,
-          active: true, // Assumindo ativo
+          active: true, 
         );
 
-        // Adiciona a grade à lista de schedules da Classe correspondente no mapa
-        classesMap[classeId]!.schedules.add(grade);
+        
+        classesMap[classeId]!.schedules.add(schedule);
       }
     }
-    // Retorna a lista de objetos Classe a partir dos valores do mapa
+    
     return classesMap.values.toList();
   }
 
-  /// Converte a instância de [Classe] para um [Map], geralmente para armazenamento no banco de dados.
+  
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -131,14 +131,14 @@ class Classe {
       'description': description,
       'school_year': schoolYear,
       'created_at': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
-      'active': (active ?? true) ? 1 : 0, // Mapeia bool para int (1 ou 0) para o DB
+      'active': (active ?? true) ? 1 : 0, 
     };
   }
 
-  /// Converte a instância de [Classe] para uma string JSON.
+  
   String toJson() => json.encode(toMap());
 
-  /// Cria uma instância de [Classe] a partir de uma string JSON.
+  
   factory Classe.fromJson(String source) =>
       Classe.fromMap(json.decode(source) as Map<String, dynamic>);
 

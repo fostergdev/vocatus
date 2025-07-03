@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class CustomDrop<T> extends StatelessWidget {
   final List<T> items;
@@ -20,17 +21,22 @@ class CustomDrop<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Acesse o ColorScheme do tema atual
+    
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
+    
+    final T? effectiveValue = value != null
+        ? items.firstWhereOrNull((item) => item == value)
+        : null;
+
     return DropdownButtonFormField<T>(
-      value: value,
+      value: effectiveValue,
       hint: hint != null
           ? Text(
               hint!,
               style: TextStyle(
-                color: colorScheme.onSurfaceVariant, // Cor para o hint text
+                color: colorScheme.onSurfaceVariant, 
               ),
             )
           : null,
@@ -43,7 +49,7 @@ class CustomDrop<T> extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: colorScheme.onSurface, // Cor do texto dos itens do menu
+              color: colorScheme.onSurface, 
             ),
           ),
         );
@@ -57,15 +63,15 @@ class CustomDrop<T> extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: colorScheme.onSurface, // Cor do texto do item selecionado
+              color: colorScheme.onSurface, 
             ),
           );
         }).toList();
       },
-      // Estilo do campo (InputDecoration) para alinhar com o tema
+      
       decoration: InputDecoration(
         filled: true,
-        fillColor: colorScheme.surfaceVariant, // Cor de fundo do campo
+        fillColor: colorScheme.surfaceContainerHighest, 
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.0),
           borderSide: BorderSide(color: colorScheme.outline, width: 1.0),
@@ -76,7 +82,7 @@ class CustomDrop<T> extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(color: colorScheme.primary, width: 2.0), // Borda focada com a cor primária
+          borderSide: BorderSide(color: colorScheme.primary, width: 2.0), 
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.0),
@@ -87,16 +93,16 @@ class CustomDrop<T> extends StatelessWidget {
           borderSide: BorderSide(color: colorScheme.error, width: 2.0),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        // Ícone da seta
-        suffixIconColor: colorScheme.onSurfaceVariant, // Cor da seta do dropdown
+        
+        suffixIconColor: colorScheme.onSurfaceVariant, 
       ),
-      // Estilo do Dropdown em si
-      dropdownColor: colorScheme.surfaceContainerHigh, // Cor do fundo do menu dropdown
+      
+      dropdownColor: colorScheme.surfaceContainerHigh, 
       style: textTheme.bodyLarge?.copyWith(
-        color: colorScheme.onSurface, // Cor do texto principal do Dropdown
+        color: colorScheme.onSurface, 
       ),
-      iconEnabledColor: colorScheme.onSurfaceVariant, // Cor do ícone da seta quando habilitado
-      iconDisabledColor: colorScheme.onSurfaceVariant.withOpacity(0.5), // Cor do ícone da seta quando desabilitado
+      iconEnabledColor: colorScheme.onSurfaceVariant, 
+      iconDisabledColor: colorScheme.onSurfaceVariant.withValues(alpha:0.5), 
     );
   }
 }

@@ -17,7 +17,7 @@ class AttendancePage extends StatelessWidget {
           'Registro de Presença',
           style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: colorScheme.onPrimary, // Texto da AppBar
+            color: colorScheme.onPrimary, 
           ),
         ),
         centerTitle: true,
@@ -25,8 +25,8 @@ class AttendancePage extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                colorScheme.primary.withOpacity(0.9), // Usa a cor primária do tema
-                colorScheme.primary, // Usa a cor primária do tema
+                colorScheme.primary.withValues(alpha:0.9), 
+                colorScheme.primary, 
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -37,7 +37,7 @@ class AttendancePage extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: IconThemeData(color: colorScheme.onPrimary), // Cor dos ícones da AppBar
+        iconTheme: IconThemeData(color: colorScheme.onPrimary), 
       ),
       body: attendanceRecords.isEmpty
           ? Center(
@@ -45,15 +45,15 @@ class AttendancePage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.assignment_turned_in_outlined, // Ícone mais relevante
+                    Icons.assignment_turned_in_outlined, 
                     size: 64,
-                    color: colorScheme.onSurfaceVariant.withOpacity(0.4), // Cor do tema
+                    color: colorScheme.onSurfaceVariant.withValues(alpha:0.4), 
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'Nenhum registro de presença encontrado.',
                     style: textTheme.titleMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant, // Cor do texto
+                      color: colorScheme.onSurfaceVariant, 
                       fontWeight: FontWeight.w500,
                     ),
                     textAlign: TextAlign.center,
@@ -62,7 +62,7 @@ class AttendancePage extends StatelessWidget {
                   Text(
                     'Verifique as chamadas ou os filtros de relatório.',
                     style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant.withOpacity(0.7), // Cor do texto
+                      color: colorScheme.onSurfaceVariant.withValues(alpha:0.7), 
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -70,10 +70,10 @@ class AttendancePage extends StatelessWidget {
               ),
             )
           : ListView.builder(
-              padding: const EdgeInsets.all(8.0), // Adicionado padding
+              padding: const EdgeInsets.all(8.0), 
               itemCount: attendanceRecords.length,
               itemBuilder: (context, index) {
-                return _buildAttendanceItem(attendanceRecords[index], colorScheme, textTheme); // Passa colorscheme e texttheme
+                return _buildAttendanceItem(attendanceRecords[index], colorScheme, textTheme); 
               },
             ),
     );
@@ -88,58 +88,58 @@ class AttendancePage extends StatelessWidget {
     final DateTime date = DateTime.parse(rawDate);
     final String content = record['content']?.toString() ?? '';
     
-    // Mapeando status para cores do ColorScheme
+    
     Color thematicStatusColor;
     String statusText;
     IconData statusIcon;
 
     if (status == 'P') {
-      thematicStatusColor = colorScheme.tertiary; // Geralmente verde para "Presente"
+      thematicStatusColor = colorScheme.tertiary; 
       statusText = 'Presente';
       statusIcon = Icons.check_circle_rounded;
     } else if (status == 'A') {
-      thematicStatusColor = colorScheme.error; // Vermelho para "Ausente"
+      thematicStatusColor = colorScheme.error; 
       statusText = 'Ausente';
       statusIcon = Icons.cancel_rounded;
     } else {
-      thematicStatusColor = colorScheme.onSurfaceVariant; // Cor neutra para "N/A"
+      thematicStatusColor = colorScheme.onSurfaceVariant; 
       statusText = 'N/A';
       statusIcon = Icons.help_outline;
     }
 
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8), // Padding horizontal
+      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8), 
       elevation: 2,
-      color: colorScheme.surface, // Fundo do Card
-      surfaceTintColor: colorScheme.primaryContainer, // Tinta de elevação
+      color: colorScheme.surface, 
+      surfaceTintColor: colorScheme.primaryContainer, 
       child: ListTile(
         leading: Icon(
           statusIcon,
-          color: thematicStatusColor, // Cor do ícone de status
+          color: thematicStatusColor, 
         ),
         title: Text(
           DateFormat('dd/MM/yyyy').format(date),
-          style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500, color: colorScheme.onSurface), // Estilo do título
+          style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500, color: colorScheme.onSurface), 
         ),
         subtitle: content.isNotEmpty
             ? Text(
                 content,
-                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant), // Estilo do subtítulo
+                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant), 
               )
             : null,
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: thematicStatusColor.withOpacity(0.1), // Fundo suave da cor do status
+            color: thematicStatusColor.withValues(alpha:0.1), 
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: thematicStatusColor, width: 1.0), // Borda com a cor do status
+            border: Border.all(color: thematicStatusColor, width: 1.0), 
           ),
           child: Text(
             statusText,
-            style: textTheme.labelLarge?.copyWith( // Usar labelLarge
-              color: thematicStatusColor, // Cor do texto do status
+            style: textTheme.labelLarge?.copyWith( 
+              color: thematicStatusColor, 
               fontWeight: FontWeight.w600,
-              fontSize: 12, // Mantendo o tamanho original
+              fontSize: 12, 
             ),
           ),
         ),

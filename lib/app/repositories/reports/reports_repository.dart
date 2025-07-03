@@ -1,6 +1,5 @@
 // app/repositories/reports/reports_repository.dart
 import 'dart:developer';
-
 import 'package:vocatus/app/core/utils/database/database_helper.dart';
 import 'package:vocatus/app/repositories/reports/i_reports_repository.dart';
 
@@ -22,15 +21,15 @@ class ReportsRepository implements IReportsRepository {
         c.created_at,
         d.id AS discipline_id,
         d.name AS discipline_name,
-        g.day_of_week,
-        g.start_time,
-        g.end_time,
+        s.day_of_week,
+        s.start_time,
+        s.end_time,
         c.active AS classe_active
       FROM classe c
-      LEFT JOIN grade g ON c.id = g.classe_id
-      LEFT JOIN discipline d ON g.discipline_id = d.id
+      LEFT JOIN schedule s ON c.id = s.classe_id
+      LEFT JOIN discipline d ON s.discipline_id = d.id
       WHERE c.school_year = ?
-      ORDER BY c.name, g.day_of_week, g.start_time;
+      ORDER BY c.name, s.day_of_week, s.start_time;
     ''',
       [year],
     );
@@ -54,7 +53,6 @@ class ReportsRepository implements IReportsRepository {
       SELECT MIN(c.school_year) as min, MAX(c.school_year) as max
       FROM classe_student cs
       INNER JOIN classe c ON cs.classe_id = c.id
-      WHERE cs.active = 1
     ''');
     final minStudent = studentYears.first['min'] as int?;
     final maxStudent = studentYears.first['max'] as int?;
@@ -62,10 +60,7 @@ class ReportsRepository implements IReportsRepository {
         ? List.generate(maxStudent - minStudent + 1, (i) => minStudent + i)
         : <int>[];
 
-    return {
-      'classes': classesList,
-      'students': studentsList,
-    };
+    return {'classes': classesList, 'students': studentsList};
   }
 
   @override
@@ -94,41 +89,50 @@ class ReportsRepository implements IReportsRepository {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> result = await db.rawQuery(
       '''
-      SELECT
-        COALESCE(s.name, 'Nome não informado') AS student_name,
-        COALESCE(a.date, '') AS date,
-        COALESCE(a.content, '') AS content,
-        CASE
-          WHEN sa.presence = 1 THEN 'P'  -- 1 = Presente (checkbox marcado)
-          WHEN sa.presence = 0 THEN 'A'  -- 0 = Ausente (checkbox desmarcado)
-          ELSE 'N'                       -- Não informado  
-        END AS status
-      FROM student s
-      INNER JOIN classe_student cs ON s.id = cs.student_id
-      INNER JOIN attendance a ON cs.classe_id = a.classe_id
-      LEFT JOIN student_attendance sa ON s.id = sa.student_id AND a.id = sa.attendance_id
-      WHERE cs.classe_id = ? AND cs.active = 1 AND s.active = 1
-        AND a.date IS NOT NULL
-      ORDER BY a.date DESC, s.name COLLATE NOCASE
+    SELECT
+      a.id AS attendance_id,
+      a.date,
+      a.content,
+      c.name AS class_name,
+      d.name AS discipline_name,
+      sch.start_time,
+      sch.end_time,
+      sa.presence,
+      s.id AS student_id,
+      s.name AS student_name,
+      CASE
+        WHEN sa.presence = 0 THEN 'P' -- Presente
+        WHEN sa.presence = 1 THEN 'F' -- Ausente
+        WHEN sa.presence = 2 THEN 'F' -- Justificado (tratado como ausente)
+        ELSE 'N/A'
+      END AS status
+    FROM attendance a
+    INNER JOIN student_attendance sa ON a.id = sa.attendance_id
+    INNER JOIN student s ON sa.student_id = s.id
+    INNER JOIN classe c ON a.classe_id = c.id
+    LEFT JOIN schedule sch ON a.schedule_id = sch.id
+    LEFT JOIN discipline d ON sch.discipline_id = d.id
+    WHERE a.classe_id = ? AND a.active = 1
+    ORDER BY a.date DESC, sch.start_time, s.name COLLATE NOCASE;
     ''',
       [classId],
     );
     return result;
   }
 
-  // New methods for student reports
   @override
-  Future<List<Map<String, dynamic>>> getStudentsWithReportsData(int year) async {
+  Future<List<Map<String, dynamic>>> getStudentsWithReportsData(
+    int year,
+  ) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> result = await db.rawQuery(
       '''
-      SELECT DISTINCT
+      SELECT
         s.id,
         s.name,
         s.active,
-        c.name AS class_name,
+        GROUP_CONCAT(DISTINCT c.name) AS class_name,
         c.school_year,
-        -- Attendance statistics
         (
           SELECT COUNT(DISTINCT a.id)
           FROM attendance a
@@ -147,7 +151,6 @@ class ReportsRepository implements IReportsRepository {
           INNER JOIN student_attendance sa ON a.id = sa.attendance_id
           WHERE sa.student_id = s.id AND sa.presence = 0 AND a.active = 1
         ) AS total_absences,
-        -- Occurrence statistics
         (
           SELECT COUNT(*)
           FROM occurrence o
@@ -158,6 +161,7 @@ class ReportsRepository implements IReportsRepository {
       INNER JOIN classe_student cs ON s.id = cs.student_id
       INNER JOIN classe c ON cs.classe_id = c.id
       WHERE c.school_year = ? AND cs.active = 1
+      GROUP BY s.id
       ORDER BY s.name COLLATE NOCASE;
     ''',
       [year],
@@ -166,7 +170,9 @@ class ReportsRepository implements IReportsRepository {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getStudentAttendanceReport(int studentId) async {
+  Future<List<Map<String, dynamic>>> getStudentAttendanceReport(
+    int studentId,
+  ) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> result = await db.rawQuery(
       '''
@@ -184,8 +190,8 @@ class ReportsRepository implements IReportsRepository {
       FROM attendance a
       INNER JOIN student_attendance sa ON a.id = sa.attendance_id
       INNER JOIN classe c ON a.classe_id = c.id
-      LEFT JOIN grade g ON a.grade_id = g.id
-      LEFT JOIN discipline d ON g.discipline_id = d.id
+      LEFT JOIN schedule s ON a.schedule_id = s.id
+      LEFT JOIN discipline d ON s.discipline_id = d.id
       WHERE sa.student_id = ? AND a.active = 1
       ORDER BY a.date DESC;
     ''',
@@ -195,7 +201,9 @@ class ReportsRepository implements IReportsRepository {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getStudentOccurrencesReport(int studentId) async {
+  Future<List<Map<String, dynamic>>> getStudentOccurrencesReport(
+    int studentId,
+  ) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> result = await db.rawQuery(
       '''
@@ -210,8 +218,8 @@ class ReportsRepository implements IReportsRepository {
       FROM occurrence o
       INNER JOIN attendance a ON o.attendance_id = a.id
       INNER JOIN classe c ON a.classe_id = c.id
-      LEFT JOIN grade g ON a.grade_id = g.id
-      LEFT JOIN discipline d ON g.discipline_id = d.id
+      LEFT JOIN schedule s ON a.schedule_id = s.id
+      LEFT JOIN discipline d ON s.discipline_id = d.id
       WHERE o.student_id = ? AND o.active = 1
       ORDER BY o.occurrence_date DESC;
     ''',
@@ -225,6 +233,7 @@ class ReportsRepository implements IReportsRepository {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> result = await db.query(
       'student',
+      columns: ['id', 'name', 'created_at', 'active'],
       where: 'id = ?',
       whereArgs: [studentId],
     );
@@ -248,31 +257,26 @@ class ReportsRepository implements IReportsRepository {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getOccurrencesReportByClassId(int classId) async {
+  Future<List<Map<String, dynamic>>> getOccurrencesReportByClassId(
+    int classId,
+  ) async {
     final db = await _dbHelper.database;
-    log('🔍 Executando consulta de ocorrências para turma $classId', name: 'ReportsRepository');
-    
+
     try {
-      // First get all attendances for this class
       final attendances = await db.query(
         'attendance',
         columns: ['id'],
         where: 'classe_id = ? AND active = 1',
         whereArgs: [classId],
       );
-      
+
       if (attendances.isEmpty) {
-        log('⚠️ Nenhuma chamada encontrada para esta turma', name: 'ReportsRepository');
         return [];
       }
-      
-      // Extract the attendance IDs
+
       final attendanceIds = attendances.map((a) => a['id'] as int).toList();
-      
-      // Form the placeholders for the SQL IN clause
       final placeholders = List.filled(attendanceIds.length, '?').join(',');
-      
-      // Query occurrences that belong to these attendances
+
       final List<Map<String, dynamic>> result = await db.rawQuery(
         '''
         SELECT
@@ -293,23 +297,52 @@ class ReportsRepository implements IReportsRepository {
         ''',
         [...attendanceIds],
       );
-      
-      log('📊 Resultado da consulta: ${result.length} ocorrências encontradas', name: 'ReportsRepository');
-      
-      // Standardize the result format
-      return result.map((record) => {
-        'id': record['id'],
-        'date': record['date'] ?? record['attendance_date'] ?? DateTime.now().toIso8601String(),
-        'description': record['description'] ?? 'Sem descrição',
-        'type': record['type'] ?? 'GERAL',
-        'is_general': record['is_general'] ?? 0,
-        'student_name': record['student_name'] ?? 'Turma Toda',
-        'attendance_date': record['attendance_date'],
-        'class_name': record['class_name'],
-      }).toList();
+
+      return result
+          .map(
+            (record) => {
+              'id': record['id'],
+              'date':
+                  record['date'] ??
+                  record['attendance_date'] ??
+                  DateTime.now().toIso8601String(),
+              'description': record['description'] ?? 'Sem descrição',
+              'type': record['type'] ?? 'GERAL',
+              'is_general': record['is_general'] ?? 0,
+              'student_name': record['student_name'] ?? 'Turma Toda',
+              'attendance_date': record['attendance_date'],
+              'class_name': record['class_name'],
+            },
+          )
+          .toList();
     } catch (e) {
-      log('❌ Erro na consulta SQL: $e', name: 'ReportsRepository');
       return [];
     }
+  }
+
+  // --- NOVO MÉTODO PARA TAREFAS DE CASA ---
+  @override
+  Future<List<Map<String, dynamic>>> getHomeworkByClassId(int classId) async {
+    final db = await _dbHelper.database;
+    final List<Map<String, dynamic>> result = await db.rawQuery(
+      '''
+      SELECT
+        h.id,
+        h.title,
+        h.description,
+        h.due_date,
+        h.assigned_date,
+        h.status,
+        d.name AS discipline_name,
+        c.name AS class_name
+      FROM homework h
+      INNER JOIN classe c ON h.classe_id = c.id
+      LEFT JOIN discipline d ON h.discipline_id = d.id
+      WHERE h.classe_id = ? AND h.active = 1
+      ORDER BY h.due_date ASC, h.assigned_date DESC;
+      ''',
+      [classId],
+    );
+    return result;
   }
 }

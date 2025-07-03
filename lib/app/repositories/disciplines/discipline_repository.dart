@@ -1,121 +1,111 @@
-import 'package:sqflite/sqflite.dart'; // Importa o pacote sqflite para manipulação do banco de dados SQLite
-import 'package:vocatus/app/core/utils/database/database_helper.dart'; // Importa o helper do banco de dados
-import 'package:vocatus/app/models/discipline.dart'; // Importa o modelo de Disciplina
-import 'package:vocatus/app/repositories/disciplines/i_discipline_repository.dart'; // Importa a interface do repositório de disciplinas
+import 'package:sqflite/sqflite.dart';
+import 'package:vocatus/app/core/utils/database/database_helper.dart';
+import 'package:vocatus/app/models/discipline.dart';
+import 'package:vocatus/app/repositories/disciplines/i_discipline_repository.dart';
 
 class DisciplineRepository implements IDisciplineRepository {
-  final DatabaseHelper _databaseHelper; // Helper para acessar o banco de dados
+  final DatabaseHelper _databaseHelper;
 
-  // Construtor recebe o helper do banco de dados
   DisciplineRepository(this._databaseHelper);
 
-  /// Cria uma nova disciplina no banco de dados.
-  /// Retorna a disciplina criada com o id gerado.
   @override
   Future<Discipline> createDiscipline(Discipline discipline) async {
     try {
-      final db = await _databaseHelper.database; // Obtém a instância do banco
+      final db = await _databaseHelper.database;
       final id = await db.insert(
-        'discipline', // Insere na tabela 'discipline'
-        {'name': discipline.name.toLowerCase().trim()}, // Nome da disciplina em minúsculo e sem espaços
+        'discipline',
+        {'name': discipline.name.toLowerCase().trim()},
       );
       return Discipline(
-        id: id, // Id gerado pelo banco
-        name: discipline.name, // Nome original informado
-        createdAt: DateTime.now(), // Data de criação (agora)
+        id: id,
+        name: discipline.name,
+        createdAt: DateTime.now(),
       );
     } on DatabaseException catch (e) {
-      // Trata erros específicos do banco de dados
       if (e.toString().contains('UNIQUE')) {
-        throw ('Já existe uma disciplina com esse nome!|$e'); // Nome duplicado
+        throw ('Já existe uma disciplina com esse nome!|$e');
       } else if (e.toString().contains('NOT NULL')) {
-        throw ('O nome da disciplina não pode ser vazio!|$e'); // Nome obrigatório
+        throw ('O nome da disciplina não pode ser vazio!|$e');
       } else if (e.isNoSuchTableError('discipline')) {
-        throw ('Tabela de disciplinas não encontrada!|$e'); // Tabela não existe
+        throw ('Tabela de disciplinas não encontrada!|$e');
       } else if (e.isSyntaxError()) {
-        throw ('Erro de sintaxe na tabela de disciplinas!|$e'); // Erro de sintaxe SQL
+        throw ('Erro de sintaxe na tabela de disciplinas!|$e');
       } else {
-        throw ('Erro ao criar disciplina: $e'); // Outro erro de banco
+        throw ('Erro ao criar disciplina: $e');
       }
     } catch (e) {
-      throw ('Erro desconhecido ao criar disciplina: $e'); // Erro inesperado
+      throw ('Erro desconhecido ao criar disciplina: $e');
     }
   }
 
-  /// Busca todas as disciplinas do banco de dados.
   @override
   Future<List<Discipline>> readDisciplines() async {
     try {
-      final db = await _databaseHelper.database; // Obtém a instância do banco
+      final db = await _databaseHelper.database;
       final result = await db.query(
-        'discipline', // Consulta a tabela 'discipline'
-        distinct: true, // Retorna apenas distintos
+        'discipline',
+        distinct: true,
       );
-      return result.map((map) => Discipline.fromMap(map)).toList(); // Converte o resultado em uma lista de Discipline
+      return result.map((map) => Discipline.fromMap(map)).toList();
     } on DatabaseException catch (e) {
-      // Trata erros específicos do banco de dados
       if (e.isNoSuchTableError('discipline')) {
-        throw ('Tabela de disciplinas não encontrada!|$e'); // Tabela não existe
+        throw ('Tabela de disciplinas não encontrada!|$e');
       } else if (e.isSyntaxError()) {
-        throw ('Erro de sintaxe ao buscar disciplinas!|$e'); // Erro de sintaxe SQL
+        throw ('Erro de sintaxe ao buscar disciplinas!|$e');
       } else {
-        throw ('Erro ao buscar as disciplinas: $e'); // Outro erro de banco
+        throw ('Erro ao buscar as disciplinas: $e');
       }
     } catch (e) {
-      throw ('Erro desconhecido ao buscar disciplinas: $e'); // Erro inesperado
+      throw ('Erro desconhecido ao buscar disciplinas: $e');
     }
   }
 
-  /// Atualiza os dados de uma disciplina existente no banco de dados.
   @override
   Future<void> updateDiscipline(Discipline discipline) async {
     try {
-      final db = await _databaseHelper.database; // Obtém a instância do banco
+      final db = await _databaseHelper.database;
       await db.update(
-        'discipline', // Atualiza na tabela 'discipline'
-        {'name': discipline.name.toLowerCase()}, // Nome atualizado em minúsculo
-        where: 'id = ?', // Filtro pelo id da disciplina
-        whereArgs: [discipline.id], // Argumento do filtro
+        'discipline',
+        {'name': discipline.name.toLowerCase()},
+        where: 'id = ?',
+        whereArgs: [discipline.id],
       );
     } on DatabaseException catch (e) {
-      // Trata erros específicos do banco de dados
       if (e.toString().contains('UNIQUE')) {
-        throw ('Já existe uma disciplina com esse nome!|$e'); // Nome duplicado
+        throw ('Já existe uma disciplina com esse nome!|$e');
       } else if (e.toString().contains('NOT NULL')) {
-        throw ('O nome da disciplina não pode ser vazio!|$e'); // Nome obrigatório
+        throw ('O nome da disciplina não pode ser vazio!|$e');
       } else if (e.isNoSuchTableError('discipline')) {
-        throw ('Tabela de disciplinas não encontrada!|$e'); // Tabela não existe
+        throw ('Tabela de disciplinas não encontrada!|$e');
       } else if (e.isSyntaxError()) {
-        throw ('Erro de sintaxe na tabela de disciplinas!|$e'); // Erro de sintaxe SQL
+        throw ('Erro de sintaxe na tabela de disciplinas!|$e');
       } else {
-        throw ('Erro ao atualizar disciplina: $e'); // Outro erro de banco
+        throw ('Erro ao atualizar disciplina: $e');
       }
     } catch (e) {
-      throw ('Erro desconhecido ao atualizar disciplina: $e'); // Erro inesperado
+      throw ('Erro desconhecido ao atualizar disciplina: $e');
     }
   }
 
-  /// Deleta uma disciplina do banco de dados pelo id.
   @override
   Future<void> deleteDiscipline(int id) async {
     try {
-      final db = await _databaseHelper.database; // Obtém a instância do banco
+      final db = await _databaseHelper.database;
       await db.delete(
-        'discipline', // Deleta da tabela 'discipline'
-        where: 'id = ?', // Filtro pelo id da disciplina
-        whereArgs: [id], // Argumento do filtro
+        'discipline',
+        where: 'id = ?',
+        whereArgs: [id],
       );
     } on DatabaseException catch (e) {
-      // Trata erros específicos do banco de dados
       if (e.isNoSuchTableError('discipline')) {
-        throw ('Tabela de disciplinas não encontrada!|$e'); // Tabela não existe
+        throw ('Tabela de disciplinas não encontrada!|$e');
       } else if (e.isSyntaxError()) {
-        throw ('Erro de sintaxe ao deletar disciplina!|$e'); // Erro de sintaxe SQL
+        throw ('Erro de sintaxe ao deletar disciplina!|$e');
       } else {
-        throw ('Erro ao deletar disciplina: $e'); // Outro erro de banco
+        throw ('Erro ao deletar disciplina: $e');
       }
     } catch (e) {
-      throw ('Erro desconhecido ao deletar disciplina: $e'); // Erro inesperado
+      throw ('Erro desconhecido ao deletar disciplina: $e');
     }
   }
 }
