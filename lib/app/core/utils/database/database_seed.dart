@@ -709,12 +709,31 @@ class DatabaseSeed {
 
           
           if (existingAttendance.isEmpty) {
+            // Conteúdos de biologia realistas
+            final List<String> biologyContents = [
+              'Introdução à Citologia: Estrutura e função das células',
+              'Genética Mendeliana: Leis de Mendel e herança genética',
+              'Ecologia: Cadeias alimentares e relações ecológicas',
+              'Fisiologia Humana: Sistema digestório e respiratório',
+              'Evolução: Teoria da evolução e seleção natural',
+              'Botânica: Estrutura das plantas e fotossíntese',
+              'Microbiologia: Vírus, bactérias e vacinas',
+              'Zoologia: Classificação dos animais vertebrados',
+              'Biotecnologia: Engenharia genética e transgênicos',
+              'Imunologia: Resposta imune e vacinas',
+              'Embriologia: Desenvolvimento embrionário',
+              'Parasitologia: Principais parasitos humanos',
+              'Genética Molecular: DNA, RNA e síntese proteica',
+              'Ecossistemas brasileiros: Mata Atlântica e Cerrado',
+              'Sustentabilidade e impactos ambientais',
+            ];
+            final int contentIndex = (weekOffset * scheduleData.length + scheduleData.indexOf(scheduleEntry)) % biologyContents.length;
+            final String content = biologyContents[contentIndex];
             final int attendanceId = await db.insert('attendance', {
               'classe_id': classeId,
               'schedule_id': scheduleId,
               'date': classDate.toIso8601String().split('T')[0],
-              'content':
-                  'Conteúdo da aula de ${weekOffset == 0 ? 'hoje' : (weekOffset == 1 ? 'semana passada' : '$weekOffset semanas atrás')}',
+              'content': content,
               'active': 1,
               'created_at': now.toIso8601String(),
             });
