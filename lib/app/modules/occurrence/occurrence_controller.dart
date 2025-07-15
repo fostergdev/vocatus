@@ -17,7 +17,8 @@ class OccurrenceController extends GetxController {
 
   final RxBool isLoading = true.obs;
   final Rx<Attendance?> attendance = Rx<Attendance?>(null);
-  final RxMap<String, List<Map<String, dynamic>>> groupedOccurrences = RxMap<String, List<Map<String, dynamic>>>({});
+  final RxMap<String, List<Map<String, dynamic>>> groupedOccurrences =
+      RxMap<String, List<Map<String, dynamic>>>({});
   final RxList<Student> studentsInClass = <Student>[].obs;
 
   final TextEditingController descriptionController = TextEditingController();
@@ -45,20 +46,18 @@ class OccurrenceController extends GetxController {
         return;
       }
 
-      // Load occurrences for this attendance
-      final rawOccurrences = await _reportsRepository.getOccurrencesReportByClassId(attendance.value!.classeId); 
-      print('Raw Occurrences from ReportsRepository (OccurrenceController): $rawOccurrences'); // DEBUG
+      final rawOccurrences = await _reportsRepository
+          .getOccurrencesReportByClassId(attendance.value!.classeId);
       final Map<String, List<Map<String, dynamic>>> tempGroupedOccurrences = {};
 
       for (var occ in rawOccurrences) {
-        final type = occ['type'] as String? ?? 'Outros'; // Use 'type' as defined in SQL COALESCE
+        final type = occ['type'] as String? ?? 'Outros';
         if (!tempGroupedOccurrences.containsKey(type)) {
           tempGroupedOccurrences[type] = [];
         }
         tempGroupedOccurrences[type]!.add(occ);
       }
 
-      // Sort occurrences within each group by date (descending)
       tempGroupedOccurrences.forEach((key, value) {
         value.sort((a, b) {
           final dateA = DateTime.parse(a['occurrence_date'] ?? a['date']);
@@ -68,12 +67,17 @@ class OccurrenceController extends GetxController {
       });
       groupedOccurrences.value = tempGroupedOccurrences;
 
-      // Load students in this class for selection
-      final studentsData = await _reportsRepository.getStudentsByClassId(attendance.value!.classeId);
-      studentsInClass.assignAll(studentsData.map((data) => Student.fromMap(data)).toList());
-
+      final studentsData = await _reportsRepository.getStudentsByClassId(
+        attendance.value!.classeId,
+      );
+      studentsInClass.assignAll(
+        studentsData.map((data) => Student.fromMap(data)).toList(),
+      );
     } catch (e) {
-      Get.snackbar('Erro', 'Não foi possível carregar as ocorrências: ${e.toString()}');
+      Get.snackbar(
+        'Erro',
+        'Não foi possível carregar as ocorrências: ${e.toString()}',
+      );
     } finally {
       isLoading.value = false;
     }
@@ -94,19 +98,23 @@ class OccurrenceController extends GetxController {
     }
 
     if (!isGeneralOccurrence.value && selectedStudents.isEmpty) {
-      Get.snackbar('Erro', 'Selecione pelo menos um aluno ou marque como ocorrência geral.');
+      Get.snackbar(
+        'Erro',
+        'Selecione pelo menos um aluno ou marque como ocorrência geral.',
+      );
       return;
     }
 
     try {
       isLoading.value = true;
-      print('DEBUG: attendance.value!.id: ${attendance.value!.id}');
-      print('DEBUG: attendance.value!.date: ${attendance.value!.date}');
+
       final newOccurrence = {
         'attendance_id': attendance.value!.id,
         'occurrence_type': selectedOccurrenceType.value,
         'description': descriptionController.text,
-        'occurrence_date': attendance.value!.date.toIso8601String().split('T')[0],
+        'occurrence_date': attendance.value!.date.toIso8601String().split(
+          'T',
+        )[0],
         'active': 1,
       };
 
@@ -123,10 +131,13 @@ class OccurrenceController extends GetxController {
       descriptionController.clear();
       selectedStudents.clear();
       isGeneralOccurrence.value = false;
-      await loadData(); // Reload occurrences after adding
+      await loadData();
       Get.snackbar('Sucesso', 'Ocorrência(s) registrada(s) com sucesso!');
     } catch (e) {
-      Get.snackbar('Erro', 'Não foi possível registrar a ocorrência: ${e.toString()}');
+      Get.snackbar(
+        'Erro',
+        'Não foi possível registrar a ocorrência: ${e.toString()}',
+      );
     } finally {
       isLoading.value = false;
     }

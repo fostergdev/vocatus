@@ -107,21 +107,8 @@ class ClasseRepository implements IClasseRepository {
   @override
   Future<void> updateClasse(Classe classe) async {
     try {
-      final db = await _databaseHelper.database;
       
-      final dataToUpdate = {
-        'name': classe.name.toLowerCase(),
-        'description': classe.description,
-        'school_year': classe.schoolYear,
-        'active': (classe.active ?? true) ? 1 : 0,
-      };
       
-      final rowsAffected = await db.update(
-        'classe',
-        dataToUpdate,
-        where: 'id = ?',
-        whereArgs: [classe.id],
-      );
     } on DatabaseException catch (e) {
       if (e.toString().contains('UNIQUE constraint failed')) {
         throw ('Já existe uma turma com esse nome para o ano ${classe.schoolYear}!');

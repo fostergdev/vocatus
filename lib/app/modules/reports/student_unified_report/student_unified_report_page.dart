@@ -43,7 +43,7 @@ class StudentUnifiedReportPage extends GetView<StudentUnifiedReportController> {
           return Center(
             child: CircularProgressIndicator(color: colorScheme.primary),
           );
-        } else if (controller.studentData.value.isEmpty) {
+        } else if (controller.studentData.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -55,7 +55,7 @@ class StudentUnifiedReportPage extends GetView<StudentUnifiedReportController> {
                   textAlign: TextAlign.center,
                   style: textTheme.titleMedium?.copyWith(
                     fontSize: 18,
-                    color: colorScheme.onSurface.withOpacity(0.6),
+                    color: colorScheme.onSurface.withValues(alpha: .6),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -69,7 +69,7 @@ class StudentUnifiedReportPage extends GetView<StudentUnifiedReportController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${controller.studentData.value['name']}',
+                  '${controller.studentData['name']}',
                   style: textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,
@@ -106,7 +106,7 @@ class StudentUnifiedReportPage extends GetView<StudentUnifiedReportController> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                           side: BorderSide(
-                            color: colorScheme.primary.withOpacity(0.3),
+                            color: colorScheme.primary.withValues(alpha: .3),
                             width: 1,
                           ),
                         ),
@@ -169,7 +169,7 @@ class StudentUnifiedReportPage extends GetView<StudentUnifiedReportController> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                           side: BorderSide(
-                            color: colorScheme.secondary.withOpacity(0.3),
+                            color: colorScheme.secondary.withValues(alpha: .3),
                             width: 1,
                           ),
                         ),

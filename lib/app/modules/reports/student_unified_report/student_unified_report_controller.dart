@@ -9,8 +9,10 @@ class StudentUnifiedReportController extends GetxController {
 
   final RxBool isLoading = true.obs;
   final RxMap<String, dynamic> studentData = RxMap<String, dynamic>({});
-  final RxList<Map<String, dynamic>> studentClasses = <Map<String, dynamic>>[].obs;
-  final RxMap<String, List<Map<String, dynamic>>> studentOccurrences = RxMap<String, List<Map<String, dynamic>>>({});
+  final RxList<Map<String, dynamic>> studentClasses =
+      <Map<String, dynamic>>[].obs;
+  final RxMap<String, List<Map<String, dynamic>>> studentOccurrences =
+      RxMap<String, List<Map<String, dynamic>>>({});
 
   @override
   void onInit() {
@@ -32,12 +34,11 @@ class StudentUnifiedReportController extends GetxController {
         studentData.value = details;
       }
 
-      studentClasses.value = await _reportsRepository.getStudentClassesWithDetails(studentId);
-      for (var classe in studentClasses) {
-        print('Classe: ${classe['class_name']}, Total Classes: ${classe['total_classes_in_class']}, Total Presences: ${classe['total_presences_in_class']}, Percentage: ${classe['attendance_percentage']}');
-      }
+      studentClasses.value = await _reportsRepository
+          .getStudentClassesWithDetails(studentId);
 
-      final rawOccurrences = await _reportsRepository.getStudentOccurrencesByClass(studentId);
+      final rawOccurrences = await _reportsRepository
+          .getStudentOccurrencesByClass(studentId);
       final Map<String, List<Map<String, dynamic>>> groupedOccurrences = {};
 
       for (var occ in rawOccurrences) {
@@ -50,13 +51,19 @@ class StudentUnifiedReportController extends GetxController {
 
       // Sort occurrences within each group by date (descending)
       groupedOccurrences.forEach((key, value) {
-        value.sort((a, b) => (b['occurrence_date'] as String).compareTo(a['occurrence_date'] as String));
+        value.sort(
+          (a, b) => (b['occurrence_date'] as String).compareTo(
+            a['occurrence_date'] as String,
+          ),
+        );
       });
 
       studentOccurrences.value = groupedOccurrences;
-
     } catch (e) {
-      Get.snackbar('Erro', 'Não foi possível carregar o relatório do aluno: ${e.toString()}');
+      Get.snackbar(
+        'Erro',
+        'Não foi possível carregar o relatório do aluno: ${e.toString()}',
+      );
     } finally {
       isLoading.value = false;
     }

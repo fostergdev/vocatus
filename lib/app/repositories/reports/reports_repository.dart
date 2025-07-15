@@ -313,22 +313,18 @@ class ReportsRepository implements IReportsRepository {
         [...attendanceIds],
       );
 
-      return result
-          .map(
-            (record) {
-              print('Record from DB (ReportsRepository): $record'); // DEBUG
-              return {
-              'id': record['id'],
-              'date': record['occurrence_date'],
-              'description': record['description'] ?? 'Sem descrição',
-              'type': record['type'] ?? 'GERAL',
-              'is_general': record['is_general'] ?? 0,
-              'student_name': record['student_name'] ?? 'Turma Toda',
-              'attendance_date': record['attendance_date'],
-              'class_name': record['class_name'] ?? 'N/A',
-            };
-          })
-          .toList();
+      return result.map((record) {
+        return {
+          'id': record['id'],
+          'date': record['occurrence_date'],
+          'description': record['description'] ?? 'Sem descrição',
+          'type': record['type'] ?? 'GERAL',
+          'is_general': record['is_general'] ?? 0,
+          'student_name': record['student_name'] ?? 'Turma Toda',
+          'attendance_date': record['attendance_date'],
+          'class_name': record['class_name'] ?? 'N/A',
+        };
+      }).toList();
     } catch (e) {
       return [];
     }
@@ -363,7 +359,8 @@ class ReportsRepository implements IReportsRepository {
   @override
   Future<double> getAttendancePercentageByClassId(int classId) async {
     final db = await _dbHelper.database;
-    final result = await db.rawQuery('''
+    final result = await db.rawQuery(
+      '''
     SELECT
       CASE
         WHEN COUNT(*) = 0 THEN 0.0
@@ -372,7 +369,9 @@ class ReportsRepository implements IReportsRepository {
     FROM student_attendance sa
     INNER JOIN attendance a ON sa.attendance_id = a.id
     WHERE a.classe_id = ? AND a.active = 1
-  ''', [classId]);
+  ''',
+      [classId],
+    );
 
     if (result.isNotEmpty && result.first['percentage'] != null) {
       return result.first['percentage'] as double;
@@ -383,7 +382,8 @@ class ReportsRepository implements IReportsRepository {
   @override
   Future<double> getAverageOccurrencesPerClass(int classId) async {
     final db = await _dbHelper.database;
-    final result = await db.rawQuery('''
+    final result = await db.rawQuery(
+      '''
     SELECT
       CASE
         WHEN COUNT(DISTINCT a.id) = 0 THEN 0.0
@@ -392,7 +392,9 @@ class ReportsRepository implements IReportsRepository {
     FROM occurrence o
     INNER JOIN attendance a ON o.attendance_id = a.id
     WHERE a.classe_id = ? AND a.active = 1
-  ''', [classId]);
+  ''',
+      [classId],
+    );
 
     if (result.isNotEmpty && result.first['average'] != null) {
       return result.first['average'] as double;
@@ -403,7 +405,8 @@ class ReportsRepository implements IReportsRepository {
   @override
   Future<Map<String, int>> getOccurrenceCountByType(int classId) async {
     final db = await _dbHelper.database;
-    final result = await db.rawQuery('''
+    final result = await db.rawQuery(
+      '''
       SELECT
         occurrence_type, 
         COUNT(*) as count
@@ -411,7 +414,9 @@ class ReportsRepository implements IReportsRepository {
       INNER JOIN attendance a ON o.attendance_id = a.id
       WHERE a.classe_id = ? AND a.active = 1
       GROUP BY occurrence_type
-    ''', [classId]);
+    ''',
+      [classId],
+    );
 
     final Map<String, int> counts = {};
     for (final row in result) {
@@ -421,7 +426,9 @@ class ReportsRepository implements IReportsRepository {
   }
 
   @override
-  Future<Map<String, dynamic>> getAttendanceGridDataByClassId(int classId) async {
+  Future<Map<String, dynamic>> getAttendanceGridDataByClassId(
+    int classId,
+  ) async {
     final db = await _dbHelper.database;
 
     // Get all unique attendance sessions for the class
@@ -443,7 +450,9 @@ class ReportsRepository implements IReportsRepository {
     );
 
     // Create a list of session identifiers for columns
-    final List<Map<String, dynamic>> sessions = attendanceSessionsRaw.map((session) {
+    final List<Map<String, dynamic>> sessions = attendanceSessionsRaw.map((
+      session,
+    ) {
       return {
         'attendance_id': session['attendance_id'] as int,
         'date': session['date'] as String,
@@ -504,19 +513,25 @@ class ReportsRepository implements IReportsRepository {
       for (final session in sessions) {
         final attendanceId = session['attendance_id'] as int;
         // Use attendance_id as the column key for the grid
-        studentRow[attendanceId.toString()] = studentAttendanceMap[studentId]?[attendanceId] ?? '-'; // '-' for no record
+        studentRow[attendanceId.toString()] =
+            studentAttendanceMap[studentId]?[attendanceId] ??
+            '-'; // '-' for no record
       }
       studentsData.add(studentRow);
     }
 
     return {
-      'sessions': sessions, // List of maps with attendance_id, date, start_time, discipline_name
-      'students': studentsData, // List of maps with student_id, name, and attendance_id_string -> status
+      'sessions':
+          sessions, // List of maps with attendance_id, date, start_time, discipline_name
+      'students':
+          studentsData, // List of maps with student_id, name, and attendance_id_string -> status
     };
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getStudentClassesWithDetails(int studentId) async {
+  Future<List<Map<String, dynamic>>> getStudentClassesWithDetails(
+    int studentId,
+  ) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> result = await db.rawQuery(
       '''
@@ -563,7 +578,9 @@ class ReportsRepository implements IReportsRepository {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getStudentOccurrencesByClass(int studentId) async {
+  Future<List<Map<String, dynamic>>> getStudentOccurrencesByClass(
+    int studentId,
+  ) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> result = await db.rawQuery(
       '''
