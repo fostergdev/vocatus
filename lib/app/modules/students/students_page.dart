@@ -441,7 +441,7 @@ class StudentsPage extends GetView<StudentsController> {
                             ),
                           );
                         },
-                        separatorBuilder: (_, __) => Divider(
+                        separatorBuilder: (_, _) => Divider(
                           height: 1,
                           color: colorScheme.outlineVariant,
                         ),
