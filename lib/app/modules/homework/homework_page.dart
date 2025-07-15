@@ -49,6 +49,7 @@ class HomeworkPage extends GetView<HomeworkController> {
         actions: [
           CustomPopupMenu(
             icon: Icons.filter_list,
+            iconColor: colorScheme.onPrimary,
             items: [
               CustomPopupMenuItem(
                 label: 'Todos',
@@ -105,7 +106,7 @@ class HomeworkPage extends GetView<HomeworkController> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton( 
+      floatingActionButton: FloatingActionButton.small( 
         onPressed: () => _showAddHomeworkDialog(context, colorScheme, textTheme), 
         backgroundColor: colorScheme.primary, 
         foregroundColor: colorScheme.onPrimary, 
@@ -431,21 +432,28 @@ class HomeworkPage extends GetView<HomeworkController> {
       CustomDialog(
         title: dialogTitle,
         icon: isEdit ? Icons.edit : Icons.add,
-        content: Form(
-          key: controller.formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+        content: SingleChildScrollView(
+          child: Form(
+            key: controller.formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
               CustomTextField(
                 controller: controller.titleEC,
                 hintText: 'Título da Tarefa',
                 validator: Validatorless.required('Título é obrigatório'),
+                hintStyle: textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 16),
               CustomTextField(
                 controller: controller.descriptionEC,
                 hintText: 'Descrição (opcional)',
                 maxLines: 3,
+                hintStyle: textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 16),
               Obx(() => CustomDrop<Discipline>(
@@ -464,7 +472,7 @@ class HomeworkPage extends GetView<HomeworkController> {
                   decoration: BoxDecoration(
                     border: Border.all(color: colorScheme!.outline), 
                     borderRadius: BorderRadius.circular(8),
-                    color: colorScheme.surfaceContainerHighest, 
+                    color: colorScheme.surface, 
                   ),
                   child: Row(
                     children: [
@@ -494,6 +502,7 @@ class HomeworkPage extends GetView<HomeworkController> {
               )),
             ],
           ),
+        ),
         ),
         actions: [
           TextButton(

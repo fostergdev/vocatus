@@ -10,7 +10,7 @@ import 'package:vocatus/app/core/widgets/custom_error_dialog.dart';
 
 class StudentsController extends GetxController {
   final StudentsRepository _studentRepository = StudentsRepository(
-    DatabaseHelper.instance,
+ DatabaseHelper.instance,
   );
 
   final Classe currentClasse = Get.arguments as Classe;

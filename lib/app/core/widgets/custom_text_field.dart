@@ -71,7 +71,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
     
     InputDecoration baseDecoration = InputDecoration(
       filled: true,
-      fillColor: colorScheme.surfaceContainerHighest,
+      fillColor: colorScheme.surface,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.0),
         borderSide: BorderSide(color: colorScheme.outline, width: 1.0),

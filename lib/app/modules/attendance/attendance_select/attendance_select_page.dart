@@ -158,16 +158,10 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                 );
               }).toList();
 
-              int initialIndex = 0;
-              final today = DateTime.now();
-              for (int i = 0; i < _displayDayOrder.length; i++) {
-                final dayDate = controller.currentWeekStartDate.value.add(Duration(days: _displayDayOrder[i] - 1));
-                if (dayDate.year == today.year &&
-                    dayDate.month == today.month &&
-                    dayDate.day == today.day) {
-                  initialIndex = i;
-                  break;
-                }
+              final selectedDayOfWeek = controller.selectedPickerDate.value.weekday;
+              int initialIndex = _displayDayOrder.indexOf(selectedDayOfWeek);
+              if (initialIndex == -1) {
+                initialIndex = 0;
               }
 
               return DefaultTabController(
@@ -179,7 +173,7 @@ class AttendanceSelectPage extends GetView<AttendanceSelectController> {
                     Container(
                       color: colorScheme.surfaceContainerHighest, 
                       child: TabBar(
-                        isScrollable: true,
+                        isScrollable: false,
                         labelColor: colorScheme.primary, 
                         unselectedLabelColor: colorScheme.onSurfaceVariant, 
                         indicatorSize: TabBarIndicatorSize.tab,

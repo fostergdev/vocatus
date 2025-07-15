@@ -188,24 +188,9 @@ class AttendanceRegisterPage extends GetView<AttendanceRegisterController> {
                     CustomPopupMenuItem(
                       label: 'Registrar Ocorrência',
                       icon: Icons.report,
-                      onTap: () async {
-                        if (controller.studentAttendances.isNotEmpty) {
-                          await controller.saveAttendance();
-                        }
-
-                        if (controller.currentAttendanceId.value != null) {
-                          final attendance = controller
-                              .createAttendanceObject();
-                          Get.toNamed('/occurrence', arguments: attendance);
-                        } else {
-                          Get.snackbar(
-                            'Atenção',
-                            'É necessário salvar a chamada antes de registrar ocorrências.',
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: colorScheme.tertiaryContainer,
-                            colorText: colorScheme.onTertiaryContainer,
-                          );
-                        }
+                      onTap: () {
+                        final attendance = controller.createAttendanceObject();
+                        Get.toNamed('/occurrence', arguments: attendance);
                       },
                     ),
                   ],

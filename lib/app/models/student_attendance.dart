@@ -1,7 +1,7 @@
 import 'package:vocatus/app/models/student.dart';
 import 'package:vocatus/app/models/attendance.dart';
 
-enum PresenceStatus { present, absent, justified }
+enum PresenceStatus { absent, present, justified }
 
 class StudentAttendance {
   final int attendanceId;

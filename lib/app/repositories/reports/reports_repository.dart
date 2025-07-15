@@ -1,5 +1,4 @@
-// app/repositories/reports/reports_repository.dart
-import 'dart:developer';
+import 'package:sqflite/sqflite.dart';
 import 'package:vocatus/app/core/utils/database/database_helper.dart';
 import 'package:vocatus/app/repositories/reports/i_reports_repository.dart';
 
@@ -101,9 +100,9 @@ class ReportsRepository implements IReportsRepository {
       s.id AS student_id,
       s.name AS student_name,
       CASE
-        WHEN sa.presence = 0 THEN 'P' -- Presente
-        WHEN sa.presence = 1 THEN 'F' -- Ausente
-        WHEN sa.presence = 2 THEN 'F' -- Justificado (tratado como ausente)
+        WHEN sa.presence = 1 THEN 'P' -- Presente
+        WHEN sa.presence = 0 THEN 'F' -- Ausente
+        WHEN sa.presence = 2 THEN 'J' -- Justificado
         ELSE 'N/A'
       END AS status
     FROM attendance a
@@ -118,6 +117,20 @@ class ReportsRepository implements IReportsRepository {
       [classId],
     );
     return result;
+  }
+
+  @override // Se IReportsRepository tiver essa assinatura, senão remova.
+  Future<int> getTotalAttendancesCountByClassId(int classId) async {
+    final db = await _dbHelper.database;
+    final List<Map<String, dynamic>> result = await db.rawQuery(
+      '''
+      SELECT COUNT(DISTINCT id) AS total_attendances
+      FROM attendance
+      WHERE classe_id = ? AND active = 1;
+      ''',
+      [classId],
+    );
+    return Sqflite.firstIntValue(result) ?? 0;
   }
 
   @override
@@ -185,8 +198,10 @@ class ReportsRepository implements IReportsRepository {
         sa.presence,
         CASE
           WHEN sa.presence = 1 THEN 'Presente'
-          ELSE 'Ausente'
-        END AS attendance_status
+        WHEN sa.presence = 0 THEN 'Ausente'
+        WHEN sa.presence = 2 THEN 'Justificado'
+        ELSE 'N/A'
+      END AS attendance_status
       FROM attendance a
       INNER JOIN student_attendance sa ON a.id = sa.attendance_id
       INNER JOIN classe c ON a.classe_id = c.id
@@ -281,9 +296,9 @@ class ReportsRepository implements IReportsRepository {
         '''
         SELECT
           o.id,
-          o.occurrence_date as date,
+          COALESCE(strftime('%Y-%m-%d', o.occurrence_date), strftime('%Y-%m-%d', 'now')) as occurrence_date,
           o.description,
-          o.occurrence_type as type,
+          COALESCE(o.occurrence_type, 'N/A') as type,
           CASE WHEN o.student_id IS NULL THEN 1 ELSE 0 END as is_general,
           s.name AS student_name,
           a.date AS attendance_date,
@@ -300,20 +315,19 @@ class ReportsRepository implements IReportsRepository {
 
       return result
           .map(
-            (record) => {
+            (record) {
+              print('Record from DB (ReportsRepository): $record'); // DEBUG
+              return {
               'id': record['id'],
-              'date':
-                  record['date'] ??
-                  record['attendance_date'] ??
-                  DateTime.now().toIso8601String(),
+              'date': record['occurrence_date'],
               'description': record['description'] ?? 'Sem descrição',
               'type': record['type'] ?? 'GERAL',
               'is_general': record['is_general'] ?? 0,
               'student_name': record['student_name'] ?? 'Turma Toda',
               'attendance_date': record['attendance_date'],
-              'class_name': record['class_name'],
-            },
-          )
+              'class_name': record['class_name'] ?? 'N/A',
+            };
+          })
           .toList();
     } catch (e) {
       return [];
@@ -342,6 +356,231 @@ class ReportsRepository implements IReportsRepository {
       ORDER BY h.due_date ASC, h.assigned_date DESC;
       ''',
       [classId],
+    );
+    return result;
+  }
+
+  @override
+  Future<double> getAttendancePercentageByClassId(int classId) async {
+    final db = await _dbHelper.database;
+    final result = await db.rawQuery('''
+    SELECT
+      CASE
+        WHEN COUNT(*) = 0 THEN 0.0
+        ELSE CAST(SUM(CASE WHEN sa.presence = 1 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*)
+      END as percentage
+    FROM student_attendance sa
+    INNER JOIN attendance a ON sa.attendance_id = a.id
+    WHERE a.classe_id = ? AND a.active = 1
+  ''', [classId]);
+
+    if (result.isNotEmpty && result.first['percentage'] != null) {
+      return result.first['percentage'] as double;
+    }
+    return 0.0;
+  }
+
+  @override
+  Future<double> getAverageOccurrencesPerClass(int classId) async {
+    final db = await _dbHelper.database;
+    final result = await db.rawQuery('''
+    SELECT
+      CASE
+        WHEN COUNT(DISTINCT a.id) = 0 THEN 0.0
+        ELSE CAST(COUNT(o.id) AS REAL) / COUNT(DISTINCT a.id)
+      END as average
+    FROM occurrence o
+    INNER JOIN attendance a ON o.attendance_id = a.id
+    WHERE a.classe_id = ? AND a.active = 1
+  ''', [classId]);
+
+    if (result.isNotEmpty && result.first['average'] != null) {
+      return result.first['average'] as double;
+    }
+    return 0.0;
+  }
+
+  @override
+  Future<Map<String, int>> getOccurrenceCountByType(int classId) async {
+    final db = await _dbHelper.database;
+    final result = await db.rawQuery('''
+      SELECT
+        occurrence_type, 
+        COUNT(*) as count
+      FROM occurrence o
+      INNER JOIN attendance a ON o.attendance_id = a.id
+      WHERE a.classe_id = ? AND a.active = 1
+      GROUP BY occurrence_type
+    ''', [classId]);
+
+    final Map<String, int> counts = {};
+    for (final row in result) {
+      counts[row['occurrence_type'] as String] = row['count'] as int;
+    }
+    return counts;
+  }
+
+  @override
+  Future<Map<String, dynamic>> getAttendanceGridDataByClassId(int classId) async {
+    final db = await _dbHelper.database;
+
+    // Get all unique attendance sessions for the class
+    final List<Map<String, dynamic>> attendanceSessionsRaw = await db.rawQuery(
+      '''
+      SELECT
+        a.id AS attendance_id,
+        a.date,
+        a.content,
+        sch.start_time,
+        d.name AS discipline_name
+      FROM attendance a
+      LEFT JOIN schedule sch ON a.schedule_id = sch.id
+      LEFT JOIN discipline d ON sch.discipline_id = d.id
+      WHERE a.classe_id = ? AND a.active = 1
+      ORDER BY a.date ASC, sch.start_time ASC;
+      ''',
+      [classId],
+    );
+
+    // Create a list of session identifiers for columns
+    final List<Map<String, dynamic>> sessions = attendanceSessionsRaw.map((session) {
+      return {
+        'attendance_id': session['attendance_id'] as int,
+        'date': session['date'] as String,
+        'content': session['content'] as String?,
+        'start_time': session['start_time'] as String?,
+        'discipline_name': session['discipline_name'] as String?,
+      };
+    }).toList();
+
+    // Get all students in the class
+    final List<Map<String, dynamic>> studentsRaw = await db.rawQuery(
+      '''
+      SELECT s.id, s.name FROM student s INNER JOIN classe_student cs ON s.id = cs.student_id WHERE cs.classe_id = ? AND cs.active = 1 ORDER BY s.name COLLATE NOCASE;
+      ''',
+      [classId],
+    );
+
+    // Get all student attendance records for the class
+    final List<Map<String, dynamic>> studentAttendanceRaw = await db.rawQuery(
+      '''
+      SELECT
+        sa.student_id,
+        a.id AS attendance_id,
+        CASE
+          WHEN sa.presence = 1 THEN 'P' -- Presente
+          WHEN sa.presence = 0 THEN 'F' -- Ausente
+          WHEN sa.presence = 2 THEN 'J' -- Justificado
+          ELSE 'N/A'
+        END AS status
+      FROM student_attendance sa
+      INNER JOIN attendance a ON sa.attendance_id = a.id
+      WHERE a.classe_id = ? AND a.active = 1;
+      ''',
+      [classId],
+    );
+
+    // Map attendance records for easy lookup: studentId -> attendanceId -> status
+    final Map<int, Map<int, String>> studentAttendanceMap = {};
+    for (final record in studentAttendanceRaw) {
+      final studentId = record['student_id'] as int;
+      final attendanceId = record['attendance_id'] as int;
+      final status = record['status'] as String;
+
+      studentAttendanceMap.putIfAbsent(studentId, () => {});
+      studentAttendanceMap[studentId]![attendanceId] = status;
+    }
+
+    // Build the final list of students with their attendance for each session
+    final List<Map<String, dynamic>> studentsData = [];
+    for (final student in studentsRaw) {
+      final studentId = student['id'] as int;
+      final studentName = student['name'] as String;
+      final Map<String, dynamic> studentRow = {
+        'id': studentId,
+        'name': studentName,
+      };
+
+      for (final session in sessions) {
+        final attendanceId = session['attendance_id'] as int;
+        // Use attendance_id as the column key for the grid
+        studentRow[attendanceId.toString()] = studentAttendanceMap[studentId]?[attendanceId] ?? '-'; // '-' for no record
+      }
+      studentsData.add(studentRow);
+    }
+
+    return {
+      'sessions': sessions, // List of maps with attendance_id, date, start_time, discipline_name
+      'students': studentsData, // List of maps with student_id, name, and attendance_id_string -> status
+    };
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getStudentClassesWithDetails(int studentId) async {
+    final db = await _dbHelper.database;
+    final List<Map<String, dynamic>> result = await db.rawQuery(
+      '''
+      SELECT
+        c.id AS class_id,
+        c.name AS class_name,
+        c.school_year,
+        (
+          SELECT COUNT(DISTINCT a.id)
+          FROM attendance a
+          INNER JOIN student_attendance sa ON a.id = sa.attendance_id
+          WHERE sa.student_id = ? AND a.classe_id = c.id AND a.active = 1
+        ) AS total_classes_in_class,
+        (
+          SELECT COUNT(*)
+          FROM attendance a
+          INNER JOIN student_attendance sa ON a.id = sa.attendance_id
+          WHERE sa.student_id = ? AND sa.presence = 1 AND a.classe_id = c.id AND a.active = 1
+        ) AS total_presences_in_class
+      FROM classe_student cs
+      INNER JOIN classe c ON cs.classe_id = c.id
+      WHERE cs.student_id = ? AND cs.active = 1
+      ORDER BY c.school_year DESC, c.name COLLATE NOCASE;
+      ''',
+      [studentId, studentId, studentId],
+    );
+
+    return result.map((row) {
+      final totalClasses = row['total_classes_in_class'] as int? ?? 0;
+      final totalPresences = row['total_presences_in_class'] as int? ?? 0;
+      final attendancePercentage = totalClasses > 0
+          ? (totalPresences / totalClasses * 100).toStringAsFixed(1)
+          : '0.0';
+
+      return {
+        'class_id': row['class_id'],
+        'class_name': row['class_name'],
+        'school_year': row['school_year'],
+        'total_classes_in_class': totalClasses,
+        'total_presences_in_class': totalPresences,
+        'attendance_percentage': attendancePercentage,
+      };
+    }).toList();
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getStudentOccurrencesByClass(int studentId) async {
+    final db = await _dbHelper.database;
+    final List<Map<String, dynamic>> result = await db.rawQuery(
+      '''
+      SELECT
+        o.id,
+        o.occurrence_type,
+        o.description,
+        o.occurrence_date,
+        c.name AS class_name,
+        c.id AS class_id
+      FROM occurrence o
+      INNER JOIN attendance a ON o.attendance_id = a.id
+      INNER JOIN classe c ON a.classe_id = c.id
+      WHERE o.student_id = ? AND o.active = 1
+      ORDER BY o.occurrence_date DESC;
+      ''',
+      [studentId],
     );
     return result;
   }

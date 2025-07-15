@@ -1,5 +1,4 @@
 import 'package:sqflite/sqflite.dart';
-import 'dart:developer';
 
 class DatabaseSeed {
   static Future<void> insertInitialData(Database db) async {
@@ -731,7 +730,7 @@ class DatabaseSeed {
               await db.insert('student_attendance', {
                 'student_id': studentId,
                 'attendance_id': attendanceId,
-                'presence': isPresent ? 0 : 1,
+                'presence': isPresent ? 1 : 0,
                 'active': 1,
                 'created_at': now.toIso8601String(),
               });
@@ -1012,7 +1011,7 @@ class DatabaseSeed {
               'occurrence_type': occurrenceType,
               'title': title,
               'description':
-                  'Descrição detalhada da ocorrência ${i + 1} para o aluno na turma ${classeName}.',
+                  'Descrição detalhada da ocorrência ${i + 1} para o aluno na turma $classeName.',
               'occurrence_date': DateTime.now()
                   .subtract(Duration(days: (i * 3) % 30))
                   .toIso8601String()
@@ -1034,9 +1033,9 @@ class DatabaseSeed {
               'attendance_id': attendanceId,
               'student_id': null, 
               'occurrence_type': occurrenceType,
-              'title': 'Ocorrência Geral da Turma ${classeName} #${i + 1}',
+              'title': 'Ocorrência Geral da Turma $classeName #${i + 1}',
               'description':
-                  'Descrição de ocorrência geral para toda a turma ${classeName}.',
+                  'Descrição de ocorrência geral para toda a turma $classeName.',
               'occurrence_date': DateTime.now()
                   .subtract(Duration(days: (i * 5) % 30))
                   .toIso8601String()

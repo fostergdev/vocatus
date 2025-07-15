@@ -8,7 +8,7 @@ class Constants {
     return text[0].toUpperCase() + text.substring(1);
   }
 
-  static const bool isDevelopmentMode = false;
+  static const bool isDevelopmentMode = true;
 
   static String getDayName(int dayOfWeek) {
     switch (dayOfWeek) {

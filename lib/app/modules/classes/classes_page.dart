@@ -205,23 +205,12 @@ class ClassesPage extends GetView<ClassesController> {
                           );
                         },
                       ),
-                      if (isActive)
-                        CustomPopupMenuItem(
-                          label: 'Tarefas',
-                          icon: Icons.assignment_outlined,
-                          onTap: () async {
-                            await Get.toNamed(
-                              '/homework/home',
-                              arguments: classe,
-                            );
-                          },
-                        ),
                       CustomPopupMenuItem(
                         label: 'Relatórios',
                         icon: Icons.assessment,
                         onTap: () {
                           Get.toNamed(
-                            '/reports/class-unified',
+                            '/reports/home',
                             arguments: classe,
                           );
                         },

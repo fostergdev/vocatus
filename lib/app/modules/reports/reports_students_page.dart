@@ -1,14 +1,12 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:vocatus/app/modules/students/students_reports_controller.dart';
+import 'package:vocatus/app/modules/reports/reports_controller.dart';
 
-
-class StudentsReportsPage extends GetView<StudentsReportsController> {
-  const StudentsReportsPage({super.key});
+class ReportsStudentsPage extends GetView<ReportsController> {
+  const ReportsStudentsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
@@ -17,10 +15,8 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
         title: Text(
           'Relatórios de Alunos',
           style: textTheme.titleLarge?.copyWith(
-            
             fontWeight: FontWeight.bold,
-            color: colorScheme
-                .onPrimary, 
+            color: colorScheme.onPrimary,
           ),
         ),
         centerTitle: true,
@@ -28,8 +24,8 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                colorScheme.primary.withValues(alpha:0.9), 
-                colorScheme.primary, 
+                colorScheme.primary.withValues(alpha: 0.9),
+                colorScheme.primary,
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -40,20 +36,15 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
-        iconTheme: IconThemeData(
-          color: colorScheme.onPrimary,
-        ), 
+        iconTheme: IconThemeData(color: colorScheme.onPrimary),
         actions: [
           Obx(() {
             final years = controller.availableYears;
 
-            
             if (years.isEmpty || years.length == 1) {
-              return const SizedBox
-                  .shrink(); 
+              return const SizedBox.shrink();
             }
 
-            
             return IconButton(
               icon: Icon(
                 Icons.calendar_today,
@@ -61,15 +52,17 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
                 size: 24,
               ),
               onPressed: () {
-                
-                final RenderBox button = context.findRenderObject() as RenderBox;
+                final RenderBox button =
+                    context.findRenderObject() as RenderBox;
                 final RenderBox overlay =
                     Overlay.of(context).context.findRenderObject() as RenderBox;
                 final RelativeRect position = RelativeRect.fromRect(
                   Rect.fromPoints(
                     button.localToGlobal(Offset.zero, ancestor: overlay),
-                    button.localToGlobal(button.size.bottomRight(Offset.zero),
-                        ancestor: overlay),
+                    button.localToGlobal(
+                      button.size.bottomRight(Offset.zero),
+                      ancestor: overlay,
+                    ),
                   ),
                   Offset.zero & overlay.size,
                 );
@@ -101,20 +94,16 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
       ),
       body: Column(
         children: [
-          
           Obx(
             () => Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               margin: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: colorScheme
-                    .primaryContainer, 
+                color: colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: colorScheme.primary.withValues(alpha:
-                    0.3,
-                  ), 
+                  color: colorScheme.primary.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -122,19 +111,16 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
                 children: [
                   Icon(
                     Icons.calendar_month,
-                    color: colorScheme
-                        .onPrimaryContainer, 
+                    color: colorScheme.onPrimaryContainer,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'Ano Letivo: ${controller.selectedFilterYear.value}',
                     style: textTheme.titleSmall?.copyWith(
-                      
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: colorScheme
-                          .onPrimaryContainer, 
+                      color: colorScheme.onPrimaryContainer,
                     ),
                   ),
                 ],
@@ -142,7 +128,6 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
             ),
           ),
 
-          
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Obx(
@@ -153,39 +138,37 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
                   hintText: 'Buscar alunos por nome ou turma...',
                   hintStyle: textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
-                  ), 
+                  ),
                   filled: true,
-                  fillColor: colorScheme
-                      .surfaceContainerHighest, 
+                  fillColor: colorScheme.surfaceContainerHighest,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide
-                        .none, 
+                    borderSide: BorderSide.none,
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide: BorderSide(
-                      color: colorScheme.outline, 
+                      color: colorScheme.outline,
                       width: 1.0,
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide: BorderSide(
-                      color: colorScheme.primary, 
+                      color: colorScheme.primary,
                       width: 2.0,
                     ),
                   ),
                   prefixIcon: Icon(
                     Icons.search,
                     color: colorScheme.onSurfaceVariant,
-                  ), 
+                  ),
                   suffixIcon: controller.studentSearchText.value.isNotEmpty
                       ? IconButton(
                           icon: Icon(
                             Icons.clear,
                             color: colorScheme.onSurfaceVariant,
-                          ), 
+                          ),
                           onPressed: () {
                             controller.studentSearchText.value = '';
                             controller.studentSearchController.clear();
@@ -199,22 +182,20 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
                 ),
                 style: textTheme.bodyLarge?.copyWith(
                   color: colorScheme.onSurface,
-                ), 
+                ),
               ),
             ),
           ),
 
           const SizedBox(height: 16),
 
-          
-          Expanded(child: _buildStudentsList(context)), 
+          Expanded(child: _buildStudentsList(context)),
         ],
       ),
     );
   }
 
   Widget _buildStudentsList(BuildContext context) {
-    
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
@@ -226,15 +207,13 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(
-                color: colorScheme.primary,
-              ), 
+              CircularProgressIndicator(color: colorScheme.primary),
               const SizedBox(height: 16),
               Text(
                 'Carregando alunos...',
                 style: textTheme.bodyLarge?.copyWith(
                   color: colorScheme.onSurfaceVariant,
-                ), 
+                ),
               ),
             ],
           ),
@@ -245,19 +224,14 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.search_off,
-                size: 80,
-                color: colorScheme.outline,
-              ), 
+              Icon(Icons.search_off, size: 80, color: colorScheme.outline),
               const SizedBox(height: 20),
               Text(
                 'Nenhum aluno encontrado com este termo de busca.',
                 textAlign: TextAlign.center,
                 style: textTheme.titleMedium?.copyWith(
-                  
                   fontSize: 18,
-                  color: colorScheme.onSurface.withValues(alpha:0.6), 
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -269,19 +243,14 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.person_outline,
-                size: 80,
-                color: colorScheme.outline,
-              ), 
+              Icon(Icons.person_outline, size: 80, color: colorScheme.outline),
               const SizedBox(height: 20),
               Text(
                 'Nenhum aluno encontrado para o ano ${controller.selectedFilterYear.value}.',
                 textAlign: TextAlign.center,
                 style: textTheme.titleMedium?.copyWith(
-                  
                   fontSize: 18,
-                  color: colorScheme.onSurface.withValues(alpha:0.6), 
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -291,7 +260,7 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
                 textAlign: TextAlign.center,
                 style: textTheme.bodyLarge?.copyWith(
                   color: colorScheme.onSurfaceVariant,
-                ), 
+                ),
               ),
             ],
           ),
@@ -312,44 +281,37 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
               borderRadius: BorderRadius.circular(12),
               side: BorderSide(
                 color: isActive
-                    ? colorScheme.primary.withValues(alpha:
-                        0.3,
-                      ) 
-                    : colorScheme.outline.withValues(alpha:
-                        0.3,
-                      ), 
+                    ? colorScheme.primary.withValues(alpha: 0.3)
+                    : colorScheme.outline.withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
-            color: colorScheme.surface, 
+            color: colorScheme.surface,
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
               onTap: () {
-                controller.openStudentUnifiedReport(student);
+                Get.toNamed('/reports/student-unified-report', arguments: student['id']);
               },
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    
                     CircleAvatar(
                       radius: 30,
                       backgroundColor: isActive
-                          ? colorScheme
-                                .primaryContainer 
-                          : colorScheme.surfaceContainerHighest, 
+                          ? colorScheme.primaryContainer
+                          : colorScheme.surfaceContainerHighest,
                       child: Icon(
                         Icons.person,
                         color: isActive
                             ? colorScheme.onPrimaryContainer
-                            : colorScheme.onSurfaceVariant, 
+                            : colorScheme.onSurfaceVariant,
                         size: 30,
                       ),
                     ),
 
                     const SizedBox(width: 16),
 
-                    
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -357,121 +319,16 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
                           Text(
                             student['name'],
                             style: textTheme.titleSmall?.copyWith(
-                              
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
                               color: isActive
                                   ? colorScheme.onSurface
-                                  : colorScheme.onSurfaceVariant, 
+                                  : colorScheme.onSurfaceVariant,
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            'Turma: ${student['class_name'] ?? 'Não informada'}',
-                            style: textTheme.bodySmall?.copyWith(
-                              
-                              color: isActive
-                                  ? colorScheme.onSurfaceVariant
-                                  : colorScheme.onSurfaceVariant.withValues(alpha:
-                                      0.7,
-                                    ), 
-                              fontSize: 14,
-                            ),
-                          ),
                           const SizedBox(height: 8),
 
-                          
-                          Row(
-                            children: [
-                              
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors
-                                      .green
-                                      .shade50, 
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color:
-                                        Colors.green.shade200, 
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.checklist,
-                                      size: 14,
-                                      color: Colors
-                                          .green
-                                          .shade600, 
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${student['attendance_percentage'] ?? '0.0'}%',
-                                      style: textTheme.labelSmall?.copyWith(
-                                        
-                                        color: Colors
-                                            .green
-                                            .shade600, 
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              const SizedBox(width: 12),
-
-                              
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color:
-                                      Colors.orange.shade50, 
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: Colors
-                                        .orange
-                                        .shade200, 
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.report_problem,
-                                      size: 14,
-                                      color: Colors
-                                          .orange
-                                          .shade600, 
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${student['total_occurrences'] ?? 0}',
-                                      style: textTheme.labelSmall?.copyWith(
-                                        
-                                        color: Colors
-                                            .orange
-                                            .shade600, 
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          
                           if (!isActive) ...[
                             const SizedBox(height: 8),
                             Container(
@@ -480,16 +337,13 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: colorScheme
-                                    .errorContainer, 
+                                color: colorScheme.errorContainer,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
                                 'INATIVO',
                                 style: textTheme.labelSmall?.copyWith(
-                                  
-                                  color: colorScheme
-                                      .onErrorContainer, 
+                                  color: colorScheme.onErrorContainer,
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -500,20 +354,20 @@ class StudentsReportsPage extends GetView<StudentsReportsController> {
                       ),
                     ),
 
-                    
                     Icon(
-                      Icons.arrow_forward_ios,
-                      size: 16,
-                      color: colorScheme.onSurfaceVariant.withValues(alpha:
-                        0.6,
-                      ), 
+                      Icons.bar_chart,
+                      size: 24,
+                      color: colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.6,
+                      ),
                     ),
                   ],
                 ),
               ),
-            ));
-          },
-        );
+            ),
+          );
+        },
+      );
     });
   }
 }

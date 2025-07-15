@@ -65,7 +65,7 @@ class HomePage extends GetView<HomeController> {
               _buildMenuButton(
                 'Alunos',
                 Icons.person,
-                () => Get.toNamed('/students/reports'),
+                () => Get.toNamed('/reports/students/'),
                 context,
               ),
               _buildMenuButton(

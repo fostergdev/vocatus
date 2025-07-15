@@ -63,7 +63,7 @@ class HomeworkController extends GetxController {
       }
 
       homeworks.assignAll(fetchedHomeworks);
-    } catch (e, s) {
+    } catch (e) {
       Get.dialog(CustomErrorDialog(
         title: 'Erro ao Carregar Tarefas',
         message: e.toString().replaceAll('Exception: ', ''),
@@ -77,7 +77,7 @@ class HomeworkController extends GetxController {
     try {
       final disciplines = await _homeworkRepository.getAvailableDisciplines(classeId: currentClasse.id);
       availableDisciplines.assignAll(disciplines);
-    } catch (e, s) {
+    } catch (e) {
       Get.dialog(CustomErrorDialog(
         title: 'Erro ao Carregar Disciplinas',
         message: e.toString().replaceAll('Exception: ', ''),
@@ -131,7 +131,7 @@ class HomeworkController extends GetxController {
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
-    } catch (e, s) {
+    } catch (e) {
       Get.dialog(CustomErrorDialog(
         title: 'Erro ao Criar Tarefa',
         message: e.toString().replaceAll('Exception: ', ''),
@@ -154,7 +154,7 @@ class HomeworkController extends GetxController {
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
-    } catch (e, s) {
+    } catch (e) {
       Get.dialog(CustomErrorDialog(
         title: 'Erro ao Atualizar Tarefa',
         message: e.toString().replaceAll('Exception: ', ''),
@@ -185,7 +185,7 @@ class HomeworkController extends GetxController {
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
-    } catch (e, s) {
+    } catch (e) {
       Get.dialog(CustomErrorDialog(
         title: 'Erro ao Excluir Tarefa',
         message: e.toString().replaceAll('Exception: ', ''),

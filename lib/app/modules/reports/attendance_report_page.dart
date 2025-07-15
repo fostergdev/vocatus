@@ -1,363 +1,102 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:vocatus/app/modules/reports/reports_controller.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import './reports_controller.dart';
 
 class AttendanceReportPage extends GetView<ReportsController> {
-  final int classId;
-  final String className;
-
-  const AttendanceReportPage({
-    super.key,
-    required this.classId,
-    required this.className,
-  });
+  const AttendanceReportPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      
-      if (!controller.isLoadingAttendance.value &&
-          controller.attendanceReportData.isEmpty) {
-        controller.loadAttendanceReport(classId);
-      }
-    });
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Relatório Chamadas',
-          style: textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: colorScheme.onPrimary, 
-          ),
-        ),
-        centerTitle: true,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                colorScheme.primary.withValues(
-                  alpha: 0.9,
-                ), 
-                colorScheme.primary, 
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        elevation: 8,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
-        ),
-        iconTheme: IconThemeData(
-          color: colorScheme.onPrimary,
-        ), 
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.share,
+        title: Obx(() {
+          return Text(
+            controller.classe.value.name,
+            style: textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
               color: colorScheme.onPrimary,
-            ), 
-            tooltip: 'Compartilhar',
-            onPressed: () {
-              
-            },
-          ),
-        ],
-      ),
-      body: Obx(() {
-        if (controller.isLoadingAttendance.value) {
-          return Center(
-            child: CircularProgressIndicator(color: colorScheme.primary),
-          ); 
-        } else if (controller.attendanceReportData.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.assignment_turned_in_outlined, 
-                  size: 64,
-                  color: colorScheme.onSurfaceVariant.withValues(
-                    alpha: 0.4,
-                  ), 
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Nenhum dado de chamada encontrado para esta turma.',
-                  style: textTheme.titleMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant, 
-                    fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Verifique as chamadas registradas ou o ano de filtro da turma.',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant.withValues(
-                      alpha: 0.7,
-                    ), 
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
             ),
           );
+        }),
+        centerTitle: true,
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+      ),
+      body: Obx(() {
+        if (controller.isLoadingAttendanceGrid.value) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (controller.attendanceStudentsData.isEmpty) {
+          return const Center(
+            child: Text('Nenhum dado de presença encontrado.'),
+          );
         } else {
-          final Map<String, Map<String, dynamic>> classesByDay = {};
-          final Set<String> allStudentsNames = {};
-
-          for (var record in controller.attendanceReportData) {
-            final String rawDate = record['date']?.toString() ?? '';
-            if (rawDate.isEmpty) continue;
-
-            final String formattedDate = DateFormat(
-              'dd/MM',
-            ).format(DateTime.parse(rawDate));
-            final String studentName =
-                record['student_name']?.toString() ?? 'Nome não informado';
-            final String status = record['status']?.toString() ?? 'P';
-            final String content = record['content']?.toString() ?? '';
-
-            if (!classesByDay.containsKey(formattedDate)) {
-              classesByDay[formattedDate] = {
-                'attendance_date': rawDate,
-                'attendance_content': content,
-                'students': [],
-              };
-            }
-            classesByDay[formattedDate]!['students'].add({
-              'student_name': studentName,
-              'status': status,
-            });
-
-            allStudentsNames.add(studentName);
-          }
-
-          final List<String> sortedDays = classesByDay.keys.toList()
-            ..sort((a, b) {
-              final dateA = DateFormat('dd/MM').parse(a);
-              final dateB = DateFormat('dd/MM').parse(b);
-              return dateA.compareTo(dateB);
-            });
-          final List<String> sortedStudents = allStudentsNames.toList()..sort();
-
-          final List<GridColumn> columns = <GridColumn>[
-            GridColumn(
-              columnName: 'studentName',
-              label: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                alignment: Alignment.centerLeft,
-                color: colorScheme
-                    .surfaceContainerHighest, 
-                child: Text(
-                  'Aluno',
-                  style: textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme
-                        .onSurfaceVariant, 
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              width: 150,
-            ),
-            ...sortedDays.map(
-              (day) => GridColumn(
-                columnName: day,
+          final attendanceDataSource = AttendanceDataSource(
+            studentsData: controller.attendanceStudentsData,
+            sessions: controller.attendanceSessions,
+          );
+          return SfDataGrid(
+            source: attendanceDataSource,
+            columnWidthMode: ColumnWidthMode.auto,
+            frozenColumnsCount: 1,
+            columns: <GridColumn>[
+              GridColumn(
+                columnName: 'name',
+                width: 150,
                 label: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                  alignment: Alignment.center,
-                  color: colorScheme
-                      .surfaceContainerHighest, 
-                  child: Text(
-                    day,
-                    style: textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme
-                          .onSurfaceVariant, 
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                  padding: const EdgeInsets.all(8.0),
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    'Aluno',
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
-                width: 70,
               ),
-            ),
-            GridColumn(
-              columnName: 'aulaDay',
-              label: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                alignment: Alignment.centerLeft,
-                color: colorScheme
-                    .surfaceContainerHighest, 
-                child: Text(
-                  'Dia da Aula',
-                  style: textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme
-                        .onSurfaceVariant, 
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              width: 100,
-            ),
-            GridColumn(
-              columnName: 'aulaContent',
-              label: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                alignment: Alignment.centerLeft,
-                color: colorScheme
-                    .surfaceContainerHighest, 
-                child: Text(
-                  'Conteúdo da Aula',
-                  style: textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme
-                        .onSurfaceVariant, 
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              width: 250,
-            ),
-          ];
-
-          final List<DataGridRow> dataGridRows = sortedStudents.map((
-            studentName,
-          ) {
-            final int studentIndex = sortedStudents.indexOf(studentName);
-
-            String aulaDayText = '';
-            String aulaContentText = '';
-            
-            
-            
-            
-            
-            if (studentIndex < sortedDays.length) {
-              final String currentDayForContent = sortedDays[studentIndex];
-              final Map<String, dynamic>? aulaDataForDay =
-                  classesByDay[currentDayForContent];
-              if (aulaDataForDay != null) {
-                aulaDayText = currentDayForContent;
-                String rawContent = aulaDataForDay['attendance_content'] ?? '-';
-                if (rawContent.isNotEmpty && rawContent != '-') {
-                  aulaContentText = rawContent;
-                } else {
-                  aulaContentText = '-';
-                }
-              }
-            }
-
-            return DataGridRow(
-              cells: [
-                DataGridCell<String>(
-                  columnName: 'studentName',
-                  value: studentName,
-                ),
-                ...sortedDays.map((day) {
-                  final aulaDoDia = classesByDay[day];
-                  final List<dynamic> studentsInThisClass =
-                      aulaDoDia?['students'] ?? [];
-
-                  final studentData = studentsInThisClass.firstWhereOrNull(
-                    
-                    (s) => s['student_name'] == studentName,
-                  );
-
-                  String presenceText;
-                  Color textColor;
-
-                  if (studentData == null) {
-                    presenceText = '-'; 
-                    textColor = colorScheme.onSurfaceVariant.withValues(
-                      alpha: 0.6,
-                    );
-                  } else {
-                    presenceText = studentData['status'];
-
-                    switch (presenceText) {
-                      case 'P': 
-                        textColor = colorScheme.tertiary; 
-                        break;
-                      case 'F': 
-                        textColor = colorScheme.error; 
-                        break;
-                      case 'A': 
-                        textColor =
-                            colorScheme.secondary; 
-                        break;
-                      default: 
-                        textColor = colorScheme.onSurfaceVariant;
-                    }
-                  }
-                  return DataGridCell<Widget>(
-                    columnName: day,
-                    value: Center(
-                      child: Text(
-                        presenceText,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: textColor,
-                          fontWeight: FontWeight.bold,
+              for (var session in controller.attendanceSessions)
+                GridColumn(
+                  columnName: session['attendance_id'].toString(),
+                  width: 80,
+                  label: Container(
+                    padding: const EdgeInsets.all(8.0),
+                    alignment: Alignment.center,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          DateFormat('dd/MM').format(DateTime.parse(session['date'])),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                      ),
+                        Text(
+                          session['start_time']?.substring(0, 5) ?? '',
+                          style: const TextStyle(fontSize: 8),
+                        ),
+                        Text(
+                          session['discipline_name']?.substring(0, 3) ?? '',
+                          style: const TextStyle(fontSize: 8),
+                        ),
+                      ],
                     ),
-                  );
-                }),
-                DataGridCell<String>(columnName: 'aulaDay', value: aulaDayText),
-                DataGridCell<String>(
-                  columnName: 'aulaContent',
-                  value: aulaContentText,
-                ),
-              ],
-            );
-          }).toList();
-
-          final attendanceDataSource = _AttendanceDataSource(
-            dataGridRows,
-            colorScheme,
-            textTheme,
-          ); 
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-                child: Text(
-                  "Turma: $className",
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme
-                        .onSurface, 
                   ),
                 ),
-              ),
-              Expanded(
-                child: SfDataGrid(
-                  source: attendanceDataSource,
-                  columns: columns,
-                  gridLinesVisibility: GridLinesVisibility.both,
-                  headerGridLinesVisibility: GridLinesVisibility.both,
-                  headerRowHeight: 48,
-                  rowHeight: 56,
-                  columnWidthMode: ColumnWidthMode.fill,
-                  allowColumnsResizing: true,
-                  frozenColumnsCount: 1,
-                  selectionMode: SelectionMode.none,
-
-                  
+              GridColumn(
+                columnName: 'content',
+                width: 250, // Adjust width as needed
+                label: Container(
+                  padding: const EdgeInsets.all(8.0),
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    'Conteúdo',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ],
+            gridLinesVisibility: GridLinesVisibility.both,
+            headerGridLinesVisibility: GridLinesVisibility.both,
           );
         }
       }),
@@ -365,45 +104,59 @@ class AttendanceReportPage extends GetView<ReportsController> {
   }
 }
 
-class _AttendanceDataSource extends DataGridSource {
-  _AttendanceDataSource(
-    List<DataGridRow> dataGridRows,
-    this._colorScheme, 
-    this._textTheme, 
-  ) {
-    _dataGridRows = dataGridRows;
+class AttendanceDataSource extends DataGridSource {
+  late List<DataGridRow> _attendanceData;
+
+  AttendanceDataSource({
+    required List<Map<String, dynamic>> studentsData,
+    required List<Map<String, dynamic>> sessions,
+  }) {
+    _attendanceData = List.generate(studentsData.length, (int studentIndex) {
+      final student = studentsData[studentIndex];
+
+      // Células de presença
+      final List<DataGridCell> cells = [
+        DataGridCell<String>(columnName: 'name', value: student['name'] as String),
+        ...sessions.map((session) {
+          final attendanceId = session['attendance_id'].toString();
+          return DataGridCell<String>(
+            columnName: attendanceId,
+            value: student[attendanceId] as String? ?? '-',
+          );
+        }).toList(),
+      ];
+
+      // Célula de conteúdo
+      String contentValue = '-';
+      if (studentIndex < sessions.length) {
+        final session = sessions[studentIndex];
+        final date = DateFormat('dd/MM').format(DateTime.parse(session['date']));
+        final content = session['content'] as String? ?? 'Sem conteúdo';
+        contentValue = '$date - $content';
+      }
+
+      cells.add(DataGridCell<String>(columnName: 'content', value: contentValue));
+
+      return DataGridRow(cells: cells);
+    });
   }
 
-  List<DataGridRow> _dataGridRows = [];
-  final ColorScheme _colorScheme; 
-  final TextTheme _textTheme; 
+  @override
+  List<DataGridRow> get rows => _attendanceData;
 
   @override
-  List<DataGridRow> get rows => _dataGridRows;
-
-  @override
-  DataGridRowAdapter? buildRow(DataGridRow row) {
+  DataGridRowAdapter buildRow(DataGridRow row) {
     return DataGridRowAdapter(
-      cells: row.getCells().map<Widget>((e) {
-        
-        if (e.value is Widget) {
-          return e.value as Widget;
-        }
-        
+      cells: row.getCells().map<Widget>((cell) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          alignment:
-              (e.columnName == 'studentName' ||
-                  e.columnName == 'aulaDay' ||
-                  e.columnName == 'aulaContent')
+          alignment: (cell.columnName == 'name' || cell.columnName == 'content')
               ? Alignment.centerLeft
               : Alignment.center,
+          padding: const EdgeInsets.all(8.0),
           child: Text(
-            e.value?.toString() ?? '',
+            cell.value.toString(),
+            softWrap: true,
             overflow: TextOverflow.ellipsis,
-            style: _textTheme.bodyMedium?.copyWith(
-              color: _colorScheme.onSurface, 
-            ),
           ),
         );
       }).toList(),

@@ -47,7 +47,7 @@ class ClassesController extends GetxController {
         active: showOnlyActiveClasses.value,
         year: selectedFilterYear.value,
       );
-    } catch (e, s) {
+    } catch (e) {
       String userMessage = 'Erro desconhecido ao criar turma.';
       if (e is String) {
         userMessage = e;
@@ -71,7 +71,7 @@ class ClassesController extends GetxController {
         year: filterYear,
       );
       classes.value = fetchedClasses;
-    } catch (e, s) {
+    } catch (e) {
       String userMessage = 'Erro ao carregar turmas.';
       if (e is String) {
         userMessage = e;
@@ -93,7 +93,7 @@ class ClassesController extends GetxController {
         year: selectedFilterYear.value,
       );
       classeEditNameEC.clear();
-    } catch (e, s) {
+    } catch (e) {
       String userMessage = 'Erro desconhecido ao atualizar turma.';
       if (e is String) {
         userMessage = e;
@@ -115,7 +115,7 @@ class ClassesController extends GetxController {
         year: selectedFilterYear.value,
       );
       Get.back(); 
-    } catch (e, s) {
+    } catch (e) {
       String userMessage = 'Erro ao arquivar turma e alunos.';
       if (e is String) {
         userMessage = e;

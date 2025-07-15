@@ -74,7 +74,7 @@ class AttendanceSelectController extends GetxController {
       });
 
       availableSchedules.assignAll(groupedSchedules);
-    } catch (e, s) {
+    } catch (e) {
       Get.dialog(
         CustomErrorDialog(
           title: 'Erro',

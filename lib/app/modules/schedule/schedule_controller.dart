@@ -74,7 +74,7 @@ class ScheduleController extends GetxController {
       });
 
       schedules.assignAll(groupedSchedules);
-    } catch (e, s) {
+    } catch (e) {
       Get.dialog(
         CustomErrorDialog(
           title: 'Erro',
@@ -93,7 +93,7 @@ class ScheduleController extends GetxController {
 
       final disciplines = await _scheduleRepository.getAllDisciplines();
       availableDisciplines.assignAll(disciplines);
-    } catch (e, s) {
+    } catch (e) {
       Get.dialog(
         CustomErrorDialog(
           title: 'Erro',
@@ -118,7 +118,7 @@ class ScheduleController extends GetxController {
           selectedClasseForForm.value == null) {
         selectedClasseForForm.value = filteredClassesForForm.first;
       }
-    } catch (e, s) {
+    } catch (e) {
       Get.dialog(
         CustomErrorDialog(
           title: 'Erro',
@@ -153,7 +153,7 @@ class ScheduleController extends GetxController {
       await _scheduleRepository.createSchedule(newSchedule);
       await loadAllSchedules();
       resetAddScheduleFields();
-    } catch (e, s) {
+    } catch (e) {
       Get.dialog(
         CustomErrorDialog(
           title: 'Erro ao Adicionar Horário',
@@ -198,7 +198,7 @@ class ScheduleController extends GetxController {
       await _scheduleRepository.updateSchedule(updatedSchedule);
       await loadAllSchedules();
       resetEditScheduleFields();
-    } catch (e, s) {
+    } catch (e) {
       Get.dialog(
         CustomErrorDialog(
           title: 'Erro ao Atualizar Horário',
@@ -224,7 +224,7 @@ class ScheduleController extends GetxController {
       }
       await _scheduleRepository.toggleScheduleActiveStatus(schedule);
       await loadAllSchedules();
-    } catch (e, s) {
+    } catch (e) {
       Get.dialog(
         CustomErrorDialog(
           title: 'Erro ao Mudar Status do Horário',

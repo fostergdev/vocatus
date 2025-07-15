@@ -183,6 +183,7 @@ class AttendanceRegisterController extends GetxController {
       date: selectedDate.value,
       content: contentController.text,
       active: true,
+      classe: schedule.classe,
     );
   }
 

@@ -1,3 +1,4 @@
+
 // lib/app/repositories/attendance_register/i_attendance_register_repository.dart
 
 import 'package:vocatus/app/models/attendance.dart';

@@ -1,38 +1,40 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:vocatus/app/core/utils/database/database_helper.dart';
-import 'package:vocatus/app/repositories/reports/reports_repository.dart';
 import 'package:vocatus/app/models/classe.dart';
-
-enum AttendanceSortOrder {
-  dateAscending,
-  dateDescending,
-  timeAscending,
-}
+import 'package:vocatus/app/repositories/reports/reports_repository.dart';
 
 class ReportsController extends GetxController {
   final ReportsRepository _reportsRepository = ReportsRepository(
     DatabaseHelper.instance,
   );
+  late final Rx<Classe> classe;
 
-  final selectedFilterYear = 0.obs;
-  final yearsByTab = <int, List<int>>{}.obs;
-  final currentTabIndex = 0.obs;
+  final RxBool isLoadingAttendances = true.obs;
+  final RxBool isLoadingOccurrences = true.obs;
+  final RxBool isLoadingHomeworks = true.obs;
+  final RxBool isLoadingAttendanceGrid = true.obs;
 
-  final RxList<Classe> reportClasses = <Classe>[].obs;
-  final RxList<Classe> filteredReportClasses = <Classe>[].obs;
+  final RxList<dynamic> attendances = <dynamic>[].obs;
+  final RxList<dynamic> occurrences = <dynamic>[].obs;
+  final RxList<dynamic> homeworks = <dynamic>[].obs;
 
-  final RxBool isLoadingOccurrences = false.obs;
-  final RxList<Map<String, dynamic>> occurrencesData =
+  final RxInt totalAttendances = 0.obs;
+  final RxDouble attendancePercentage = 0.0.obs;
+  final RxDouble averageOccurrences = 0.0.obs;
+  final RxMap<String, int> occurrenceCountByType = <String, int>{}.obs;
+  final RxInt touchedIndex = (-1).obs;
+
+  // Attendance Grid Data
+  final RxList<String> attendanceDates = <String>[].obs;
+  final RxList<Map<String, dynamic>> attendanceStudentsData =
+      <Map<String, dynamic>>[].obs;
+  final RxList<Map<String, dynamic>> attendanceSessions =
       <Map<String, dynamic>>[].obs;
 
-  final RxBool isLoadingHomework = false.obs;
-  final RxList<Map<String, dynamic>> homeworkData =
-      <Map<String, dynamic>>[].obs;
-
-  
+  // Student Reports Data
+  final selectedFilterYear = DateTime.now().year.obs;
+  final availableYears = <int>[].obs;
   final RxList<Map<String, dynamic>> reportStudents =
       <Map<String, dynamic>>[].obs;
   final RxList<Map<String, dynamic>> filteredReportStudents =
@@ -41,7 +43,6 @@ class ReportsController extends GetxController {
   final studentSearchText = ''.obs;
   final TextEditingController studentSearchController = TextEditingController();
 
-  
   final RxList<Map<String, dynamic>> studentAttendanceHistory =
       <Map<String, dynamic>>[].obs;
   final RxList<Map<String, dynamic>> studentOccurrencesHistory =
@@ -49,59 +50,20 @@ class ReportsController extends GetxController {
   final RxBool isLoadingStudentAttendance = false.obs;
   final RxBool isLoadingStudentOccurrences = false.obs;
 
-  final RxList<Map<String, dynamic>> attendanceReportData =
-      <Map<String, dynamic>>[].obs;
-  final RxList<Map<String, dynamic>> sortedAttendanceReportData =
-      <Map<String, dynamic>>[].obs;
-  final RxBool isLoadingAttendance = false.obs;
-  final Rx<AttendanceSortOrder> currentAttendanceSortOrder =
-      AttendanceSortOrder.dateDescending.obs;
-
-  void sortAttendanceData() {
-    final List<Map<String, dynamic>> data =
-        List<Map<String, dynamic>>.from(attendanceReportData);
-
-    data.sort((a, b) {
-      final dateA = DateTime.tryParse(a['date']) ?? DateTime.now();
-      final dateB = DateTime.tryParse(b['date']) ?? DateTime.now();
-      final timeA = a['start_time'] as String;
-      final timeB = b['start_time'] as String;
-
-      switch (currentAttendanceSortOrder.value) {
-        case AttendanceSortOrder.dateAscending:
-          final dateCompare = dateA.compareTo(dateB);
-          if (dateCompare != 0) return dateCompare;
-          return timeA.compareTo(timeB);
-        case AttendanceSortOrder.dateDescending:
-          final dateCompare = dateB.compareTo(dateA);
-          if (dateCompare != 0) return dateCompare;
-          return timeB.compareTo(timeA);
-        case AttendanceSortOrder.timeAscending:
-          final timeCompare = timeA.compareTo(timeB);
-          if (timeCompare != 0) return timeCompare;
-          return dateA.compareTo(dateB);
-      }
-    });
-    sortedAttendanceReportData.assignAll(data);
-  }
-
-  void setAttendanceSortOrder(AttendanceSortOrder order) {
-    currentAttendanceSortOrder.value = order;
-    sortAttendanceData();
-  }
-
-  final searchText = ''.obs;
-  final TextEditingController searchInputController = TextEditingController();
-
   @override
   void onInit() {
     super.onInit();
-    loadYearsAndClasses();
-    debounce(
-      searchText,
-      (_) => filterClasses(),
-      time: const Duration(milliseconds: 300),
-    );
+    final dynamic args = Get.arguments;
+    if (args is Classe) {
+      classe = Rx<Classe>(args);
+      fetchReportsData(classe.value.id!);
+      fetchAttendanceGridData(classe.value.id!); // Fetch grid data
+    } else if (args is int) {
+      // Assuming student ID is passed as int for unified report
+      openStudentUnifiedReport({'id': args});
+    } else {
+      loadYearsAndStudents(); // Load student reports data if no specific class or student is passed
+    }
     debounce(
       studentSearchText,
       (_) => filterStudents(),
@@ -111,75 +73,37 @@ class ReportsController extends GetxController {
 
   @override
   void onClose() {
-    searchInputController.dispose();
     studentSearchController.dispose();
     super.onClose();
   }
 
-  Future<void> loadYearsAndClasses() async {
+  Future<void> loadYearsAndStudents() async {
     final yearsMap = await _reportsRepository.getMinMaxYearsByTable();
+    final studentYears = yearsMap['students'] ?? yearsMap['classes'] ?? [];
 
-    yearsByTab[0] = yearsMap['classes'] ?? [];
-    yearsByTab[1] =
-        yearsMap['students'] ??
-        yearsMap['classes'] ??
-        []; 
+    availableYears.value = studentYears;
 
     final currentYear = DateTime.now().year;
-
-    final initialYears = yearsByTab[0] ?? [];
-
-    
-    if (initialYears.isNotEmpty) {
-      selectedFilterYear.value = initialYears.contains(currentYear)
-          ? currentYear
-          : initialYears.reduce(
-              (a, b) => a > b ? a : b,
-            ); 
-      await readClasses(year: selectedFilterYear.value);
-      await readStudents(year: selectedFilterYear.value);
-    } else {
+    if (studentYears.contains(currentYear)) {
       selectedFilterYear.value = currentYear;
-      await readClasses(year: selectedFilterYear.value);
-      await readStudents(year: selectedFilterYear.value);
+    } else if (studentYears.isNotEmpty) {
+      selectedFilterYear.value = studentYears.reduce((a, b) => a > b ? a : b);
     }
-    filterClasses();
+
+    await readStudents(year: selectedFilterYear.value);
     filterStudents();
   }
 
-  void onYearSelected(int tabIndex, int year) {
+  void onYearSelected(int year) {
     selectedFilterYear.value = year;
-    currentTabIndex.value = tabIndex;
-
-    if (tabIndex == 0) {
-      searchText.value = '';
-      searchInputController.clear();
-      readClasses(year: year);
-    } else {
-      studentSearchText.value = '';
-      studentSearchController.clear();
-      readStudents(year: year);
-    }
-  }
-
-  Future<void> readClasses({required int year}) async {
-    try {
-      final rawData = await _reportsRepository.getClassesRawReport(year);
-      reportClasses.assignAll(Classe.fromRawReportList(rawData));
-      filterClasses();
-    } catch (e) {
-      Get.snackbar(
-        'Erro',
-        'Não foi possível carregar os relatórios de turmas: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
-      );
-    }
+    studentSearchText.value = '';
+    studentSearchController.clear();
+    readStudents(year: year);
   }
 
   Future<void> readStudents({required int year}) async {
     isLoadingStudents.value = true;
+
     try {
       final studentsData = await _reportsRepository.getStudentsWithReportsData(
         year,
@@ -193,7 +117,6 @@ class ReportsController extends GetxController {
         final totalAbsences = studentData['total_absences'] as int? ?? 0;
         final totalOccurrences = studentData['total_occurrences'] as int? ?? 0;
 
-        
         final attendancePercentage = totalClasses > 0
             ? (totalPresences / totalClasses * 100).toStringAsFixed(1)
             : '0.0';
@@ -228,19 +151,6 @@ class ReportsController extends GetxController {
     }
   }
 
-  void filterClasses() {
-    final query = searchText.value.toLowerCase().trim();
-
-    if (query.isEmpty) {
-      filteredReportClasses.value = reportClasses.toList();
-    } else {
-      filteredReportClasses.value = reportClasses.where((classe) {
-        final name = classe.name.toLowerCase();
-        return name.contains(query);
-      }).toList();
-    }
-  }
-
   void filterStudents() {
     final query = studentSearchText.value.toLowerCase().trim();
 
@@ -249,130 +159,39 @@ class ReportsController extends GetxController {
     } else {
       filteredReportStudents.value = reportStudents.where((student) {
         final name = student['name'].toString().toLowerCase();
-        return name.contains(query);
+        final className = student['class_name'].toString().toLowerCase();
+        return name.contains(query) || className.contains(query);
       }).toList();
     }
-  }
-
-  void onSearchTextChanged(String text) {
-    searchText.value = text;
   }
 
   void onStudentSearchTextChanged(String text) {
     studentSearchText.value = text;
   }
 
-  Future<void> loadAttendanceReport(int classId) async {
-    try {
-      isLoadingAttendance.value = true;
-      final data = await _reportsRepository.getAttendanceReportByClassId(
-        classId,
-      );
-      attendanceReportData.assignAll(data);
-      sortAttendanceData();
-    } catch (e) {
-      
-    } finally {
-      isLoadingAttendance.value = false;
+  void openStudentUnifiedReport(Map<String, dynamic> student) {
+    // Implement navigation to unified report page, passing student data
+    // For now, just load attendance and occurrences history
+    if (student['id'] != null) {
+      loadStudentAttendanceHistory(student['id'] as int);
+      loadStudentOccurrencesHistory(student['id'] as int);
     }
   }
 
-  
-  void openAttendanceReport(Classe classe) {
-    Get.toNamed(
-      '/reports/attendance-report',
-      arguments: {'classId': classe.id, 'className': classe.name},
-    );
-  }
-
-  void openSchedulesReport(Classe classe) {
-    Get.toNamed(
-      '/reports/schedules-report',
-      arguments: {'classId': classe.id, 'className': classe.name},
-    );
-  }
-
-  void openOccurrencesReport(Classe classe) {
-    Get.toNamed(
-      '/reports/occurrences-report',
-      arguments: {'classId': classe.id, 'className': classe.name},
-    );
-  }
-
-  
-  void openStudentAttendanceReport(Map<String, dynamic> student) {
-    Get.toNamed(
-      '/reports/student-attendance-report',
-      arguments: {'studentId': student['id'], 'studentName': student['name']},
-    );
-  }
-
-  void openStudentSchedulesReport(Map<String, dynamic> student) {
-    Get.toNamed(
-      '/reports/student-schedules-report',
-      arguments: {'studentId': student['id'], 'studentName': student['name']},
-    );
-  }
-
-  void openStudentOccurrencesReport(Map<String, dynamic> student) {
-    Get.toNamed(
-      '/reports/student-occurrences-report',
-      arguments: {'studentId': student['id'], 'studentName': student['name']},
-    );
-  }
-
-  
-  Future<List<Map<String, dynamic>>> getStudentAttendanceDetails(
-    int studentId,
-  ) async {
-    try {
-      return await _reportsRepository.getStudentAttendanceReport(studentId);
-    } catch (e) {
-      Get.snackbar(
-        'Erro',
-        'Não foi possível carregar o relatório de presenças: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
-      );
-      return [];
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> getStudentOccurrencesDetails(
-    int studentId,
-  ) async {
-    try {
-      return await _reportsRepository.getStudentOccurrencesReport(studentId);
-    } catch (e) {
-      Get.snackbar(
-        'Erro',
-        'Não foi possível carregar o relatório de ocorrências: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
-      );
-      return [];
-    }
-  }
-
-  
   Future<void> loadStudentAttendanceHistory(int studentId) async {
     isLoadingStudentAttendance.value = true;
     try {
-      final data = await _reportsRepository.getStudentAttendanceReport(
-        studentId,
-      );
-      studentAttendanceHistory.value = data;
+      final attendanceData = await _reportsRepository
+          .getStudentAttendanceReport(studentId);
+      studentAttendanceHistory.value = attendanceData;
     } catch (e) {
       Get.snackbar(
         'Erro',
-        'Não foi possível carregar o histórico de frequência: ${e.toString()}',
+        'Não foi possível carregar o histórico de frequência do aluno.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Get.theme.colorScheme.error,
         colorText: Get.theme.colorScheme.onError,
       );
-      studentAttendanceHistory.clear();
     } finally {
       isLoadingStudentAttendance.value = false;
     }
@@ -381,113 +200,112 @@ class ReportsController extends GetxController {
   Future<void> loadStudentOccurrencesHistory(int studentId) async {
     isLoadingStudentOccurrences.value = true;
     try {
-      final data = await _reportsRepository.getStudentOccurrencesReport(
-        studentId,
-      );
-      studentOccurrencesHistory.value = data;
+      final occurrencesData = await _reportsRepository
+          .getStudentOccurrencesReport(studentId);
+      studentOccurrencesHistory.value = occurrencesData;
     } catch (e) {
       Get.snackbar(
         'Erro',
-        'Não foi possível carregar o histórico de ocorrências: ${e.toString()}',
+        'Não foi possível carregar o histórico de ocorrências do aluno.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Get.theme.colorScheme.error,
         colorText: Get.theme.colorScheme.onError,
       );
-      studentOccurrencesHistory.clear();
     } finally {
       isLoadingStudentOccurrences.value = false;
     }
   }
 
-  
-  void openStudentUnifiedReport(Map<String, dynamic> student) {
-    Get.toNamed('/reports/student-unified-report', arguments: student);
-  }
-
-  Future<void> loadOccurrencesReport(int classeId) async {
+  Future<void> fetchReportsData(int classId) async {
     try {
-      isLoadingOccurrences.value = true;
-      occurrencesData.clear();
+      isLoadingAttendances(true);
+      final result = await _reportsRepository.getAttendanceReportByClassId(
+        classId,
+      );
+      attendances.assignAll(result);
 
-      
+      final count = await _reportsRepository.getTotalAttendancesCountByClassId(
+        classId,
+      );
+      totalAttendances.value = count;
+
+      final percentage = await _reportsRepository
+          .getAttendancePercentageByClassId(classId);
+      attendancePercentage.value = percentage;
+    } catch (e) {
+      Get.snackbar('Erro', 'Não foi possível carregar os dados de presença.');
+    } finally {
+      isLoadingAttendances(false);
+    }
+
+    try {
+      isLoadingOccurrences(true);
       final result = await _reportsRepository.getOccurrencesReportByClassId(
-        classeId,
+        classId,
       );
+      occurrences.assignAll(result);
 
-      
-      final processedResult = result.map((item) {
-        
-        try {
-          if (item['date'] != null && item['date'].toString().isNotEmpty) {
-            final DateTime date = DateTime.parse(item['date'].toString());
-            item['date'] = date.toIso8601String().split('T')[0];
-          }
-        } catch (e) {
-          
-        }
-        return item;
-      }).toList();
+      final average = await _reportsRepository.getAverageOccurrencesPerClass(
+        classId,
+      );
+      averageOccurrences.value = average;
 
-      occurrencesData.addAll(processedResult);
+      final counts = await _reportsRepository.getOccurrenceCountByType(classId);
+      occurrenceCountByType.value = counts;
     } catch (e) {
       Get.snackbar(
         'Erro',
-        'Não foi possível carregar as ocorrências: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
+        'Não foi possível carregar os dados de ocorrências.',
       );
     } finally {
-      isLoadingOccurrences.value = false;
+      isLoadingOccurrences(false);
+    }
+
+    try {
+      isLoadingHomeworks(true);
+      final result = await _reportsRepository.getHomeworkByClassId(classId);
+      homeworks.assignAll(result);
+    } catch (e) {
+      Get.snackbar(
+        'Erro',
+        'Não foi possível carregar os dados de tarefas de casa.',
+      );
+    } finally {
+      isLoadingHomeworks(false);
     }
   }
 
-  
-  Future<void> loadHomeworkReport(int classId) async {
+  Future<void> fetchAttendanceGridData(int classId) async {
     try {
-      isLoadingHomework.value = true;
-      homeworkData.clear();
-      final result = await _reportsRepository.getHomeworkByClassId(classId);
-
-      
-      final processedResult = result.map((item) {
-        
-        try {
-          if (item['due_date'] != null &&
-              item['due_date'].toString().isNotEmpty) {
-            final DateTime dueDate = DateTime.parse(
-              item['due_date'].toString(),
-            );
-            item['due_date_formatted'] = DateFormat(
-              'dd/MM/yyyy',
-            ).format(dueDate);
-          }
-          if (item['assigned_date'] != null &&
-              item['assigned_date'].toString().isNotEmpty) {
-            final DateTime assignedDate = DateTime.parse(
-              item['assigned_date'].toString(),
-            );
-            item['assigned_date_formatted'] = DateFormat(
-              'dd/MM/yyyy',
-            ).format(assignedDate);
-          }
-        } catch (e) {
-          
-        }
-        return item;
-      }).toList();
-
-      homeworkData.addAll(processedResult);
+      isLoadingAttendanceGrid(true);
+      final data = await _reportsRepository.getAttendanceGridDataByClassId(
+        classId,
+      );
+      attendanceSessions.assignAll(
+        data['sessions'] as List<Map<String, dynamic>>,
+      );
+      attendanceStudentsData.assignAll(
+        data['students'] as List<Map<String, dynamic>>,
+      );
     } catch (e) {
       Get.snackbar(
         'Erro',
-        'Não foi possível carregar as tarefas de casa: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
+        'Não foi possível carregar os dados da grade de presença.',
       );
     } finally {
-      isLoadingHomework.value = false;
+      isLoadingAttendanceGrid(false);
     }
+  }
+
+  int getTotalAttendances() {
+    return totalAttendances.value;
+  }
+
+  int getTotalOccurrences() {
+    return occurrences.length;
+  }
+
+  int getTotalHomeworks() {
+    return homeworks.length;
   }
 }

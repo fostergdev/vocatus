@@ -71,7 +71,7 @@ class CustomDrop<T> extends StatelessWidget {
       
       decoration: InputDecoration(
         filled: true,
-        fillColor: colorScheme.surfaceContainerHighest, 
+        fillColor: colorScheme.surface, 
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.0),
           borderSide: BorderSide(color: colorScheme.outline, width: 1.0),
@@ -97,7 +97,7 @@ class CustomDrop<T> extends StatelessWidget {
         suffixIconColor: colorScheme.onSurfaceVariant, 
       ),
       
-      dropdownColor: colorScheme.surfaceContainerHigh, 
+      dropdownColor: colorScheme.surface, 
       style: textTheme.bodyLarge?.copyWith(
         color: colorScheme.onSurface, 
       ),

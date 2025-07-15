@@ -18,12 +18,14 @@ class CustomPopupMenu extends StatelessWidget {
   
   final IconData? icon;
   final TextAlign textAlign;
+  final Color? iconColor;
 
   const CustomPopupMenu({
     super.key,
     required this.items,
     this.icon,
     this.textAlign = TextAlign.left,
+    this.iconColor,
   });
 
   @override
@@ -38,7 +40,7 @@ class CustomPopupMenu extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       
       
-      icon: Icon(icon ?? Icons.more_vert, color: colorScheme.onSurfaceVariant),
+      icon: Icon(icon ?? Icons.more_vert, color: iconColor ?? colorScheme.onSurfaceVariant),
       onSelected: (index) => items[index].onTap(),
       itemBuilder: (context) => [
         for (int i = 0; i < items.length; i++)

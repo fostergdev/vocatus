@@ -65,14 +65,14 @@ class HomeworkRepository implements IHomeworkRepository {
           }
 
           return homework;
-        } catch (e, stack) {
+        } catch (e) {
           throw FormatException('Falha ao converter dados da tarefa: $e');
         }
       }).toList();
 
       return homeworks;
     } on DatabaseException catch (e) {
-      throw Exception('Erro de banco de dados ao buscar tarefas: ${e}');
+      throw Exception('Erro de banco de dados ao buscar tarefas: $e');
     } catch (e) {
       throw Exception('Erro ao buscar tarefas: $e');
     }

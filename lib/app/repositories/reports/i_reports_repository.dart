@@ -1,4 +1,3 @@
-// app/repositories/reports/i_reports_repository.dart
 abstract class IReportsRepository {
   Future<List<Map<String, dynamic>>> getClassesRawReport(int year);
   Future<Map<String, List<int>>> getMinMaxYearsByTable();
@@ -11,4 +10,11 @@ abstract class IReportsRepository {
   Future<List<Map<String, dynamic>>> getStudentOccurrencesReport(int studentId);
   Future<List<Map<String, dynamic>>> getOccurrencesReportByClassId(int classId);
   Future<List<Map<String, dynamic>>> getHomeworkByClassId(int classId);
+  Future<int> getTotalAttendancesCountByClassId(int classId);
+  Future<double> getAttendancePercentageByClassId(int classId);
+  Future<double> getAverageOccurrencesPerClass(int classId);
+  Future<Map<String, int>> getOccurrenceCountByType(int classId);
+  Future<Map<String, dynamic>> getAttendanceGridDataByClassId(int classId);
+  Future<List<Map<String, dynamic>>> getStudentClassesWithDetails(int studentId);
+  Future<List<Map<String, dynamic>>> getStudentOccurrencesByClass(int studentId);
 }
