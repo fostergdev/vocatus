@@ -601,4 +601,35 @@ class ReportsRepository implements IReportsRepository {
     );
     return result;
   }
+  @override
+  Future<Map<String, List<Map<String, dynamic>>>>
+      getOccurrencesByClassIdGroupedByType(int classId) async {
+    final db = await _dbHelper.database;
+    final List<Map<String, dynamic>> result = await db.rawQuery(
+      '''
+      SELECT
+        o.id,
+        o.occurrence_type,
+        o.description,
+        o.occurrence_date,
+        s.name as student_name
+      FROM occurrence o
+      INNER JOIN attendance a ON o.attendance_id = a.id
+      LEFT JOIN student s ON o.student_id = s.id
+      WHERE a.classe_id = ? AND o.active = 1
+      ORDER BY o.occurrence_date ASC
+    ''',
+      [classId],
+    );
+
+    final Map<String, List<Map<String, dynamic>>> groupedOccurrences = {};
+    for (final row in result) {
+      final type = row['occurrence_type'] as String;
+      if (!groupedOccurrences.containsKey(type)) {
+        groupedOccurrences[type] = [];
+      }
+      groupedOccurrences[type]!.add(row);
+    }
+    return groupedOccurrences;
+  }
 }

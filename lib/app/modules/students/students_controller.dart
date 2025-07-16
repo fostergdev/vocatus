@@ -15,7 +15,7 @@ class StudentsController extends GetxController {
 
   final Classe currentClasse = Get.arguments as Classe;
 
-  final isLoading = false.obs;
+  final isLoading = true.obs;
   final students = <Student>[].obs;
 
   final studentNameEC = TextEditingController();

@@ -34,7 +34,7 @@ class StudentsPage extends GetView<StudentsController> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                colorScheme.primary.withValues(alpha: 0.9),
+                colorScheme.primary.withOpacity(0.9),
                 colorScheme.primary,
               ],
               begin: Alignment.topLeft,
@@ -66,22 +66,57 @@ class StudentsPage extends GetView<StudentsController> {
         children: [
           Expanded(
             child: Obx(() {
+              // 1. Primeiro verifica o loading
               if (controller.isLoading.value) {
                 return Center(
-                  child: CircularProgressIndicator(color: colorScheme.primary),
-                );
-              }
-              if (controller.students.isEmpty) {
-                return Center(
-                  child: Text(
-                    'Nenhum aluno encontrado',
-                    style: textTheme.bodyLarge?.copyWith(
-                      fontSize: 18,
-                      color: colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(color: colorScheme.primary),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Carregando alunos...',
+                        style: textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 );
               }
+
+              // 2. Depois verifica se a lista está vazia
+              if (controller.students.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.people_outline,
+                        size: 80,
+                        color: colorScheme.onSurfaceVariant.withOpacity(0.3),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Nenhum aluno encontrado',
+                        style: textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Adicione alunos para começar',
+                        style: textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              // 3. Por último mostra a lista se houver dados
               return ListView.builder(
                 itemCount: controller.students.length,
                 itemBuilder: (context, index) {
@@ -122,7 +157,6 @@ class StudentsPage extends GetView<StudentsController> {
                           CustomPopupMenuItem(
                             label: 'Transferir',
                             icon: Icons.swap_horiz,
-
                             onTap: () => _showConfirmationDialog(
                               context: context,
                               title: 'Confirmar Transferência',
@@ -139,7 +173,6 @@ class StudentsPage extends GetView<StudentsController> {
                           CustomPopupMenuItem(
                             label: 'Duplicar',
                             icon: Icons.copy,
-
                             onTap: () => _showConfirmationDialog(
                               context: context,
                               title: 'Confirmar Duplicação',
@@ -160,7 +193,6 @@ class StudentsPage extends GetView<StudentsController> {
                             icon: isStudentGloballyActive
                                 ? Icons.archive
                                 : Icons.do_not_disturb_alt,
-
                             onTap: () {
                               if (isStudentGloballyActive) {
                                 _showArchiveStudentDialog(context, student);
@@ -236,7 +268,6 @@ class StudentsPage extends GetView<StudentsController> {
     Get.dialog(
       CustomDialog(
         title: title,
-
         content: Text(
           message,
           style: textTheme.bodyMedium?.copyWith(
@@ -497,9 +528,7 @@ class StudentsPage extends GetView<StudentsController> {
         }
         return CustomDialog(
           title: 'Transferir Aluno',
-
           icon: Icons.swap_horiz,
-
           content: controller.classesForTransfer.isEmpty
               ? Text(
                   'Nenhuma outra turma disponível para transferência.',
@@ -553,9 +582,7 @@ class StudentsPage extends GetView<StudentsController> {
         }
         return CustomDialog(
           title: 'Duplicar Aluno',
-
           icon: Icons.copy,
-
           content: controller.classesForTransfer.isEmpty
               ? Text(
                   'Nenhuma outra turma disponível para duplicar.',
@@ -620,11 +647,8 @@ class StudentsPage extends GetView<StudentsController> {
     Get.dialog(
       CustomConfirmationDialogWithCode(
         title: 'Arquivar Aluno',
-
         message: message,
-
         confirmButtonText: 'Arquivar',
-
         onConfirm: () async {
           await controller.archiveStudentFromCurrentClasse(student);
         },

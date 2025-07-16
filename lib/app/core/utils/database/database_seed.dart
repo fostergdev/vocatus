@@ -203,191 +203,235 @@ class DatabaseSeed {
       scheduleIdMap[scheduleKey] = scheduleId;
     }
 
-    final List<String> students1A = [
-      'Alexandre Pithon Vranjac',
-      'Bárbara Evangelista Araujo do Carmo',
-      'Carolina Tropiano dos Santos',
-      'Caroline Akemi Ohonishi',
-      'Gabriel Dias Camargo',
-      'Gabrielle Nogueira Calvo',
-      'Giovanni de Oliveira Freitas',
-      'Guilherme Kobayashi Takehana',
-      'Henrique Noah Novais de Araujo',
-      'Isabella Lelis Trida Nogueira Gonçalves',
-      'Isabelle Teles Rosa',
-      'Juliana Bernardes Arnaut',
-      'Lara Rodrigues Duarte',
-      'Laura Letícia Alves Ferreira dos Santos',
-      'Leonardo Granados Furian',
-      'Lucas Capucho Leite',
-      'Lucas Yamamoto Ribeiro',
-      'Maria Eduarda Machado Nievola',
-      'Maria Julia Morilla Soares',
-      'Mariana Heins Stivanelli',
-      'Matheus Hiroshi Ferreira Maruiti',
-      'Nicolas Alves Guinè',
-      'Nícolas Carreira de Macedo',
-      'Octavio da Silva Ribeiro',
-      'Paulo Vinícius Fernandes Pereira',
-      'Pedro Augusto Rodrigues Vieira',
-      'Pedro Henrique Pestana Amaral',
-      'Pedro Rocha Veríssimo',
-      'Pietro de Castro Silva',
-      'Rihanna Amaro Avila',
-      'Sophia Caçador Botelho',
-      'Vitor Paiva Vieira',
-      'Yan Machado Couto Oliveira',
-    ];
+final List<String> students1A = [
+  'Ana Clara Monteiro',
+  'Beatriz Soares Lima',
+  'Camila Rodrigues Prado',
+  'Carla Yumi Tanaka',
+  'Daniel Marques Batista',
+  'Débora Lemos Faria',
+  'Eduardo Oliveira Rocha',
+  'Fábio Nakamura Torres',
+  'Gustavo Ferreira Silva',
+  'Helena Tavares de Souza',
+  'Iara Mendes Cardoso',
+  'Joana Almeida Siqueira',
+  'Karen Batista Ramos',
+  'Laura Cristina Reis Martins',
+  'Leonardo Pires Almeida',
+  'Lucas Vinicius Barreto',
+  'Luiz Henrique Otani',
+  'Manuela Rocha Freitas',
+  'Maria Luiza Fagundes',
+  'Marina Lopes Ferreira',
+  'Matheus Oliveira Akira',
+  'Murilo Pereira Vasconcelos',
+  'Nicolas Ramos Costa',
+  'Otávio Fernandes Rocha',
+  'Paulo Ricardo Mendes',
+  'Pedro Henrique Duarte',
+  'Rafael Esteves Cunha',
+  'Renan Vieira Nogueira',
+  'Samuel Castro Lima',
+  'Sabrina Monteiro Alves',
+  'Tatiane Farias Pinto',
+  'Victor Hugo Silva',
+  'Yuri Barros Monteiro',
+];
 
-    
-    final Set<String> uniqueStudents1A = {};
-    final List<String> duplicateStudents1A = [];
-    for (final name in students1A) {
-      if (!uniqueStudents1A.add(name)) {
-        
-        duplicateStudents1A.add(name);
-      }
-    }
+final List<String> students1B = [
+  'Amanda Vieira Santana',
+  'Aline Souza Carvalho',
+  'Ana Paula Martins',
+  'Arthur Lima Pacheco',
+  'Bruno Torres Vasques',
+  'Caio Nogueira Machado',
+  'César Lemos Ribeiro',
+  'Daniela Rocha Figueiredo',
+  'Douglas Martins Oliveira',
+  'Eduardo Barreto Cruz',
+  'Enzo Carvalho Silva',
+  'Felipe Rocha Menezes',
+  'Gabriel Moura Antunes',
+  'Giovana Tavares Lima',
+  'Giselle Barreto Prado',
+  'Heitor Monteiro Silva',
+  'Isadora Ramos Furtado',
+  'Joaquim Ribeiro Teixeira',
+  'João Pedro Azevedo',
+  'Juliana Castro Pires',
+  'Larissa Prado Gomes',
+  'Letícia Fernandes Souza',
+  'Luana Cristina Soares',
+  'Marcos Paulo Xavier',
+  'Mariana Lopes Tavares',
+  'Natália Moura Rezende',
+  'Patrícia Almeida Cunha',
+  'Rafael Santos Lemos',
+  'Rebeca Lima Teixeira',
+  'Samuel Costa Oliveira',
+  'Sofia Prado Botelho',
+  'Thiago Almeida Pinto',
+];
 
-    final List<String> students1B = [
-      'Alda Lorena Miranda Ferreira',
-      'Aline Cristina do Nascimento Cavalcanti',
-      'Amanda Vasques Santos',
-      'Arthur Moino Alencar',
-      'Brenno Kuusberg Elias da Silva',
-      'Bruno Valente de Mendonça Gomes',
-      'Caio Vieira Fernandes Teixeira',
-      'Clara Beatriz Ventura da Silva',
-      'Daniel Greco Morgado Batista',
-      'Davi Cypriani de Oliveira Ruela',
-      'Enzo Tamari de Zagiacomo',
-      'Felipe Melo Moreira',
-      'Gabriel de Almeida Shimanoue',
-      'Gabriela Xavier Luiz',
-      'Gabriella Braga Arias',
-      'Giovani Donato',
-      'Giovanna Rafaela Treco',
-      'Guilherme Pelege Figueira',
-      'Guilherme Yuji Hirata',
-      'Isabela da Silva Brito',
-      'Júlia Santos Krasauskas',
-      'Leonardo Augusto de Paula',
-      'Luisa Rodrigues Duarte',
-      'Marcella Nascimento Fernandes',
-      'Marina Kawamura Nascimento',
-      'Penelope Munick Lobeu',
-      'Pietro Borges Zázzer',
-      'Rafael Keluy Attia do Nascimento',
-      'Sarah Saturnino Loiola',
-      'Sofia Bottaro',
-      'Theo Henrique Rodrigues Marino',
-    ];
+final List<String> students2A = [
+  'Alice Rodrigues Tavares',
+  'Amanda Ribeiro Lemos',
+  'Ana Júlia Sampaio',
+  'Andressa Carvalho Moura',
+  'Bianca Lopes Santana',
+  'Bruno Henrique Gomes',
+  'Caio Vinicius Cardoso',
+  'Clara Menezes Oliveira',
+  'Daniel Carvalho Pinto',
+  'Davi Souza Machado',
+  'Eduarda Ramos Teixeira',
+  'Felipe Nogueira Vieira',
+  'Fernanda Almeida Martins',
+  'Gabriela Rocha Barros',
+  'Guilherme Castro Moreira',
+  'Helena Cristina Lopes',
+  'Igor Henrique Silva',
+  'Isabela Monteiro Siqueira',
+  'João Vitor Ferreira',
+  'Júlia Andrade Figueiredo',
+  'Karina Melo Tavares',
+  'Larissa Campos Lima',
+  'Lucas Amaral Bastos',
+  'Marina Pereira Souza',
+  'Thiago Rezende Lopes',
+  'Vanessa Oliveira Ramos',
+];
 
-    final List<String> students2A = [
-      'Agatha Martinez Korosue',
-      'Alessandra Primolan Romio',
-      'Ana Luiza Jeske Levino',
-      'Anna Carolina Franco Prates',
-      'Bruna Evaristo Quejo',
-      'Fernando Januario de Andrade',
-      'Gabriel Marques dos Santos',
-      'Gabriel Santos Alves',
-      'Giovanna Soares de Oliveira',
-      'Hector Miguel Fagundes de Lima',
-      'Heitor Moretti Pinheiro',
-      'Helena Sanches Monteiro',
-      'Heloisa Regina Araujo Alves',
-      'Jade Silva Tomé',
-      'João Gabriel de Almeida Camilo',
-      'Julia Yukimi Yamashita',
-      'Karina Almeida Ferreira da Silva',
-      'Livia Carrijo Yamashiro',
-      'Lucas Moraes Beeppler',
-      'Lucca Rodrigues Duarte',
-      'Luiza Melo Rodrigues',
-      'Maria Eduarda Rodrigues Pereira',
-      'Nina Tangari de Oliveira',
-      'Pedro Santos Alves',
-      'Thiago Uehara Tavares',
-      'Yasmin Duarte Melo Longue',
-    ];
+final List<String> students2B = [
+  'Alex Monteiro Ferreira',
+  'Arthur Carvalho Gomes',
+  'Augusto Fernandes Melo',
+  'Benjamin Duarte Tavares',
+  'Bruno Otávio Siqueira',
+  'Caio Lima Rezende',
+  'Camila Sanches Moraes',
+  'Catarina Alves Duarte',
+  'Daniela Souza Nogueira',
+  'Eduardo Tavares Lima',
+  'Eloá Fernanda Gomes',
+  'Felipe Andrade Pires',
+  'Fernanda Moura Cardoso',
+  'Gabriel Costa Sampaio',
+  'Giovana Castro Lima',
+  'Guilherme Barreto Silva',
+  'Heloísa Regina Santos',
+  'Igor Ramos Tavares',
+  'Isabella Yumi Souza',
+  'Joana Cristina Fernandes',
+  'Julia Helena Vieira',
+  'Luana Rocha Martins',
+  'Lucas Henrique Bastos',
+  'Marcelo Farias Soares',
+  'Mariana Alves Cunha',
+  'Nicolas Souza Moreira',
+  'Otávio Martins Prado',
+];
 
-    final List<String> students2B = [
-      'Alex Leme Tiba',
-      'Arthur Arruda Grigoli',
-      'Arthur Branco Santos',
-      'Arthur Izidio de Oliveira Ramalho',
-      'Arthur Moretti Pinheiro',
-      'Artur Andrade Cavalheiro Lima',
-      'Beatriz da Silva Jacobina Santos',
-      'Bianca Teixeira Gonella da Silva',
-      'Carolina Cunha Mardegan',
-      'Fellipe Eiji Mizushima',
-      'Gabriela Stella Ortelan',
-      'Giovanna Flora Rocha Porto',
-      'Giovanna Yumi Pak',
-      'Giulia Vieira Fernandes Teixeira',
-      'Heloisa Diniz Souza Macedo',
-      'Henrique Mota e Silva',
-      'Isabella Magila Kilian',
-      'Lucas Bastos Soares',
-      'Manuela Licciardi Ferreira Palmeira',
-      'Marcela Pires Dias',
-      'Maria Julia Pestana Amaral',
-      'Matteo Pereira de Francesco',
-      'Pamella Loyolla Rocha de Sousa',
-      'Pedro Antunes de Souza',
-      'Pedro Luiz Santos Magalhães',
-      'Sophia Almeida Sousa',
-      'Talita Yumi Pires Sato',
-    ];
+final List<String> students3 = [
+  'Ana Carolina Lima',
+  'Ana Paula Vieira',
+  'Arthur Henrique Soares',
+  'Beatriz Oliveira Prado',
+  'Bianca Fernandes Reis',
+  'Bruno Vinicius Takahashi',
+  'Carolina Martins Ribeiro',
+  'Daniel Rocha Bastos',
+  'Eduardo Lima Tavares',
+  'Felipe Costa Siqueira',
+  'Fernando Yudi Tanaka',
+  'Flávia Regina Gomes',
+  'Gabriela Martins Lima',
+  'Giovana Pires Andrade',
+  'Guilherme Azevedo Silva',
+  'Helena Ramos Ferreira',
+  'Isabela Castro Monteiro',
+  'Isadora Lopes Martins',
+  'Isabella Teixeira Furtado',
+  'Joaquim Souza Vieira',
+  'João Pedro Nogueira',
+  'Juliana Cristina Rocha',
+  'Laura Pacheco Tavares',
+  'Letícia Mendes Cardoso',
+  'Leonardo Takashi Matsuda',
+  'Lucas Yamato Ribeiro',
+  'Manuela Rocha Batista',
+  'Maria Clara Sanches',
+  'Maria Eduarda Ferreira',
+  'Maria Fernanda Lopes',
+  'Maria Luiza Oliveira',
+  'Maria Paula Tavares',
+  'Mariane Gomes Rezende',
+  'Melissa Duarte Lemos',
+  'Murilo Henrique Cardoso',
+  'Nathan Oliveira Siqueira',
+  'Natália Lima Tavares',
+  'Otávio Fernandes Vieira',
+  'Pedro Henrique Almeida',
+  'Rebeca Moura Fernandes',
+  'Samuel Monteiro Tavares',
+  'Sara Cristina Lopes',
+  'Victor Hugo Rodrigues',
+  'Vinicius Barros Silva',
+];
 
-    final List<String> students3 = [
-      'Ana Beatriz Vieira Aguilar',
-      'Ana Vitoria Pena Ferraz',
-      'Arthur Caram Fiorese Herrada',
-      'Beatriz de Oliveira Trevisan',
-      'Beatriz Lourenço do Poço',
-      'Bruno Kazuya Takinami',
-      'Carolina Paschoa Barbosa',
-      'Eduardo Mamede Oliveira',
-      'Felipe Alves Andretta',
-      'Felipe Castilhioni de Andrade',
-      'Felipe Motitsuki Tan',
-      'Fernando Hideki Takano',
-      'Gabriela Pithon Vranjac',
-      'Gabriella de Souza Cabral',
-      'Giovana Ribeiro Mota',
-      'Grazielly Victoria dos Santos da Silva',
-      'Isabela Dias Siqueira',
-      'Isabela Yumi Lima',
-      'Isabella Gomes Rodrigues',
-      'Isabella Telles de Oliveira',
-      'Julia Cardoso de Oliveira Ferreira',
-      'Julia Wietholter Vancin',
-      'Laura Cristina Costa',
-      'Laura Souza Araujo Lima',
-      'Leandro Tamarindo Dias',
-      'Leonardo Amora da Fonseca',
-      'Lucas Amora da Fonseca',
-      'Manuela Nascimento Leonardi',
-      'Maria Clara Mendes de Oliveira',
-      'Maria Fernanda Lourenço Silva',
-      'Maria Fernanda Rodrigues Barreto',
-      'Maria Fernanda Souza Barbosa',
-      'Maria Paula Serafim Furtado',
-      'Mariane Sousa Ferrara',
-      'Mel Novais de Araujo',
-      'Murilo de Oliveira Correa',
-      'Murilo Rufino Santos',
-      'Natalia Pereira Lanza',
-      'Otavio Fernandes Virgilio',
-      'Pedro Mattos Toledo Ribeiro',
-      'Sabryna Deboni de Souza',
-      'Thiago Motitsuki Tan',
-      'Thiago Vinicius Franco de Queiroz Custodio Leves',
-      'Vinicius Pacheco Araujo',
-    ];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     final Map<String, List<int>> classeStudentIds = {
       '1º Ano A': [],
@@ -852,83 +896,108 @@ class DatabaseSeed {
       final List<Map<String, dynamic>> studentOccurrences = [
         {
           'classe': '1º Ano A',
-          'student_index': 2, 
+          'student_index': 2,
           'type': 'comportamento',
-          'title': 'Conversa Excessiva',
-          'description':
-              'Aluno conversando excessivamente durante a explicação da matéria.',
+          'title': 'Conversou durante a explicação',
+          'description': 'Aluno conversou com colegas durante a explicação, atrapalhando a concentração da turma.',
         },
         {
           'classe': '1º Ano A',
           'student_index': 5,
-          'type': 'outros',
-          'title': 'Destaque Positivo',
-          'description':
-              'Aluno demonstrou excelente compreensão do conteúdo e auxiliou os colegas com dificuldades.',
+          'type': 'comportamento',
+          'title': 'Ajudou colega com dificuldade',
+          'description': 'Aluno auxiliou colega que estava com dificuldade em matemática, demonstrando empatia.',
         },
         {
           'classe': '1º Ano A',
           'student_index': 8,
           'type': 'saude',
-          'title': 'Mal-estar em Sala',
-          'description':
-              'Aluno relatou dor de cabeça durante a aula e foi encaminhado à enfermaria.',
+          'title': 'Mal-estar durante aula',
+          'description': 'Aluno relatou dor de cabeça e foi encaminhado à enfermaria.',
         },
         {
           'classe': '1º Ano B',
           'student_index': 0,
           'type': 'comportamento',
-          'title': 'Uso de Celular',
-          'description':
-              'Aluno utilizando celular durante a avaliação. Aparelho recolhido conforme regras da escola.',
+          'title': 'Uso de celular em sala',
+          'description': 'Aluno utilizou o celular durante a aula sem autorização, aparelho recolhido conforme regras.',
         },
         {
           'classe': '1º Ano B',
           'student_index': 3,
-          'type': 'outros',
-          'title': 'Não Entregou Trabalho',
-          'description':
-              'Aluno não entregou o trabalho de biologia na data estipulada.',
+          'type': 'desempenho',
+          'title': 'Não entregou trabalho',
+          'description': 'Aluno não entregou o trabalho de biologia no prazo estipulado.',
         },
         {
           'classe': '2º Ano A',
           'student_index': 1,
           'type': 'comportamento',
-          'title': 'Atitude Desrespeitosa',
-          'description':
-              'Aluno respondeu de forma desrespeitosa ao ser corrigido durante a aula.',
+          'title': 'Respondeu de forma desrespeitosa',
+          'description': 'Aluno respondeu de forma desrespeitosa ao ser corrigido pelo professor.',
         },
         {
           'classe': '2º Ano A',
           'student_index': 4,
-          'type': 'outros',
-          'title': 'Melhora no Desempenho',
-          'description':
-              'Aluno demonstrou significativa melhora no desempenho em matemática.',
+          'type': 'desempenho',
+          'title': 'Melhora significativa no desempenho',
+          'description': 'Aluno apresentou melhora significativa nas avaliações de matemática.',
         },
         {
           'classe': '2º Ano B',
           'student_index': 2,
-          'type': 'geral',
-          'title': 'Uniforme Incompleto',
-          'description':
-              'Aluno compareceu à aula sem o uniforme completo. Já é a terceira ocorrência no mês.',
+          'type': 'uniforme',
+          'title': 'Uniforme incompleto',
+          'description': 'Aluno compareceu à aula sem o uniforme completo pela terceira vez no mês.',
         },
         {
           'classe': '3º Ano',
           'student_index': 5,
-          'type': 'outros',
-          'title': 'Aprovação em Vestibular',
-          'description':
-              'Aluno foi aprovado no vestibular da universidade federal. Parabéns!',
+          'type': 'desempenho',
+          'title': 'Aprovado em vestibular',
+          'description': 'Aluno foi aprovado no vestibular da universidade estadual. Parabéns!',
         },
         {
           'classe': '3º Ano',
           'student_index': 9,
+          'type': 'participacao',
+          'title': 'Liderança em grupo de estudos',
+          'description': 'Aluno organizou grupo de estudos para o ENEM, demonstrando iniciativa e liderança.',
+        },
+        {
+          'classe': '2º Ano B',
+          'student_index': 7,
+          'type': 'saude',
+          'title': 'Alergia alimentar',
+          'description': 'Aluno apresentou reação alérgica após o lanche, família foi comunicada.',
+        },
+        {
+          'classe': '1º Ano B',
+          'student_index': 10,
+          'type': 'participacao',
+          'title': 'Participação ativa',
+          'description': 'Aluno participou ativamente das discussões em sala, contribuindo com ideias relevantes.',
+        },
+        {
+          'classe': '3º Ano',
+          'student_index': 15,
+          'type': 'participacao',
+          'title': 'Participação em olimpíada',
+          'description': 'Aluno participou da Olimpíada Brasileira de Biologia, representando a escola.',
+        },
+        {
+          'classe': '2º Ano A',
+          'student_index': 8,
           'type': 'comportamento',
-          'title': 'Liderança Positiva',
-          'description':
-              'Aluno demonstrou excelente liderança ao organizar grupo de estudos para o ENEM.',
+          'title': 'Atraso recorrente',
+          'description': 'Aluno chegou atrasado em três aulas consecutivas esta semana.',
+        },
+        {
+          'classe': '1º Ano A',
+          'student_index': 12,
+          'type': 'saude',
+          'title': 'Dispensa de educação física',
+          'description': 'Aluno apresentou atestado médico e foi dispensado das aulas de educação física por duas semanas.',
         },
       ];
 
@@ -994,6 +1063,26 @@ class DatabaseSeed {
       ];
 
       
+      // Add realistic descriptions for occurrences
+      final List<String> realDescriptions = [
+        'Aluno apresentou excelente participação durante a aula.',
+        'Aluno chegou atrasado sem justificativa.',
+        'Aluno esqueceu o material escolar.',
+        'Aluno ajudou colega com dificuldade.',
+        'Aluno utilizou o celular sem autorização.',
+        'Aluno demonstrou comportamento exemplar.',
+        'Aluno respondeu de forma desrespeitosa ao professor.',
+        'Aluno participou ativamente das discussões.',
+        'Aluno apresentou atestado médico e foi dispensado.',
+        'Aluno não entregou trabalho no prazo.',
+        'Aluno organizou grupo de estudos para o ENEM.',
+        'Aluno apresentou reação alérgica após o lanche.',
+        'Aluno foi aprovado no vestibular.',
+        'Aluno compareceu à aula sem uniforme completo.',
+        'Aluno relatou dor de cabeça e foi encaminhado à enfermaria.',
+        'Aluno participou da Olimpíada Brasileira de Biologia.',
+      ];
+
       for (final classeName in classeNameToId.keys) {
         if (classeStudentIds.containsKey(classeName) &&
             classeAttendanceIds.containsKey(classeName)) {
@@ -1029,8 +1118,7 @@ class DatabaseSeed {
               'student_id': studentId,
               'occurrence_type': occurrenceType,
               'title': title,
-              'description':
-                  'Descrição detalhada da ocorrência ${i + 1} para o aluno na turma $classeName.',
+              'description': realDescriptions[i % realDescriptions.length],
               'occurrence_date': DateTime.now()
                   .subtract(Duration(days: (i * 3) % 30))
                   .toIso8601String()
@@ -1068,3 +1156,192 @@ class DatabaseSeed {
     }
   }
 }
+
+
+
+/*     final List<String> students1A = [
+      'Alexandre Pithon Vranjac',
+      'Bárbara Evangelista Araujo do Carmo',
+      'Carolina Tropiano dos Santos',
+      'Caroline Akemi Ohonishi',
+      'Gabriel Dias Camargo',
+      'Gabrielle Nogueira Calvo',
+      'Giovanni de Oliveira Freitas',
+      'Guilherme Kobayashi Takehana',
+      'Henrique Noah Novais de Araujo',
+      'Isabella Lelis Trida Nogueira Gonçalves',
+      'Isabelle Teles Rosa',
+      'Juliana Bernardes Arnaut',
+      'Lara Rodrigues Duarte',
+      'Laura Letícia Alves Ferreira dos Santos',
+      'Leonardo Granados Furian',
+      'Lucas Capucho Leite',
+      'Lucas Yamamoto Ribeiro',
+      'Maria Eduarda Machado Nievola',
+      'Maria Julia Morilla Soares',
+      'Mariana Heins Stivanelli',
+      'Matheus Hiroshi Ferreira Maruiti',
+      'Nicolas Alves Guinè',
+      'Nícolas Carreira de Macedo',
+      'Octavio da Silva Ribeiro',
+      'Paulo Vinícius Fernandes Pereira',
+      'Pedro Augusto Rodrigues Vieira',
+      'Pedro Henrique Pestana Amaral',
+      'Pedro Rocha Veríssimo',
+      'Pietro de Castro Silva',
+      'Rihanna Amaro Avila',
+      'Sophia Caçador Botelho',
+      'Vitor Paiva Vieira',
+      'Yan Machado Couto Oliveira',
+    ];
+
+    
+    final Set<String> uniqueStudents1A = {};
+    final List<String> duplicateStudents1A = [];
+    for (final name in students1A) {
+      if (!uniqueStudents1A.add(name)) {
+        
+        duplicateStudents1A.add(name);
+      }
+    }
+
+    final List<String> students1B = [
+      'Alda Lorena Miranda Ferreira',
+      'Aline Cristina do Nascimento Cavalcanti',
+      'Amanda Vasques Santos',
+      'Arthur Moino Alencar',
+      'Brenno Kuusberg Elias da Silva',
+      'Bruno Valente de Mendonça Gomes',
+      'Caio Vieira Fernandes Teixeira',
+      'Clara Beatriz Ventura da Silva',
+      'Daniel Greco Morgado Batista',
+      'Davi Cypriani de Oliveira Ruela',
+      'Enzo Tamari de Zagiacomo',
+      'Felipe Melo Moreira',
+      'Gabriel de Almeida Shimanoue',
+      'Gabriela Xavier Luiz',
+      'Gabriella Braga Arias',
+      'Giovani Donato',
+      'Giovanna Rafaela Treco',
+      'Guilherme Pelege Figueira',
+      'Guilherme Yuji Hirata',
+      'Isabela da Silva Brito',
+      'Júlia Santos Krasauskas',
+      'Leonardo Augusto de Paula',
+      'Luisa Rodrigues Duarte',
+      'Marcella Nascimento Fernandes',
+      'Marina Kawamura Nascimento',
+      'Penelope Munick Lobeu',
+      'Pietro Borges Zázzer',
+      'Rafael Keluy Attia do Nascimento',
+      'Sarah Saturnino Loiola',
+      'Sofia Bottaro',
+      'Theo Henrique Rodrigues Marino',
+    ];
+
+    final List<String> students2A = [
+      'Agatha Martinez Korosue',
+      'Alessandra Primolan Romio',
+      'Ana Luiza Jeske Levino',
+      'Anna Carolina Franco Prates',
+      'Bruna Evaristo Quejo',
+      'Fernando Januario de Andrade',
+      'Gabriel Marques dos Santos',
+      'Gabriel Santos Alves',
+      'Giovanna Soares de Oliveira',
+      'Hector Miguel Fagundes de Lima',
+      'Heitor Moretti Pinheiro',
+      'Helena Sanches Monteiro',
+      'Heloisa Regina Araujo Alves',
+      'Jade Silva Tomé',
+      'João Gabriel de Almeida Camilo',
+      'Julia Yukimi Yamashita',
+      'Karina Almeida Ferreira da Silva',
+      'Livia Carrijo Yamashiro',
+      'Lucas Moraes Beeppler',
+      'Lucca Rodrigues Duarte',
+      'Luiza Melo Rodrigues',
+      'Maria Eduarda Rodrigues Pereira',
+      'Nina Tangari de Oliveira',
+      'Pedro Santos Alves',
+      'Thiago Uehara Tavares',
+      'Yasmin Duarte Melo Longue',
+    ];
+
+    final List<String> students2B = [
+      'Alex Leme Tiba',
+      'Arthur Arruda Grigoli',
+      'Arthur Branco Santos',
+      'Arthur Izidio de Oliveira Ramalho',
+      'Arthur Moretti Pinheiro',
+      'Artur Andrade Cavalheiro Lima',
+      'Beatriz da Silva Jacobina Santos',
+      'Bianca Teixeira Gonella da Silva',
+      'Carolina Cunha Mardegan',
+      'Fellipe Eiji Mizushima',
+      'Gabriela Stella Ortelan',
+      'Giovanna Flora Rocha Porto',
+      'Giovanna Yumi Pak',
+      'Giulia Vieira Fernandes Teixeira',
+      'Heloisa Diniz Souza Macedo',
+      'Henrique Mota e Silva',
+      'Isabella Magila Kilian',
+      'Lucas Bastos Soares',
+      'Manuela Licciardi Ferreira Palmeira',
+      'Marcela Pires Dias',
+      'Maria Julia Pestana Amaral',
+      'Matteo Pereira de Francesco',
+      'Pamella Loyolla Rocha de Sousa',
+      'Pedro Antunes de Souza',
+      'Pedro Luiz Santos Magalhães',
+      'Sophia Almeida Sousa',
+      'Talita Yumi Pires Sato',
+    ];
+
+    final List<String> students3 = [
+      'Ana Beatriz Vieira Aguilar',
+      'Ana Vitoria Pena Ferraz',
+      'Arthur Caram Fiorese Herrada',
+      'Beatriz de Oliveira Trevisan',
+      'Beatriz Lourenço do Poço',
+      'Bruno Kazuya Takinami',
+      'Carolina Paschoa Barbosa',
+      'Eduardo Mamede Oliveira',
+      'Felipe Alves Andretta',
+      'Felipe Castilhioni de Andrade',
+      'Felipe Motitsuki Tan',
+      'Fernando Hideki Takano',
+      'Gabriela Pithon Vranjac',
+      'Gabriella de Souza Cabral',
+      'Giovana Ribeiro Mota',
+      'Grazielly Victoria dos Santos da Silva',
+      'Isabela Dias Siqueira',
+      'Isabela Yumi Lima',
+      'Isabella Gomes Rodrigues',
+      'Isabella Telles de Oliveira',
+      'Julia Cardoso de Oliveira Ferreira',
+      'Julia Wietholter Vancin',
+      'Laura Cristina Costa',
+      'Laura Souza Araujo Lima',
+      'Leandro Tamarindo Dias',
+      'Leonardo Amora da Fonseca',
+      'Lucas Amora da Fonseca',
+      'Manuela Nascimento Leonardi',
+      'Maria Clara Mendes de Oliveira',
+      'Maria Fernanda Lourenço Silva',
+      'Maria Fernanda Rodrigues Barreto',
+      'Maria Fernanda Souza Barbosa',
+      'Maria Paula Serafim Furtado',
+      'Mariane Sousa Ferrara',
+      'Mel Novais de Araujo',
+      'Murilo de Oliveira Correa',
+      'Murilo Rufino Santos',
+      'Natalia Pereira Lanza',
+      'Otavio Fernandes Virgilio',
+      'Pedro Mattos Toledo Ribeiro',
+      'Sabryna Deboni de Souza',
+      'Thiago Motitsuki Tan',
+      'Thiago Vinicius Franco de Queiroz Custodio Leves',
+      'Vinicius Pacheco Araujo',
+    ];
+ */

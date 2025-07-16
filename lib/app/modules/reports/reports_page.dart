@@ -76,7 +76,7 @@ class ReportsPage extends GetView<ReportsController> {
                   value: percentage / 100,
                   backgroundColor: Colors.grey.shade300,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    Colors.green.shade700,
+                  colorScheme.primary,
                   ),
                   minHeight: 10,
                 ),
@@ -86,7 +86,7 @@ class ReportsPage extends GetView<ReportsController> {
                   child: Text(
                     '${percentage.toStringAsFixed(1)}% de presença',
                     style: TextStyle(
-                      color: Colors.green.shade800,
+                      color: colorScheme.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -153,7 +153,10 @@ class ReportsPage extends GetView<ReportsController> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton.icon(
-                  onPressed: () {},
+                  onPressed: () => Get.toNamed(
+                    '/reports/occurrences-report',
+                    arguments: controller.classe.value,
+                  ),
                   icon: Icon(Icons.bar_chart, color: colorScheme.primary),
                   label: Text(
                     'Relatório de Ocorrências',
@@ -275,7 +278,10 @@ class ReportsPage extends GetView<ReportsController> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton.icon(
-                  onPressed: () {},
+                  onPressed: () => Get.toNamed(
+                    '/reports/homework-report',
+                    arguments: controller.classe.value,
+                  ),
                   icon: Icon(Icons.bar_chart, color: colorScheme.primary),
                   label: Text(
                     'Relatório de Tarefas',

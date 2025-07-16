@@ -17,4 +17,6 @@ abstract class IReportsRepository {
   Future<Map<String, dynamic>> getAttendanceGridDataByClassId(int classId);
   Future<List<Map<String, dynamic>>> getStudentClassesWithDetails(int studentId);
   Future<List<Map<String, dynamic>>> getStudentOccurrencesByClass(int studentId);
+  Future<Map<String, List<Map<String, dynamic>>>>
+      getOccurrencesByClassIdGroupedByType(int classId);
 }

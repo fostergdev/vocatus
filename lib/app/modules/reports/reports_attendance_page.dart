@@ -169,13 +169,11 @@ class AttendanceReportPage extends GetView<ReportsController> {
         final date = DateTime.parse(sessions.first['date']);
         final monthName = DateFormat('MMM', 'pt_BR').format(date).toLowerCase();
 
-        // Criar nome seguro para a aba (máximo 31 caracteres)
         var sheetName = _cleanSheetName(monthName);
         if (sheetName.length > 31) {
           sheetName = sheetName.substring(0, 31);
         }
 
-        // Garantir que o nome da aba seja único
         var finalSheetName = sheetName;
         var counter = 1;
         while (excel.tables.containsKey(finalSheetName)) {
@@ -183,14 +181,11 @@ class AttendanceReportPage extends GetView<ReportsController> {
           counter++;
         }
 
-        // Criar a aba
         final sheet = excel[finalSheetName];
 
         try {
-          // Construir conteúdo da planilha
           _buildExcelSheet(sheet, sessions);
         } catch (e) {
-          print('Erro ao construir sheet $finalSheetName: $e');
           // Continuar com as outras abas mesmo se uma falhar
         }
       }

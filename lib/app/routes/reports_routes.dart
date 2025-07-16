@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:vocatus/app/modules/reports/attendance_report_page.dart';
+import 'package:vocatus/app/modules/reports/reports_attendance_page.dart';
 import 'package:vocatus/app/modules/reports/reports_bindings.dart';
 import 'package:vocatus/app/modules/reports/reports_page.dart';
 
@@ -7,6 +7,9 @@ import 'package:vocatus/app/modules/reports/reports_page.dart';
 import 'package:vocatus/app/modules/reports/reports_students_page.dart';
 import 'package:vocatus/app/modules/reports/student_unified_report/student_unified_report_bindings.dart';
 import 'package:vocatus/app/modules/reports/student_unified_report/student_unified_report_page.dart';
+
+import 'package:vocatus/app/modules/reports/reports_homework_page.dart';
+import 'package:vocatus/app/modules/reports/reports_occurrences_page.dart';
 
 class ReportsRoutes {
   ReportsRoutes._();
@@ -30,6 +33,16 @@ class ReportsRoutes {
       name: '/reports/student-unified-report',
       page: () => const StudentUnifiedReportPage(),
       binding: StudentUnifiedReportBindings(),
+    ),
+    GetPage(
+      name: '/reports/occurrences-report',
+      page: () => const ReportsOccurrencesPage(),
+      binding: ReportsBindings(),
+    ),
+    GetPage(
+      name: '/reports/homework-report',
+      page: () => const ReportsHomeworkPage(),
+      binding: ReportsBindings(),
     ),
 /*     GetPage(
       name: '/reports/attendance-report',

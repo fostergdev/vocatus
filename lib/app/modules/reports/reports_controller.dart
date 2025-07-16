@@ -23,6 +23,7 @@ class ReportsController extends GetxController {
   final RxDouble attendancePercentage = 0.0.obs;
   final RxDouble averageOccurrences = 0.0.obs;
   final RxMap<String, int> occurrenceCountByType = <String, int>{}.obs;
+  final RxMap<String, List<dynamic>> occurrencesByType = <String, List<dynamic>>{}.obs;
   final RxInt touchedIndex = (-1).obs;
 
   // Attendance Grid Data
@@ -252,6 +253,10 @@ class ReportsController extends GetxController {
 
       final counts = await _reportsRepository.getOccurrenceCountByType(classId);
       occurrenceCountByType.value = counts;
+
+      final occurrencesData = await _reportsRepository.getOccurrencesByClassIdGroupedByType(classId);
+      occurrencesByType.value = occurrencesData;
+
     } catch (e) {
       Get.snackbar(
         'Erro',

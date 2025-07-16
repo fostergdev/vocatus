@@ -247,7 +247,7 @@ class ClassesPage extends GetView<ClassesController> {
           );
         }
       }),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.small(
         onPressed: () async => await _showAddClasseDialog(
           context,
           colorScheme,
